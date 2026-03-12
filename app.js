@@ -1,548 +1,16 @@
-const STATUS_META = {
-  UNCHECKED: { label: "미확인", className: "status-unchecked" },
-  ACTION_REQUIRED: { label: "조치필요", className: "status-action" },
-  EXCLUDED: { label: "제외", className: "status-excluded" },
-  EXCLUSION_REQUESTED: { label: "제외신청", className: "status-requested" },
-  EXCLUSION_REJECTED: { label: "제외거부", className: "status-rejected" },
-};
-
-const STATUS_ORDER = [
-  "UNCHECKED",
-  "ACTION_REQUIRED",
-  "EXCLUDED",
-  "EXCLUSION_REQUESTED",
-  "EXCLUSION_REJECTED",
-];
-
-const USER_ALLOWED_STATUSES = new Set([
-  "UNCHECKED",
-  "ACTION_REQUIRED",
-  "EXCLUSION_REQUESTED",
-]);
-
-const ASSIGNEES = [
-  "김성진",
-  "장민교",
-  "이아름",
-  "박준호",
-  "최윤서",
-  "정하림",
-  "임다빈",
-  "송지후",
-];
-
-const detectionData = [
-  {
-    id: "det-1",
-    path: "/CUSTOMER/TB_CUSTOMER/RRN",
-    detectType: "주민등록번호",
-    count: 40,
-    assignees: ["김성진", "장민교", "이아름"],
-    status: "ACTION_REQUIRED",
-    comment: "마스킹 대상 우선 검토 필요",
-    assignee: "김성진",
-    piiRecords: [
-      {
-        id: "pii-1-1",
-        value: "820101-2345678",
-        count: 12,
-        uniqueValue: "CUST_NO=100948",
-        contextLines: [
-          "주문 이력 테이블 조인 결과에 원문 주민번호가 포함되어 있습니다.",
-          "최근 90일 내 조회 기록 4건이 확인되었습니다.",
-        ],
-        lookupQuery: "SELECT * FROM TB_CUSTOMER WHERE CUST_NO = '100948';",
-      },
-      {
-        id: "pii-1-2",
-        value: "790315-1456789",
-        count: 8,
-        uniqueValue: "CUST_NO=101204",
-        contextLines: [
-          "회원 통합 과정에서 이관된 데이터입니다.",
-          "주문 배송지 확인용 조회에서 함께 검출되었습니다.",
-        ],
-        lookupQuery: "SELECT * FROM TB_CUSTOMER WHERE CUST_NO = '101204';",
-      },
-      {
-        id: "pii-1-3",
-        value: "920711-2123456",
-        count: 6,
-        uniqueValue: "CUST_NO=109442",
-        contextLines: [
-          "정기 배치 산출물과 원본 컬럼이 동시에 노출됩니다.",
-          "조회 이력은 없지만 백업 스냅샷에 포함됩니다.",
-        ],
-        lookupQuery: "SELECT * FROM TB_CUSTOMER WHERE CUST_NO = '109442';",
-      },
-      {
-        id: "pii-1-4",
-        value: "700902-1654321",
-        count: 5,
-        uniqueValue: "CUST_NO=112908",
-        contextLines: [
-          "보상 처리 서브시스템에서 참조한 값입니다.",
-          "마스킹 정책 미반영 컬럼으로 분류됩니다.",
-        ],
-        lookupQuery: "SELECT * FROM TB_CUSTOMER WHERE CUST_NO = '112908';",
-      },
-      {
-        id: "pii-1-5",
-        value: "860624-2234567",
-        count: 4,
-        uniqueValue: "CUST_NO=119871",
-        contextLines: [
-          "외부 배치 파일 적재 과정에서 검출되었습니다.",
-          "개인정보 영향도 산정 대상입니다.",
-        ],
-        lookupQuery: "SELECT * FROM TB_CUSTOMER WHERE CUST_NO = '119871';",
-      },
-      {
-        id: "pii-1-6",
-        value: "950201-2012456",
-        count: 3,
-        uniqueValue: "CUST_NO=126551",
-        contextLines: [
-          "테스트 계정으로 추정되는 레코드와 함께 존재합니다.",
-          "업무팀 확인 필요 메모가 등록되어 있습니다.",
-        ],
-        lookupQuery: "SELECT * FROM TB_CUSTOMER WHERE CUST_NO = '126551';",
-      },
-    ],
-  },
-  {
-    id: "det-2",
-    path: "/CUSTOMER/TB_CUSTOMER/PASSPORT_NO",
-    detectType: "여권번호",
-    count: 20,
-    assignees: ["김성진", "장민교"],
-    status: "UNCHECKED",
-    comment: "",
-    assignee: "장민교",
-    piiRecords: [
-      {
-        id: "pii-2-1",
-        value: "M12845091",
-        count: 9,
-        uniqueValue: "PASSENGER_ID=30021",
-        contextLines: [
-          "해외여행 보험 가입 이력에서 여권번호가 확인되었습니다.",
-          "만료일 정보와 함께 저장되어 있습니다.",
-        ],
-        lookupQuery: "SELECT * FROM TB_CUSTOMER WHERE PASSENGER_ID = '30021';",
-      },
-      {
-        id: "pii-2-2",
-        value: "K90981244",
-        count: 6,
-        uniqueValue: "PASSENGER_ID=30117",
-        contextLines: [
-          "항공권 재발급 이력에서 추출되었습니다.",
-          "암호화 미적용 백업 테이블에 존재합니다.",
-        ],
-        lookupQuery: "SELECT * FROM TB_CUSTOMER WHERE PASSENGER_ID = '30117';",
-      },
-      {
-        id: "pii-2-3",
-        value: "N77451220",
-        count: 5,
-        uniqueValue: "PASSENGER_ID=30244",
-        contextLines: [
-          "고객센터 민원 처리 메모에 원문이 남아 있습니다.",
-          "접근 로그 2건이 확인되었습니다.",
-        ],
-        lookupQuery: "SELECT * FROM TB_CUSTOMER WHERE PASSENGER_ID = '30244';",
-      },
-    ],
-  },
-  {
-    id: "det-3",
-    path: "/PAYMENT/TB_BILLING/CARD_NO",
-    detectType: "카드번호",
-    count: 68,
-    assignees: ["박준호", "최윤서", "정하림", "송지후"],
-    status: "EXCLUSION_REQUESTED",
-    comment: "운영 정책상 부분 마스킹 예외 검토 중",
-    assignee: "박준호",
-    piiRecords: [
-      {
-        id: "pii-3-1",
-        value: "5123-1894-6672-8841",
-        count: 20,
-        uniqueValue: "BILL_ID=80021",
-        contextLines: [
-          "실결제 승인 로그에 부분 마스킹 형태로 남아 있습니다.",
-          "결제 취소 처리 프로시저에서 재참조됩니다.",
-        ],
-        lookupQuery: "SELECT * FROM TB_BILLING WHERE BILL_ID = '80021';",
-      },
-      {
-        id: "pii-3-2",
-        value: "4571-7732-4410-5519",
-        count: 18,
-        uniqueValue: "BILL_ID=81244",
-        contextLines: [
-          "정산 오류 분석용 임시 테이블에서 검출되었습니다.",
-          "장기 보관 정책 제외 신청 대상입니다.",
-        ],
-        lookupQuery: "SELECT * FROM TB_BILLING WHERE BILL_ID = '81244';",
-      },
-      {
-        id: "pii-3-3",
-        value: "3762-0048-1294-1190",
-        count: 12,
-        uniqueValue: "BILL_ID=82192",
-        contextLines: [
-          "국제 결제 이력 분석 리포트에 포함되었습니다.",
-          "삭제 예정 데이터셋과 중복됩니다.",
-        ],
-        lookupQuery: "SELECT * FROM TB_BILLING WHERE BILL_ID = '82192';",
-      },
-      {
-        id: "pii-3-4",
-        value: "5403-9182-6601-4412",
-        count: 10,
-        uniqueValue: "BILL_ID=83660",
-        contextLines: [
-          "부가 서비스 연동 로그에서 검출되었습니다.",
-          "개인정보 등급 재분류 필요 메모가 있습니다.",
-        ],
-        lookupQuery: "SELECT * FROM TB_BILLING WHERE BILL_ID = '83660';",
-      },
-      {
-        id: "pii-3-5",
-        value: "4485-0411-9022-9081",
-        count: 8,
-        uniqueValue: "BILL_ID=84001",
-        contextLines: [
-          "QA 샘플 테이블과 원본이 동시에 보관됩니다.",
-          "마이그레이션 잔존 데이터입니다.",
-        ],
-        lookupQuery: "SELECT * FROM TB_BILLING WHERE BILL_ID = '84001';",
-      },
-    ],
-  },
-  {
-    id: "det-4",
-    path: "/CUSTOMER/TB_PROFILE/EMAIL",
-    detectType: "이메일",
-    count: 120,
-    assignees: ["최윤서"],
-    status: "EXCLUDED",
-    comment: "고객 식별용 내부 대체키로 관리",
-    assignee: "최윤서",
-    piiRecords: [
-      {
-        id: "pii-4-1",
-        value: "sample.one@domain.com",
-        count: 35,
-        uniqueValue: "PROFILE_ID=42190",
-        contextLines: [
-          "마케팅 수신 동의 이력과 함께 저장됩니다.",
-          "표준 암호화 컬럼 전환 완료 대상입니다.",
-        ],
-        lookupQuery: "SELECT * FROM TB_PROFILE WHERE PROFILE_ID = '42190';",
-      },
-      {
-        id: "pii-4-2",
-        value: "hello.client@domain.com",
-        count: 29,
-        uniqueValue: "PROFILE_ID=42901",
-        contextLines: [
-          "로그인 실패 분석 리포트에서 추가 검출되었습니다.",
-          "서비스 탈퇴 후 익명화 예정입니다.",
-        ],
-        lookupQuery: "SELECT * FROM TB_PROFILE WHERE PROFILE_ID = '42901';",
-      },
-      {
-        id: "pii-4-3",
-        value: "vip.user@domain.com",
-        count: 24,
-        uniqueValue: "PROFILE_ID=43022",
-        contextLines: [
-          "우수고객 대응용 메모에서 원문이 확인되었습니다.",
-          "접근 권한 그룹 제한 예정입니다.",
-        ],
-        lookupQuery: "SELECT * FROM TB_PROFILE WHERE PROFILE_ID = '43022';",
-      },
-      {
-        id: "pii-4-4",
-        value: "renew.user@domain.com",
-        count: 18,
-        uniqueValue: "PROFILE_ID=43310",
-        contextLines: [
-          "갱신 캠페인 대상 추출 이력입니다.",
-          "보유 기간 만료 검토가 진행 중입니다.",
-        ],
-        lookupQuery: "SELECT * FROM TB_PROFILE WHERE PROFILE_ID = '43310';",
-      },
-      {
-        id: "pii-4-5",
-        value: "guest.account@domain.com",
-        count: 14,
-        uniqueValue: "PROFILE_ID=43997",
-        contextLines: [
-          "테스트 계정으로 생성되었으나 실제 데이터가 존재합니다.",
-          "운영팀 후속 정리가 필요합니다.",
-        ],
-        lookupQuery: "SELECT * FROM TB_PROFILE WHERE PROFILE_ID = '43997';",
-      },
-    ],
-  },
-  {
-    id: "det-5",
-    path: "/HR/TB_EMPLOYEE/MOBILE",
-    detectType: "휴대전화번호",
-    count: 56,
-    assignees: ["정하림", "임다빈"],
-    status: "ACTION_REQUIRED",
-    comment: "연락망 컬럼 정비 필요",
-    assignee: "임다빈",
-    piiRecords: [
-      {
-        id: "pii-5-1",
-        value: "010-2011-8821",
-        count: 14,
-        uniqueValue: "EMP_ID=E-1004",
-        contextLines: [
-          "비상 연락망과 급여 시스템 양쪽에서 확인됩니다.",
-          "퇴사자 정리 배치 미적용 대상입니다.",
-        ],
-        lookupQuery: "SELECT * FROM TB_EMPLOYEE WHERE EMP_ID = 'E-1004';",
-      },
-      {
-        id: "pii-5-2",
-        value: "010-7721-4410",
-        count: 12,
-        uniqueValue: "EMP_ID=E-1092",
-        contextLines: [
-          "사내 메신저 동기화 로그에 함께 남아 있습니다.",
-          "정책상 보관 기간 초과 가능성이 있습니다.",
-        ],
-        lookupQuery: "SELECT * FROM TB_EMPLOYEE WHERE EMP_ID = 'E-1092';",
-      },
-      {
-        id: "pii-5-3",
-        value: "010-5522-9831",
-        count: 10,
-        uniqueValue: "EMP_ID=E-1120",
-        contextLines: [
-          "채용 시스템 이관 데이터에서 확인되었습니다.",
-          "인사팀 검토 요청이 등록되어 있습니다.",
-        ],
-        lookupQuery: "SELECT * FROM TB_EMPLOYEE WHERE EMP_ID = 'E-1120';",
-      },
-      {
-        id: "pii-5-4",
-        value: "010-4119-5517",
-        count: 10,
-        uniqueValue: "EMP_ID=E-1188",
-        contextLines: [
-          "임시 프로젝트 조직도 자료에 원문이 포함됩니다.",
-          "마스킹 전환 우선순위 높음으로 분류됩니다.",
-        ],
-        lookupQuery: "SELECT * FROM TB_EMPLOYEE WHERE EMP_ID = 'E-1188';",
-      },
-      {
-        id: "pii-5-5",
-        value: "010-9221-6605",
-        count: 10,
-        uniqueValue: "EMP_ID=E-1234",
-        contextLines: [
-          "현장근무자 연락처 공유 문서에서 중복 검출되었습니다.",
-          "삭제 요청 이력은 아직 없습니다.",
-        ],
-        lookupQuery: "SELECT * FROM TB_EMPLOYEE WHERE EMP_ID = 'E-1234';",
-      },
-    ],
-  },
-  {
-    id: "det-6",
-    path: "/CLAIM/TB_CASE/NAME",
-    detectType: "성명",
-    count: 310,
-    assignees: ["송지후", "이아름"],
-    status: "UNCHECKED",
-    comment: "",
-    assignee: "송지후",
-    piiRecords: [
-      {
-        id: "pii-6-1",
-        value: "김민준",
-        count: 84,
-        uniqueValue: "CASE_ID=CL-3100",
-        contextLines: [
-          "민원 접수 본문과 첨부 메모에서 동시에 검출됩니다.",
-          "비정형 데이터 정제 룰 추가가 필요합니다.",
-        ],
-        lookupQuery: "SELECT * FROM TB_CASE WHERE CASE_ID = 'CL-3100';",
-      },
-      {
-        id: "pii-6-2",
-        value: "박서연",
-        count: 76,
-        uniqueValue: "CASE_ID=CL-3122",
-        contextLines: [
-          "진행 메모와 고객 요청사항 텍스트에 포함됩니다.",
-          "반복 검출 빈도가 높습니다.",
-        ],
-        lookupQuery: "SELECT * FROM TB_CASE WHERE CASE_ID = 'CL-3122';",
-      },
-      {
-        id: "pii-6-3",
-        value: "최하은",
-        count: 68,
-        uniqueValue: "CASE_ID=CL-3191",
-        contextLines: [
-          "기존 수기 입력 데이터로 분류됩니다.",
-          "정형 컬럼으로 분리 검토 대상입니다.",
-        ],
-        lookupQuery: "SELECT * FROM TB_CASE WHERE CASE_ID = 'CL-3191';",
-      },
-      {
-        id: "pii-6-4",
-        value: "정도윤",
-        count: 48,
-        uniqueValue: "CASE_ID=CL-3207",
-        contextLines: [
-          "심사 의견 본문에 포함됩니다.",
-          "삭제보다 가명화가 적합한 사례로 표시되었습니다.",
-        ],
-        lookupQuery: "SELECT * FROM TB_CASE WHERE CASE_ID = 'CL-3207';",
-      },
-      {
-        id: "pii-6-5",
-        value: "이주원",
-        count: 34,
-        uniqueValue: "CASE_ID=CL-3289",
-        contextLines: [
-          "문의 템플릿 자동완성으로 중복 저장되었습니다.",
-          "운영 가이드 정비가 필요합니다.",
-        ],
-        lookupQuery: "SELECT * FROM TB_CASE WHERE CASE_ID = 'CL-3289';",
-      },
-    ],
-  },
-  {
-    id: "det-7",
-    path: "/SUPPORT/TB_LOG/PHONE",
-    detectType: "전화번호",
-    count: 82,
-    assignees: ["박준호"],
-    status: "EXCLUSION_REJECTED",
-    comment: "제외 사유 불충분",
-    assignee: "박준호",
-    piiRecords: [
-      {
-        id: "pii-7-1",
-        value: "02-551-9921",
-        count: 26,
-        uniqueValue: "LOG_ID=LG-712",
-        contextLines: [
-          "콜백 요청 로그에 남아 있습니다.",
-          "API 중계 로그에도 동일 값이 존재합니다.",
-        ],
-        lookupQuery: "SELECT * FROM TB_LOG WHERE LOG_ID = 'LG-712';",
-      },
-      {
-        id: "pii-7-2",
-        value: "031-889-1200",
-        count: 21,
-        uniqueValue: "LOG_ID=LG-731",
-        contextLines: [
-          "장애 대응 티켓 본문에서 확인되었습니다.",
-          "전화번호 저장 목적 검토가 필요합니다.",
-        ],
-        lookupQuery: "SELECT * FROM TB_LOG WHERE LOG_ID = 'LG-731';",
-      },
-      {
-        id: "pii-7-3",
-        value: "010-1149-2282",
-        count: 20,
-        uniqueValue: "LOG_ID=LG-764",
-        contextLines: [
-          "내부 담당자 연락처와 혼재되어 있습니다.",
-          "표준 분류 룰이 부정확할 수 있습니다.",
-        ],
-        lookupQuery: "SELECT * FROM TB_LOG WHERE LOG_ID = 'LG-764';",
-      },
-      {
-        id: "pii-7-4",
-        value: "070-4122-1838",
-        count: 15,
-        uniqueValue: "LOG_ID=LG-799",
-        contextLines: [
-          "외부 협력사 연락처 이력입니다.",
-          "업무 목적 저장 근거가 부족합니다.",
-        ],
-        lookupQuery: "SELECT * FROM TB_LOG WHERE LOG_ID = 'LG-799';",
-      },
-    ],
-  },
-  {
-    id: "det-8",
-    path: "/ANALYTICS/TB_EXPORT/BIRTHDAY",
-    detectType: "생년월일",
-    count: 47,
-    assignees: ["임다빈", "김성진"],
-    status: "ACTION_REQUIRED",
-    comment: "비식별 정책 미준수 가능",
-    assignee: "김성진",
-    piiRecords: [
-      {
-        id: "pii-8-1",
-        value: "1982-02-01",
-        count: 16,
-        uniqueValue: "ANALYSIS_ID=A-2201",
-        contextLines: [
-          "고객 분석용 추출본에 포함되었습니다.",
-          "대체키 적용 전 원문 컬럼이 남아 있습니다.",
-        ],
-        lookupQuery: "SELECT * FROM TB_EXPORT WHERE ANALYSIS_ID = 'A-2201';",
-      },
-      {
-        id: "pii-8-2",
-        value: "1994-07-15",
-        count: 13,
-        uniqueValue: "ANALYSIS_ID=A-2271",
-        contextLines: [
-          "모델 학습 샘플 테이블에 저장됩니다.",
-          "반출 통제 점검 필요 항목입니다.",
-        ],
-        lookupQuery: "SELECT * FROM TB_EXPORT WHERE ANALYSIS_ID = 'A-2271';",
-      },
-      {
-        id: "pii-8-3",
-        value: "1979-12-09",
-        count: 10,
-        uniqueValue: "ANALYSIS_ID=A-2290",
-        contextLines: [
-          "리포트 생성 임시 테이블에서 검출되었습니다.",
-          "보관기간 종료 대상입니다.",
-        ],
-        lookupQuery: "SELECT * FROM TB_EXPORT WHERE ANALYSIS_ID = 'A-2290';",
-      },
-      {
-        id: "pii-8-4",
-        value: "1988-11-21",
-        count: 8,
-        uniqueValue: "ANALYSIS_ID=A-2333",
-        contextLines: [
-          "샘플링 과정에서 원문이 유지되었습니다.",
-          "비식별 전처리 룰 보완이 필요합니다.",
-        ],
-        lookupQuery: "SELECT * FROM TB_EXPORT WHERE ANALYSIS_ID = 'A-2333';",
-      },
-    ],
-  },
-];
+﻿const service = window.MockDetectionService;
+const { STATUS_META, STATUS_ORDER, ASSIGNEES } = service;
 
 const refs = {};
 
+const initialDetections = service.getDetections();
+const initialDetection = initialDetections[0] ?? null;
+
 const state = {
   role: "admin",
-  selectedDetectionId: detectionData[0]?.id ?? null,
-  selectedPiiId: detectionData[0]?.piiRecords[0]?.id ?? null,
+  sidebarCollapsed: false,
+  selectedDetectionId: initialDetection?.id ?? null,
+  selectedPiiId: initialDetection?.piiRecords[0]?.id ?? null,
   checkedDetectionIds: new Set(),
   detectionFilters: {
     query: "",
@@ -572,11 +40,11 @@ const state = {
     piiPageSize: 7,
   },
   editorDraft: {
-    status: detectionData[0]?.status ?? null,
-    comment: detectionData[0]?.comment ?? "",
-    assignees: [...(detectionData[0]?.assignees ?? [])],
+    status: initialDetection?.status ?? null,
+    comment: initialDetection?.comment ?? "",
+    assignees: [...(initialDetection?.assignees ?? [])],
   },
-  editorDraftSourceId: detectionData[0]?.id ?? null,
+  editorDraftSourceId: initialDetection?.id ?? null,
   assigneeSearch: "",
   filterUi: {
     openKey: null,
@@ -594,6 +62,7 @@ const state = {
     assignee: "",
   },
   deleteModalOpen: false,
+  historyModalOpen: false,
 };
 
 document.addEventListener("DOMContentLoaded", init);
@@ -608,6 +77,8 @@ function init() {
 
 function cacheRefs() {
   const ids = [
+    "sidebar",
+    "sidebarToggle",
     "detectionSearchInput",
     "toggleFilterButton",
     "detectTypeFilterSelect",
@@ -641,8 +112,11 @@ function cacheRefs() {
     "detectionSortIndicatorStatus",
     "bulkEditButton",
     "deleteButton",
+    "recheckButton",
     "exportButton",
     "editorSummary",
+    "statusChangedAt",
+    "historyButton",
     "statusGrid",
     "commentInput",
     "commentCount",
@@ -661,6 +135,7 @@ function cacheRefs() {
     "piiPaginationCaption",
     "detailUnique",
     "contextList",
+    "detailRecheckButton",
     "copyQueryButton",
     "sortIndicatorValue",
     "sortIndicatorCount",
@@ -677,6 +152,9 @@ function cacheRefs() {
     "deleteModal",
     "deleteCaption",
     "confirmDeleteButton",
+    "historyModal",
+    "historyTableBody",
+    "historyEmpty",
     "toastStack",
   ];
 
@@ -687,6 +165,11 @@ function cacheRefs() {
 }
 
 function bindEvents() {
+  refs.sidebarToggle.addEventListener("click", () => {
+    state.sidebarCollapsed = !state.sidebarCollapsed;
+    render();
+  });
+
   refs.roleButtons.forEach((button) => {
     button.addEventListener("click", () => {
       state.role = button.dataset.role;
@@ -817,6 +300,13 @@ function bindEvents() {
   });
 
   refs.saveButton.addEventListener("click", handleSave);
+  refs.historyButton.addEventListener("click", () => {
+    if (!getSelectedDetection()) {
+      return;
+    }
+    state.historyModalOpen = true;
+    render();
+  });
 
   refs.piiSearchInput.addEventListener("input", (event) => {
     state.piiFilters.query = event.target.value.trim();
@@ -874,6 +364,34 @@ function bindEvents() {
     }
   });
 
+  refs.detailRecheckButton.addEventListener("click", () => {
+    const detection = getSelectedDetection();
+    const record = getSelectedPii();
+    if (!detection || !record) {
+      pushToast("이행점검할 개인정보를 선택하세요.", "danger");
+      return;
+    }
+    const result = service.recheckPiiRecord(detection.id, record.id);
+    if (!result.ok && result.reason === "already-processed") {
+      pushToast("선택한 Unique 대상은 이미 이행점검 처리되었습니다.");
+      return;
+    }
+    if (result.completed) {
+      state.checkedDetectionIds.delete(detection.id);
+      syncSelectionState();
+      render();
+      pushToast("모든 개인정보 이행점검이 완료되어 검출 목록에서 제거되었습니다.", "success");
+      return;
+    }
+
+    syncSelectionState();
+    render();
+    pushToast(
+      `Unique 기준 이행점검이 완료되었습니다. ${result.removedCount}건 제외, 잔여 ${result.remainingCount}건`,
+      "success"
+    );
+  });
+
   refs.bulkEditButton.addEventListener("click", () => {
     state.bulkEditDraft.open = true;
     render();
@@ -891,6 +409,18 @@ function bindEvents() {
     } else {
       pushToast("현재 검색 결과 기준으로 Excel 보고서를 생성했습니다.");
     }
+  });
+
+  refs.recheckButton.addEventListener("click", () => {
+    const targetIds = [...state.checkedDetectionIds];
+    if (!targetIds.length) {
+      pushToast("이행점검할 검출 경로를 체크박스로 선택하세요.", "danger");
+      return;
+    }
+    service.recheckDetections(targetIds);
+    syncSelectionState();
+    render();
+    pushToast(`이행점검이 완료되어 ${targetIds.length}건의 검출 결과를 갱신했습니다.`, "success");
   });
 
   refs.bulkStatusEnabled.addEventListener("change", (event) => {
@@ -921,29 +451,32 @@ function bindEvents() {
 
   document.querySelectorAll("[data-close-modal]").forEach((button) => {
     button.addEventListener("click", () => {
-      if (button.dataset.closeModal === "bulkModal") {
-        state.bulkEditDraft.open = false;
-      }
-      if (button.dataset.closeModal === "deleteModal") {
-        state.deleteModalOpen = false;
-      }
+      closeModalById(button.dataset.closeModal);
       render();
     });
   });
 
-  [refs.bulkModal, refs.deleteModal].forEach((modal) => {
+  [refs.bulkModal, refs.deleteModal, refs.historyModal].forEach((modal) => {
     modal.addEventListener("click", (event) => {
       if (event.target !== modal) {
         return;
       }
-      if (modal === refs.bulkModal) {
-        state.bulkEditDraft.open = false;
-      } else {
-        state.deleteModalOpen = false;
-      }
+      closeModalById(modal.id);
       render();
     });
   });
+}
+
+function closeModalById(modalId) {
+  if (modalId === "bulkModal") {
+    state.bulkEditDraft.open = false;
+  }
+  if (modalId === "deleteModal") {
+    state.deleteModalOpen = false;
+  }
+  if (modalId === "historyModal") {
+    state.historyModalOpen = false;
+  }
 }
 
 function populateStaticControls() {
@@ -1114,6 +647,9 @@ function populateSelect(element, values, allLabel, useStatusLabel = false) {
 }
 
 function render() {
+  document.body.classList.toggle("sidebar-collapsed", state.sidebarCollapsed);
+  refs.sidebarToggle.textContent = state.sidebarCollapsed ? ">" : "<";
+  refs.sidebarToggle.setAttribute("aria-expanded", String(!state.sidebarCollapsed));
   refs.roleButtons.forEach((button) => {
     button.classList.toggle("is-active", button.dataset.role === state.role);
   });
@@ -1126,44 +662,21 @@ function render() {
   }
   renderDetectionTable();
   renderStatusButtons();
+  renderStatusCardHeader();
   renderEditor();
   renderPiiTable();
   renderPiiDetail();
   renderBulkModal();
   renderDeleteModal();
+  renderHistoryModal();
 }
 
 function getDetectTypes() {
-  return [...new Set(detectionData.map((item) => item.detectType))];
+  return service.getDetectTypes();
 }
 
 function getFilteredDetections() {
-  const items = detectionData.filter((item) => {
-    const query = state.detectionFilters.query.toLowerCase();
-    const matchesQuery = !query || item.path.toLowerCase().includes(query);
-    const matchesType =
-      state.detectionFilters.detectTypes.length === 0 || state.detectionFilters.detectTypes.includes(item.detectType);
-    const matchesAssignee =
-      state.detectionFilters.assignees.length === 0 ||
-      state.detectionFilters.assignees.every((assignee) => item.assignees.includes(assignee));
-    const matchesStatus =
-      state.detectionFilters.statuses.length === 0 || state.detectionFilters.statuses.includes(item.status);
-    return matchesQuery && matchesType && matchesAssignee && matchesStatus;
-  });
-  const dir = state.detectionSort.dir === "asc" ? 1 : -1;
-  items.sort((a, b) => {
-    if (state.detectionSort.key === "count") {
-      return (a.count - b.count) * dir;
-    }
-    if (state.detectionSort.key === "assignees") {
-      return a.assignees.join(", ").localeCompare(b.assignees.join(", "), "ko") * dir;
-    }
-    if (state.detectionSort.key === "status") {
-      return STATUS_META[a.status].label.localeCompare(STATUS_META[b.status].label, "ko") * dir;
-    }
-    return String(a[state.detectionSort.key]).localeCompare(String(b[state.detectionSort.key]), "ko") * dir;
-  });
-  return items;
+  return service.getFilteredDetections(state.detectionFilters, state.detectionSort);
 }
 
 function getDetectionPageItems() {
@@ -1205,6 +718,10 @@ function renderDetectionTable() {
     });
     checkboxCell.appendChild(checkbox);
 
+    const detectIdCell = document.createElement("td");
+    detectIdCell.className = "number-cell detect-id-cell";
+    detectIdCell.textContent = item.detectId.toLocaleString("ko-KR");
+
     const pathCell = document.createElement("td");
     pathCell.innerHTML = `<span class="path-text">${item.path}</span>`;
 
@@ -1222,7 +739,7 @@ function renderDetectionTable() {
     const statusCell = document.createElement("td");
     statusCell.appendChild(createStatusChip(item.status));
 
-    row.append(checkboxCell, pathCell, typeCell, countCell, assigneeCell, statusCell);
+    row.append(checkboxCell, detectIdCell, pathCell, typeCell, countCell, assigneeCell, statusCell);
     row.addEventListener("click", () => {
       state.selectedDetectionId = item.id;
       syncEditorDraft();
@@ -1236,6 +753,7 @@ function renderDetectionTable() {
   refs.selectAllDetections.checked = allSelectedOnPage;
   refs.selectAllDetections.indeterminate = !allSelectedOnPage && items.some((item) => state.checkedDetectionIds.has(item.id));
   refs.bulkEditButton.disabled = state.checkedDetectionIds.size === 0;
+  refs.recheckButton.disabled = state.checkedDetectionIds.size === 0;
   refs.deleteButton.disabled = state.checkedDetectionIds.size === 0;
   refs.detectionSortIndicatorPath.textContent = state.detectionSort.key === "path" ? (state.detectionSort.dir === "asc" ? "▲" : "▼") : "";
   refs.detectionSortIndicatorDetectType.textContent = state.detectionSort.key === "detectType" ? (state.detectionSort.dir === "asc" ? "▲" : "▼") : "";
@@ -1281,7 +799,7 @@ function createStatusChip(status) {
 }
 
 function getSelectedDetection() {
-  return detectionData.find((item) => item.id === state.selectedDetectionId) ?? null;
+  return service.findDetectionById(state.selectedDetectionId);
 }
 
 function syncSelectionState() {
@@ -1327,6 +845,12 @@ function renderStatusButtons() {
     });
     refs.statusGrid.appendChild(button);
   });
+}
+
+function renderStatusCardHeader() {
+  const detection = getSelectedDetection();
+  refs.statusChangedAt.textContent = `상태변경일시 ${formatDateTime(detection?.statusChangedAt)}`;
+  refs.historyButton.disabled = !detection;
 }
 
 function renderEditor() {
@@ -1414,7 +938,7 @@ function hasEditorChanges() {
 }
 
 function isStatusAllowedForRole(status, role) {
-  return role === "admin" || USER_ALLOWED_STATUSES.has(status);
+  return service.isStatusAllowedForRole(status, role);
 }
 
 function handleSave() {
@@ -1422,12 +946,30 @@ function handleSave() {
   if (!detection) {
     return;
   }
-  detection.status = state.editorDraft.status;
-  detection.comment = state.editorDraft.comment;
-  detection.assignees = [...state.editorDraft.assignees];
-  detection.assignee = detection.assignees[0] ?? "";
+  service.updateDetection(detection.id, {
+    status: state.editorDraft.status,
+    comment: state.editorDraft.comment,
+    assignees: state.editorDraft.assignees,
+    actor: getCurrentActor(),
+  });
   render();
   pushToast("검출 상태 정보가 저장되었습니다.", "success");
+}
+
+function getCurrentActor() {
+  return state.role === "admin" ? "관리자" : "일반사용자";
+}
+
+function formatDateTime(value) {
+  if (!value) {
+    return "-";
+  }
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return "-";
+  }
+  const pad = (number) => String(number).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
 function areStringArraysEqual(left, right) {
@@ -1457,22 +999,11 @@ async function copyText(text) {
 }
 
 function getSelectedPiiSet() {
-  return getSelectedDetection()?.piiRecords ?? [];
+  return service.getPiiRecords(state.selectedDetectionId);
 }
 
 function getFilteredPii() {
-  const query = state.piiFilters.query.toLowerCase();
-  const items = [...getSelectedPiiSet()].filter((item) => {
-    return !query || item.value.toLowerCase().includes(query) || item.uniqueValue.toLowerCase().includes(query);
-  });
-  items.sort((a, b) => {
-    const dir = state.piiFilters.sortDir === "asc" ? 1 : -1;
-    if (state.piiFilters.sortKey === "count") {
-      return (a.count - b.count) * dir;
-    }
-    return a.value.localeCompare(b.value, "ko") * dir;
-  });
-  return items;
+  return service.getFilteredPii(state.selectedDetectionId, state.piiFilters);
 }
 
 function syncPiiSelectionState(forceReset = false) {
@@ -1534,12 +1065,13 @@ function renderPiiTable() {
 }
 
 function getSelectedPii() {
-  return getSelectedPiiSet().find((item) => item.id === state.selectedPiiId) ?? null;
+  return service.findPiiRecord(state.selectedDetectionId, state.selectedPiiId);
 }
 
 function renderPiiDetail() {
   const record = getSelectedPii();
   const detection = getSelectedDetection();
+  refs.detailRecheckButton.disabled = !record || Boolean(record?.rechecked);
   refs.copyQueryButton.disabled = !record;
   refs.detailUnique.textContent = record?.uniqueValue ?? "-";
   refs.contextList.innerHTML = "";
@@ -1549,7 +1081,7 @@ function renderPiiDetail() {
     refs.contextList.appendChild(li);
     return;
   }
-  buildContextPreview(record, detection).forEach((line) => {
+  service.buildContextPreview(record, detection).forEach((line) => {
     const li = document.createElement("li");
     li.innerHTML = highlightDetectedValue(line, record.value);
     refs.contextList.appendChild(li);
@@ -1571,52 +1103,13 @@ function highlightDetectedValue(line, detectedValue) {
   return escapedLine.split(escapedValue).join(`<span class="detected-token">${escapedValue}</span>`);
 }
 
-function buildContextPreview(record, detection) {
-  const detectType = detection?.detectType ?? "";
-  const snippets = {
-    "주민등록번호": [
-      `김미미 ${record.value} 서울시 강남구`,
-      `이정훈 ${record.value} 부산시 해운대구`,
-    ],
-    "여권번호": [
-      `김미미 ${record.value} 서울시`,
-      `박서준 ${record.value} 인천시`,
-    ],
-    "카드번호": [
-      `김미미 ${record.value} VISA 서울`,
-      `박서준 ${record.value} MASTER 경기`,
-    ],
-    "이메일": [
-      `김미미 ${record.value} 서울시`,
-      `박서준 ${record.value} 인천시`,
-    ],
-    "휴대전화번호": [
-      `김미미 ${record.value} 서울시`,
-      `이정훈 ${record.value} 성남시`,
-    ],
-    "성명": [
-      `${record.value} 010-2234-8891 서울시`,
-      `${record.value} 010-7781-2210 부산시`,
-    ],
-    "전화번호": [
-      `김미미 ${record.value} 서울시`,
-      `박서준 ${record.value} 대전시`,
-    ],
-    "생년월일": [
-      `김미미 ${record.value} 서울시`,
-      `박서준 ${record.value} 인천시`,
-    ],
-  };
-  return snippets[detectType] ?? record.contextLines;
-}
-
 function renderPagination(container, totalItems, pageSize, currentPage, onClick) {
   container.innerHTML = "";
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
 
   const prev = document.createElement("button");
   prev.type = "button";
-  prev.textContent = "‹";
+  prev.textContent = "이전";
   prev.disabled = currentPage === 1 || totalItems === 0;
   prev.addEventListener("click", () => onClick(currentPage - 1));
   container.appendChild(prev);
@@ -1633,7 +1126,7 @@ function renderPagination(container, totalItems, pageSize, currentPage, onClick)
 
   const next = document.createElement("button");
   next.type = "button";
-  next.textContent = "›";
+  next.textContent = "다음";
   next.disabled = currentPage === totalPages || totalItems === 0;
   next.addEventListener("click", () => onClick(currentPage + 1));
   container.appendChild(next);
@@ -1679,22 +1172,9 @@ function applyBulkEdit() {
   if (state.checkedDetectionIds.size === 0) {
     return;
   }
-  detectionData.forEach((item) => {
-    if (!state.checkedDetectionIds.has(item.id)) {
-      return;
-    }
-    if (state.bulkEditDraft.statusEnabled && state.bulkEditDraft.status) {
-      item.status = state.bulkEditDraft.status;
-    }
-    if (state.bulkEditDraft.commentEnabled) {
-      item.comment = state.bulkEditDraft.comment;
-    }
-    if (state.bulkEditDraft.assigneeEnabled && state.bulkEditDraft.assignee) {
-      item.assignee = state.bulkEditDraft.assignee;
-      if (!item.assignees.includes(state.bulkEditDraft.assignee)) {
-        item.assignees = [state.bulkEditDraft.assignee, ...item.assignees].slice(0, 4);
-      }
-    }
+  service.applyBulkEdit([...state.checkedDetectionIds], {
+    ...state.bulkEditDraft,
+    actor: getCurrentActor(),
   });
   state.bulkEditDraft = {
     open: false,
@@ -1715,22 +1195,47 @@ function renderDeleteModal() {
   refs.deleteCaption.textContent = `선택한 ${state.checkedDetectionIds.size}건을 검출목록에서 삭제하시겠습니까?`;
 }
 
+function renderHistoryModal() {
+  const detection = getSelectedDetection();
+  const history = detection?.changeHistory ?? [];
+  refs.historyModal.hidden = !state.historyModalOpen || !detection;
+  refs.historyTableBody.innerHTML = "";
+  refs.historyEmpty.hidden = history.length > 0;
+
+  history.forEach((entry) => {
+    const row = document.createElement("tr");
+
+    const changedAtCell = document.createElement("td");
+    changedAtCell.textContent = formatDateTime(entry.changedAt);
+
+    const actorCell = document.createElement("td");
+    actorCell.textContent = entry.actor || "-";
+
+    const statusCell = document.createElement("td");
+    statusCell.textContent = STATUS_META[entry.status]?.label ?? entry.status ?? "-";
+
+    const commentCell = document.createElement("td");
+    commentCell.textContent = entry.comment || "-";
+
+    const assigneeCell = document.createElement("td");
+    assigneeCell.textContent = entry.assignees?.length ? entry.assignees.join(", ") : "-";
+
+    row.append(changedAtCell, actorCell, statusCell, commentCell, assigneeCell);
+    refs.historyTableBody.appendChild(row);
+  });
+}
+
 function applyDelete() {
   const selectedIds = [...state.checkedDetectionIds];
   if (selectedIds.length === 0) {
     return;
   }
-  selectedIds.forEach((id) => {
-    const index = detectionData.findIndex((item) => item.id === id);
-    if (index >= 0) {
-      detectionData.splice(index, 1);
-    }
-  });
+  service.deleteDetections(selectedIds);
   state.checkedDetectionIds.clear();
   state.deleteModalOpen = false;
   syncSelectionState();
   render();
-  pushToast("선택 항목이 삭제되었습니다.", "danger");
+  pushToast("선택 항목을 삭제했습니다.", "danger");
 }
 
 function pushToast(message, type = "default") {
