@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>개인정보 검출목록 샘플</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="page-shell">
+    <header class="hero-card card">
+      <div>
+        <h1>고객정보 운영 DB &gt; 부동산플랫폼(192.168.20.1:3306/DSTTT)</h1>
+      </div>
+      <div class="role-switch" aria-label="역할 선택">
+        <button type="button" class="role-btn is-active" data-role="admin">관리자</button>
+        <button type="button" class="role-btn" data-role="user">일반사용자</button>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <article class="card section-card detection-card">
+          <div class="toolbar-row">
+            <label class="search-field">
+              <span class="visually-hidden">검출경로 검색</span>
+              <input type="text" id="detectionSearchInput" placeholder="검출경로 검색">
+            </label>
+            <button type="button" class="ghost-btn" id="toggleFilterButton">🔎 상세필터</button>
+            <div class="filter-summary" id="detectionFilterSummary" hidden>
+              <span class="filter-badge">필터 적용됨</span>
+              <button type="button" class="text-btn" id="clearDetectionFilters">초기화</button>
+            </div>
+            <div class="toolbar-actions inline-actions">
+              <button type="button" class="ghost-btn" id="bulkEditButton" disabled>✏️ 수정</button>
+              <button type="button" class="danger-btn" id="deleteButton" hidden disabled>🗑 삭제</button>
+              <button type="button" class="primary-btn" id="exportButton">📥 내보내기</button>
+            </div>
+          </div>
+
+          <div class="table-shell">
+            <table class="data-table">
+              <colgroup>
+                <col style="width:56px">
+                <col style="width:40%">
+                <col style="width:18%">
+                <col style="width:10%">
+                <col style="width:18%">
+                <col style="width:14%">
+              </colgroup>
+              <thead>
+                <tr>
+                  <th class="checkbox-cell">
+                    <input type="checkbox" id="selectAllDetections" aria-label="전체 선택">
+                  </th>
+                  <th>
+                    <button type="button" class="sort-btn" data-detection-sort-key="path">
+                      검출경로
+                      <span class="sort-indicator" id="detectionSortIndicatorPath"></span>
+                    </button>
+                  </th>
+                  <th>
+                    <button type="button" class="sort-btn" data-detection-sort-key="detectType">
+                      검출타입
+                      <span class="sort-indicator" id="detectionSortIndicatorDetectType"></span>
+                    </button>
+                  </th>
+                  <th class="number-cell">
+                    <button type="button" class="sort-btn" data-detection-sort-key="count">
+                      건수
+                      <span class="sort-indicator" id="detectionSortIndicatorCount"></span>
+                    </button>
+                  </th>
+                  <th>
+                    <button type="button" class="sort-btn" data-detection-sort-key="assignees">
+                      담당자
+                      <span class="sort-indicator" id="detectionSortIndicatorAssignees"></span>
+                    </button>
+                  </th>
+                  <th>
+                    <button type="button" class="sort-btn" data-detection-sort-key="status">
+                      상태
+                      <span class="sort-indicator" id="detectionSortIndicatorStatus"></span>
+                    </button>
+                  </th>
+                </tr>
+              </thead>
+              <tbody id="detectionTableBody"></tbody>
+            </table>
+            <div class="empty-state" id="detectionEmpty" hidden>검색 조건에 맞는 검출 항목이 없습니다.</div>
+          </div>
+
+          <div class="pagination-row">
+            <p class="pagination-caption" id="detectionPaginationCaption"></p>
+            <div class="pagination" id="detectionPagination"></div>
+          </div>
+      </article>
+
+      <div class="right-rail">
+        <aside class="card section-card status-card">
+          <div class="selection-summary" id="editorSummary"></div>
+          <div class="status-grid" id="statusGrid"></div>
+
+          <label class="form-group">
+            <span>의견</span>
+            <textarea id="commentInput" rows="2" maxlength="500" placeholder="의견을 입력하세요 (최대 500자)"></textarea>
+            <small id="commentCount">0 / 500</small>
+          </label>
+
+          <div class="form-group">
+            <span>담당자</span>
+            <div class="assignee-picker" id="assigneePicker">
+              <button type="button" class="picker-trigger" id="assigneePickerTrigger" aria-expanded="false">담당자를 선택하세요</button>
+              <div class="picker-panel" id="assigneePickerPanel" hidden>
+                <input type="text" id="assigneeSearchInput" placeholder="담당자 검색">
+                <div class="picker-options" id="assigneeOptions"></div>
+              </div>
+            </div>
+          </div>
+
+          <button type="button" class="primary-btn wide-btn" id="saveButton" disabled>저장</button>
+        </aside>
+
+        <section class="card section-card pii-card">
+          <div class="toolbar-row">
+            <label class="search-field">
+              <span class="visually-hidden">개인정보 검색</span>
+              <input type="text" id="piiSearchInput" placeholder="개인정보 또는 Unique 정보 검색">
+            </label>
+            <div class="filter-summary" id="piiFilterSummary" hidden>
+              <span class="filter-badge">검색 적용됨</span>
+              <button type="button" class="text-btn" id="clearPiiFilters">초기화</button>
+            </div>
+          </div>
+
+          <div class="table-shell pii-table-shell">
+            <table class="data-table pii-table">
+              <colgroup>
+                <col style="width:78%">
+                <col style="width:22%">
+              </colgroup>
+              <thead>
+                <tr>
+                  <th>
+                    <button type="button" class="sort-btn" data-sort-key="value">
+                      개인정보
+                      <span class="sort-indicator" id="sortIndicatorValue"></span>
+                    </button>
+                  </th>
+                  <th class="number-cell">
+                    <button type="button" class="sort-btn" data-sort-key="count">
+                      개수
+                      <span class="sort-indicator" id="sortIndicatorCount"></span>
+                    </button>
+                  </th>
+                </tr>
+              </thead>
+              <tbody id="piiTableBody"></tbody>
+            </table>
+            <div class="empty-state" id="piiEmpty" hidden>선택한 검출건에 해당하는 개인정보가 없습니다.</div>
+          </div>
+
+          <div class="pagination-row">
+            <p class="pagination-caption" id="piiPaginationCaption"></p>
+            <div class="pagination" id="piiPagination"></div>
+          </div>
+
+          <div class="pii-detail-card" id="piiDetailCard">
+            <div class="detail-header">
+              <h3>상세정보</h3>
+              <button type="button" class="ghost-btn" id="copyQueryButton">조회 Query 복사</button>
+            </div>
+
+            <div class="detail-grid single-column">
+              <div class="detail-field">
+                <span>Unique 정보</span>
+                <strong id="detailUnique">-</strong>
+              </div>
+            </div>
+
+            <div class="context-block">
+              <span>검출내역 및 주변정보</span>
+              <ul id="contextList"></ul>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="bulkModal" hidden>
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <p class="section-kicker">Bulk Update</p>
+          <h3>선택 항목 일괄수정</h3>
+        </div>
+        <button type="button" class="icon-btn" data-close-modal="bulkModal">×</button>
+      </div>
+
+      <div class="modal-body">
+        <p class="modal-caption" id="bulkSelectionCaption"></p>
+
+        <label class="modal-check">
+          <input type="checkbox" id="bulkStatusEnabled">
+          <span>상태 변경</span>
+        </label>
+        <div class="bulk-status-grid" id="bulkStatusGrid"></div>
+
+        <label class="modal-check">
+          <input type="checkbox" id="bulkCommentEnabled">
+          <span>의견 변경</span>
+        </label>
+        <textarea id="bulkCommentInput" rows="4" maxlength="500" placeholder="일괄 반영할 의견을 입력하세요"></textarea>
+
+        <label class="modal-check">
+          <input type="checkbox" id="bulkAssigneeEnabled">
+          <span>담당자 변경</span>
+        </label>
+        <select id="bulkAssigneeSelect"></select>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="ghost-btn" data-close-modal="bulkModal">취소</button>
+        <button type="button" class="primary-btn" id="bulkApplyButton">일괄 적용</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="filter-popover" id="filterModal" hidden>
+    <div class="filter-popover-card">
+      <div class="filter-popover-header">
+        <strong>상세필터</strong>
+      </div>
+
+      <div class="filter-popover-body">
+        <div class="filter-panel popover-filter-panel">
+          <div class="filter-group">
+            <span>검출타입</span>
+            <div class="filter-select" id="detectTypeFilterSelect">
+              <button type="button" class="filter-select-trigger" id="detectTypeFilterTrigger">전체</button>
+              <div class="filter-select-panel" id="detectTypeFilterPanel" hidden>
+                <input type="text" id="detectTypeFilterSearch" placeholder="검출타입 검색">
+                <div class="filter-select-options" id="detectTypeFilterList"></div>
+              </div>
+            </div>
+          </div>
+          <div class="filter-group">
+            <span>담당자</span>
+            <div class="filter-select" id="assigneeFilterSelect">
+              <button type="button" class="filter-select-trigger" id="assigneeFilterTrigger">전체</button>
+              <div class="filter-select-panel" id="assigneeFilterPanel" hidden>
+                <input type="text" id="assigneeFilterSearch" placeholder="담당자 검색">
+                <div class="filter-select-options" id="assigneeFilterList"></div>
+              </div>
+            </div>
+          </div>
+          <div class="filter-group">
+            <span>이슈상태</span>
+            <div class="filter-select" id="statusFilterSelect">
+              <button type="button" class="filter-select-trigger" id="statusFilterTrigger">전체</button>
+              <div class="filter-select-panel" id="statusFilterPanel" hidden>
+                <input type="text" id="statusFilterSearch" placeholder="이슈상태 검색">
+                <div class="filter-select-options" id="statusFilterList"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="filter-popover-footer">
+        <button type="button" class="ghost-btn filter-action-btn" id="cancelFilterButton">취소</button>
+        <button type="button" class="primary-btn filter-action-btn" id="applyFilterButton">적용</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="deleteModal" hidden>
+    <div class="modal-card compact-modal">
+      <div class="modal-header">
+        <div>
+          <p class="section-kicker">Delete Confirmation</p>
+          <h3>선택 항목 삭제</h3>
+        </div>
+        <button type="button" class="icon-btn" data-close-modal="deleteModal">×</button>
+      </div>
+
+      <div class="modal-body">
+        <p id="deleteCaption">선택한 항목을 삭제하시겠습니까?</p>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="ghost-btn" data-close-modal="deleteModal">취소</button>
+        <button type="button" class="danger-btn" id="confirmDeleteButton">삭제</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-stack" id="toastStack" aria-live="polite" aria-atomic="true"></div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
