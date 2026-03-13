@@ -52,7 +52,29 @@
     <div class="page-shell">
       <header class="hero-card card">
         <div>
-          <h1>고객정보 운영 DB &gt; 부동산플랫폼(192.168.20.1:3306/DSTTT)</h1>
+          <h1>검출목록 <span class="hero-target">부동산플랫폼(192.168.20.1:3306/DSTTT)</span></h1>
+          <nav class="breadcrumb" aria-label="breadcrumb">
+            <a href="#" class="breadcrumb-link">점검대상</a>
+            <span class="breadcrumb-separator">&gt;</span>
+            <a href="#" class="breadcrumb-link">부동산플랫폼(192.168.20.1:3306/DSTTT)</a>
+            <span class="breadcrumb-separator">&gt;</span>
+            <a href="#" class="breadcrumb-link is-current" aria-current="page">12차 분석(2026-03-13 14:30 종료)</a>
+          </nav>
+        </div>
+        <div class="user-menu" id="userMenu">
+          <button
+            type="button"
+            class="user-menu-trigger"
+            id="userMenuTrigger"
+            aria-expanded="false"
+            aria-haspopup="true"
+          >
+            👤 김성진(5492438) v
+          </button>
+          <div class="user-menu-panel" id="userMenuPanel" hidden>
+            <button type="button" class="user-menu-item" id="userSettingsButton">사용자설정</button>
+            <button type="button" class="user-menu-item danger" id="logoutButton">로그아웃</button>
+          </div>
         </div>
       </header>
 
@@ -140,7 +162,7 @@
         <aside class="card section-card status-card">
           <div class="status-card-header">
             <div>
-              <h3 class="status-card-title">검출 상태</h3>
+              <h3 class="status-card-title">검출결과 상태</h3>
             </div>
             <div class="status-card-tools">
               <span class="status-changed-at" id="statusChangedAt">상태변경일시 -</span>

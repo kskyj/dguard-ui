@@ -116,6 +116,7 @@ const state = {
   },
   deleteModalOpen: false,
   historyModalOpen: false,
+  userMenuOpen: false,
 };
 
 document.addEventListener("DOMContentLoaded", init);
@@ -132,6 +133,11 @@ function cacheRefs() {
   const ids = [
     "sidebar",
     "sidebarToggle",
+    "userMenu",
+    "userMenuTrigger",
+    "userMenuPanel",
+    "userSettingsButton",
+    "logoutButton",
     "detectionSearchInput",
     "toggleFilterButton",
     "detectTypeFilterSelect",
@@ -248,11 +254,29 @@ function bindEvents() {
       state.role = button.dataset.role;
       state.selectedMenuKey = getDefaultMenuKey(state.role);
       state.openSidebarGroupKey = null;
+      state.userMenuOpen = false;
       refs.assigneePickerPanel.hidden = true;
       refs.assigneePickerTrigger.setAttribute("aria-expanded", "false");
       render();
       pushToast(`역할이 ${state.role === "admin" ? "관리자" : "일반사용자"}로 변경되었습니다.`);
     });
+  });
+
+  refs.userMenuTrigger.addEventListener("click", () => {
+    state.userMenuOpen = !state.userMenuOpen;
+    render();
+  });
+
+  refs.userSettingsButton.addEventListener("click", () => {
+    state.userMenuOpen = false;
+    render();
+    pushToast("사용자설정 화면은 샘플에서 준비 중입니다.");
+  });
+
+  refs.logoutButton.addEventListener("click", () => {
+    state.userMenuOpen = false;
+    render();
+    pushToast("로그아웃이 요청되었습니다.");
   });
 
   refs.detectionSearchInput.addEventListener("input", (event) => {
@@ -336,6 +360,9 @@ function bindEvents() {
   });
 
   document.addEventListener("click", (event) => {
+    if (!refs.userMenu.contains(event.target)) {
+      state.userMenuOpen = false;
+    }
     if (!refs.assigneePicker.contains(event.target)) {
       refs.assigneePickerPanel.hidden = true;
       refs.assigneePickerTrigger.setAttribute("aria-expanded", "false");
@@ -725,6 +752,8 @@ function render() {
   document.body.classList.toggle("sidebar-collapsed", state.sidebarCollapsed);
   refs.sidebarToggle.textContent = state.sidebarCollapsed ? ">" : "<";
   refs.sidebarToggle.setAttribute("aria-expanded", String(!state.sidebarCollapsed));
+  refs.userMenuTrigger.setAttribute("aria-expanded", String(state.userMenuOpen));
+  refs.userMenuPanel.hidden = !state.userMenuOpen;
   refs.roleButtons.forEach((button) => {
     button.classList.toggle("is-active", button.dataset.role === state.role);
   });
@@ -1141,7 +1170,7 @@ function handleSave() {
     actor: getCurrentActor(),
   });
   render();
-  pushToast("검출 상태 정보가 저장되었습니다.", "success");
+  pushToast("검출결과 상태 정보가 저장되었습니다.", "success");
 }
 
 function getCurrentActor() {

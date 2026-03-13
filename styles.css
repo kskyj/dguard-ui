@@ -196,7 +196,7 @@ body.sidebar-collapsed .app-shell {
 
 .sidebar-label {
   white-space: nowrap;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
 }
 
@@ -332,10 +332,114 @@ body.sidebar-collapsed .sidebar .role-switch {
   font-weight: 800;
 }
 
+.hero-target {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: rgba(152, 123, 233, 0.12);
+  color: var(--accent);
+  font-size: 15px;
+  font-weight: 800;
+  vertical-align: middle;
+}
+
 .eyebrow,
-.breadcrumb,
 .section-kicker {
   display: none;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.2;
+  flex-wrap: wrap;
+}
+
+.breadcrumb-link {
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 0.15s ease, text-decoration-color 0.15s ease;
+}
+
+.breadcrumb-link:hover {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.breadcrumb-link.is-current {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.breadcrumb-separator {
+  color: rgba(116, 124, 148, 0.72);
+}
+
+.user-menu {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.user-menu-trigger {
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid rgba(152, 123, 233, 0.22);
+  border-radius: 999px;
+  background: rgba(152, 123, 233, 0.1);
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.user-menu-trigger:hover {
+  background: rgba(152, 123, 233, 0.16);
+}
+
+.user-menu-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 20;
+  display: grid;
+  min-width: 140px;
+  padding: 6px;
+  border: 1px solid rgba(201, 208, 227, 0.9);
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 18px 36px rgba(28, 37, 71, 0.14);
+}
+
+.user-menu-panel[hidden] {
+  display: none;
+}
+
+.user-menu-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 32px;
+  padding: 0 10px;
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  text-align: left;
+}
+
+.user-menu-item:hover {
+  background: rgba(152, 123, 233, 0.08);
+  color: var(--accent);
+}
+
+.user-menu-item.danger:hover {
+  background: rgba(217, 91, 120, 0.08);
+  color: var(--danger);
 }
 
 .workspace {
@@ -404,6 +508,7 @@ body.sidebar-collapsed .sidebar .role-switch {
 .inline-actions .ghost-btn,
 .inline-actions .danger-btn,
 .inline-actions .primary-btn {
+  min-width: 92px;
   white-space: nowrap;
 }
 
@@ -413,8 +518,7 @@ body.sidebar-collapsed .sidebar .role-switch {
 .role-btn,
 .picker-trigger,
 .pagination button {
-  min-height: 30px;
-  height: 30px;
+  min-height: 32px;
   padding: 0 10px;
   border-radius: 10px;
   font-size: 11px;
@@ -491,8 +595,8 @@ body.sidebar-collapsed .sidebar .role-switch {
 }
 
 .search-field {
-  flex: 0 1 200px;
-  max-width: 200px;
+  flex: 0 1 280px;
+  max-width: 280px;
 }
 
 .filter-badge,
@@ -925,7 +1029,7 @@ body.sidebar-collapsed .sidebar .role-switch {
 
 .status-option,
 .bulk-status-option {
-  min-height: 24px;
+  min-height: 26px;
   /* height: 24px; */
   padding: 2px 5px;
   border: 1px solid var(--line);
@@ -988,7 +1092,7 @@ body.sidebar-collapsed .sidebar .role-switch {
   padding: 6px 8px;
   text-align: left;
   border-radius: 8px;
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .picker-option:hover,
@@ -1278,17 +1382,18 @@ body.sidebar-collapsed .sidebar .role-switch {
 }
 
 .status-card #commentCount {
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .status-card textarea {
   min-height: 42px;
   padding-top: 5px;
   padding-bottom: 5px;
+  font-size: 13px;
 }
 
 .status-card textarea::placeholder {
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .status-card .picker-trigger {
