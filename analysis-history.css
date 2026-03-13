@@ -1,0 +1,136 @@
+.history-workspace {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 8px;
+  min-height: calc(100vh - 72px);
+  max-height: calc(100vh - 72px);
+}
+
+.summary-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.summary-tile {
+  display: grid;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px solid rgba(201, 208, 227, 0.8);
+  border-radius: 14px;
+  background: linear-gradient(180deg, #fff 0%, #f7f9ff 100%);
+}
+
+.summary-tile span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.summary-tile strong {
+  color: var(--text);
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.history-list-card,
+.history-detail-card {
+  min-height: 0;
+}
+
+.history-list-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.history-list-card .table-shell {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
+
+.history-search-field {
+  flex-basis: 360px;
+  max-width: 360px;
+}
+
+.history-run-table tbody tr {
+  cursor: pointer;
+}
+
+.history-run-table tbody tr.is-selected {
+  background: rgba(152, 123, 233, 0.12);
+}
+
+.analysis-status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.analysis-status-chip::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.analysis-status-complete {
+  color: #157a63;
+  background: rgba(45, 161, 131, 0.14);
+}
+
+.analysis-status-running {
+  color: #2f66d0;
+  background: rgba(68, 125, 242, 0.14);
+}
+
+.analysis-status-failed {
+  color: #b23c5a;
+  background: rgba(217, 91, 120, 0.14);
+}
+
+.analysis-status-review {
+  color: #bb6d06;
+  background: rgba(255, 176, 64, 0.14);
+}
+
+.history-detail-card {
+  display: grid;
+  gap: 8px;
+}
+
+.history-detail-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.history-detail-grid .full-span {
+  grid-column: 1 / -1;
+}
+
+.detail-subtitle {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.history-note-block ul {
+  margin-top: 8px;
+}
+
+.history-note-block li {
+  margin-top: 4px;
+  color: #273252;
+  font-size: 12px;
+  line-height: 1.45;
+  white-space: normal;
+}
+
+.history-filter-panel {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}

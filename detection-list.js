@@ -4,55 +4,6 @@ const { STATUS_META, STATUS_ORDER, ASSIGNEES } = service;
 const refs = {};
 
 const DEFAULT_MENU_KEY = "inspection-target";
-const SIDEBAR_MENUS = {
-  admin: [
-    { key: "dashboard", label: "대시보드", icon: "▥" },
-    { key: "inspection-target", label: "점검대상", icon: "◎" },
-    { key: "inspection-schedule", label: "점검스케줄", icon: "◴" },
-    { key: "exception-request", label: "제외신청관리", icon: "⊖" },
-    { key: "action-plan", label: "조치계획관리", icon: "✎" },
-    { key: "board", label: "게시판", icon: "☰" },
-    {
-      key: "policy-management",
-      label: "정책관리",
-      icon: "⚙",
-      children: [
-        { key: "policy-profile", label: "프로파일", icon: "◌" },
-        { key: "policy-exception-filter", label: "예외필터", icon: "◇" },
-      ],
-    },
-    {
-      key: "target-management",
-      label: "대상관리",
-      icon: "▤",
-      children: [
-        { key: "target-server-db", label: "서버/DB", icon: "▣" },
-        { key: "target-account", label: "접속계정", icon: "◍" },
-        { key: "target-group", label: "그룹", icon: "◑" },
-        { key: "target-image-server", label: "이미지서버", icon: "◫" },
-        { key: "target-server-token", label: "서버토큰", icon: "◇" },
-      ],
-    },
-    {
-      key: "security-management",
-      label: "보안관리",
-      icon: "※",
-      children: [
-        { key: "security-user", label: "사용자", icon: "◉" },
-        { key: "security-user-group", label: "사용자 그룹", icon: "◍" },
-        { key: "security-access-right", label: "접근 권한", icon: "≣" },
-        { key: "security-log", label: "로그", icon: "⋯" },
-      ],
-    },
-  ],
-  user: [
-    { key: "inspection-target", label: "점검대상", icon: "◎" },
-    { key: "inspection-schedule", label: "점검스케줄", icon: "◴" },
-    { key: "exception-request", label: "제외신청관리", icon: "⊖" },
-    { key: "action-plan", label: "조치계획관리", icon: "✎" },
-    { key: "board", label: "게시판", icon: "☰" },
-  ],
-};
 
 const initialDetections = service.getDetections();
 const initialDetection = initialDetections[0] ?? null;
@@ -246,6 +197,10 @@ function bindEvents() {
     }
     state.selectedMenuKey = item.dataset.menuKey;
     state.openSidebarGroupKey = item.dataset.parentGroupKey ?? null;
+    if (state.selectedMenuKey === "analysis-history") {
+      window.location.href = "analysis-history.html";
+      return;
+    }
     render();
   });
 
@@ -780,118 +735,6 @@ function getDetectTypes() {
   return service.getDetectTypes();
 }
 
-function getSidebarMenu(role = state.role) {
-  return SIDEBAR_MENUS[role] ?? SIDEBAR_MENUS.user;
-}
-
-function getDefaultMenuKey(role = state.role) {
-  const menu = getSidebarMenu(role);
-  const availableKeys = menu.flatMap((item) => [item.key, ...(item.children?.map((child) => child.key) ?? [])]);
-  return availableKeys.includes(DEFAULT_MENU_KEY) ? DEFAULT_MENU_KEY : availableKeys[0] ?? null;
-}
-
-function renderSidebar() {
-  const menu = getSidebarMenu();
-  const availableKeys = menu.flatMap((item) => [item.key, ...(item.children?.map((child) => child.key) ?? [])]);
-  if (!availableKeys.includes(state.selectedMenuKey)) {
-    state.selectedMenuKey = getDefaultMenuKey();
-  }
-  const groupKeys = menu.filter((item) => item.children?.length).map((item) => item.key);
-  if (state.openSidebarGroupKey && !groupKeys.includes(state.openSidebarGroupKey)) {
-    state.openSidebarGroupKey = null;
-  }
-  if (!state.openSidebarGroupKey) {
-    const selectedParent = menu.find((item) => item.children?.some((child) => child.key === state.selectedMenuKey));
-    if (selectedParent) {
-      state.openSidebarGroupKey = selectedParent.key;
-    }
-  }
-
-  refs.sidebarNav.setAttribute("aria-label", state.role === "admin" ? "관리자 메뉴" : "일반사용자 메뉴");
-  refs.sidebarNav.innerHTML = "";
-
-  menu.forEach((item) => {
-    if (item.children?.length) {
-      refs.sidebarNav.appendChild(createSidebarGroup(item));
-      return;
-    }
-
-    refs.sidebarNav.appendChild(createSidebarButton(item));
-  });
-}
-
-function createSidebarGroup(item) {
-  const group = document.createElement("div");
-  group.className = "sidebar-group";
-  group.classList.toggle("is-open", state.openSidebarGroupKey === item.key);
-
-  const trigger = document.createElement("button");
-  trigger.type = "button";
-  trigger.className = "sidebar-item sidebar-group-trigger";
-  trigger.dataset.groupKey = item.key;
-  trigger.dataset.menuKey = item.key;
-  trigger.setAttribute("aria-haspopup", "true");
-  trigger.setAttribute("aria-expanded", String(state.openSidebarGroupKey === item.key));
-  trigger.classList.toggle(
-    "is-active",
-    item.key === state.selectedMenuKey || item.children.some((child) => child.key === state.selectedMenuKey)
-  );
-  if (item.key === state.selectedMenuKey) {
-    trigger.setAttribute("aria-current", "page");
-  }
-
-  const icon = document.createElement("span");
-  icon.className = "sidebar-icon";
-  icon.textContent = item.icon;
-
-  const label = document.createElement("span");
-  label.className = "sidebar-label";
-  label.textContent = item.label;
-
-  const plus = document.createElement("span");
-  plus.className = "sidebar-group-plus";
-  plus.textContent = state.openSidebarGroupKey === item.key ? "-" : "+";
-
-  trigger.append(icon, label, plus);
-
-  const submenu = document.createElement("div");
-  submenu.className = "sidebar-submenu";
-  submenu.setAttribute("role", "menu");
-  submenu.setAttribute("aria-label", `${item.label} 하위 메뉴`);
-  item.children.forEach((child) => {
-    submenu.appendChild(createSidebarButton(child, { child: true, parentGroupKey: item.key }));
-  });
-
-  group.append(trigger, submenu);
-  return group;
-}
-
-function createSidebarButton(item, options = {}) {
-  const { child = false, parentGroupKey = null } = options;
-  const button = document.createElement("button");
-  button.type = "button";
-  button.className = `sidebar-item${child ? " is-child-item" : ""}`;
-  button.dataset.menuKey = item.key;
-  if (parentGroupKey) {
-    button.dataset.parentGroupKey = parentGroupKey;
-  }
-  button.classList.toggle("is-active", item.key === state.selectedMenuKey);
-  if (item.key === state.selectedMenuKey) {
-    button.setAttribute("aria-current", "page");
-  }
-
-  const icon = document.createElement("span");
-  icon.className = "sidebar-icon";
-  icon.textContent = item.icon;
-
-  const label = document.createElement("span");
-  label.className = "sidebar-label";
-  label.textContent = item.label;
-
-  button.append(icon, label);
-  return button;
-}
-
 function getFilteredDetections() {
   return service.getFilteredDetections(state.detectionFilters, state.detectionSort);
 }
@@ -1320,35 +1163,6 @@ function highlightDetectedValue(line, detectedValue) {
   return escapedLine.split(escapedValue).join(`<span class="detected-token">${escapedValue}</span>`);
 }
 
-function renderPagination(container, totalItems, pageSize, currentPage, onClick) {
-  container.innerHTML = "";
-  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
-
-  const prev = document.createElement("button");
-  prev.type = "button";
-  prev.textContent = "이전";
-  prev.disabled = currentPage === 1 || totalItems === 0;
-  prev.addEventListener("click", () => onClick(currentPage - 1));
-  container.appendChild(prev);
-
-  for (let page = 1; page <= totalPages; page += 1) {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.textContent = String(page);
-    button.disabled = totalItems === 0;
-    button.classList.toggle("is-active", page === currentPage);
-    button.addEventListener("click", () => onClick(page));
-    container.appendChild(button);
-  }
-
-  const next = document.createElement("button");
-  next.type = "button";
-  next.textContent = "다음";
-  next.disabled = currentPage === totalPages || totalItems === 0;
-  next.addEventListener("click", () => onClick(currentPage + 1));
-  container.appendChild(next);
-}
-
 function renderBulkStatusButtons() {
   refs.bulkStatusGrid.innerHTML = "";
   STATUS_ORDER.forEach((status) => {
@@ -1453,6 +1267,31 @@ function applyDelete() {
   syncSelectionState();
   render();
   pushToast("선택 항목을 삭제했습니다.", "danger");
+}
+
+const shared = window.DGuardShared;
+
+function getSidebarMenu(role = state.role) {
+  return shared.getSidebarMenu(role);
+}
+
+function getDefaultMenuKey(role = state.role) {
+  return shared.getDefaultMenuKey(role);
+}
+
+function renderSidebar() {
+  const normalized = shared.renderSidebar({
+    container: refs.sidebarNav,
+    role: state.role,
+    selectedMenuKey: state.selectedMenuKey,
+    openSidebarGroupKey: state.openSidebarGroupKey,
+  });
+  state.selectedMenuKey = normalized.selectedMenuKey;
+  state.openSidebarGroupKey = normalized.openSidebarGroupKey;
+}
+
+function renderPagination(container, totalItems, pageSize, currentPage, onClick) {
+  shared.renderPagination(container, totalItems, pageSize, currentPage, onClick);
 }
 
 function pushToast(message, type = "default") {

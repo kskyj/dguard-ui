@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>점검이력 | D-Guard</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="./shared.css">
+  <link rel="stylesheet" href="./analysis-history.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar card" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-brand">
+          <span class="sidebar-logo">DG</span>
+          <div class="sidebar-brand-text">
+            <strong>D-Guard</strong>
+            <span>DB Scan</span>
+          </div>
+        </div>
+        <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-expanded="true" aria-label="사이드바 접기">⟨</button>
+      </div>
+
+      <nav class="sidebar-nav" aria-label="주요 메뉴"></nav>
+
+      <div class="sidebar-footer">
+        <span class="sidebar-footer-label">테스트용</span>
+        <div class="role-switch" aria-label="역할 선택">
+          <button type="button" class="role-btn is-active" data-role="admin">관리자</button>
+          <button type="button" class="role-btn" data-role="user">일반사용자</button>
+        </div>
+      </div>
+    </aside>
+
+    <div class="page-shell">
+      <header class="hero-card card">
+        <div>
+          <h1>점검이력 <span class="hero-target">부동산플랫폼 정기 스캔 이력</span></h1>
+          <nav class="breadcrumb" aria-label="breadcrumb">
+            <a href="detection-list.html" class="breadcrumb-link">점검대상</a>
+            <span class="breadcrumb-separator">&gt;</span>
+            <a href="#" class="breadcrumb-link">부동산플랫폼</a>
+            <span class="breadcrumb-separator">&gt;</span>
+            <a href="#" class="breadcrumb-link is-current" aria-current="page">점검이력</a>
+          </nav>
+        </div>
+        <div class="user-menu" id="userMenu">
+          <button
+            type="button"
+            class="user-menu-trigger"
+            id="userMenuTrigger"
+            aria-expanded="false"
+            aria-haspopup="true"
+          >
+            👤 김성진(5492438) v
+          </button>
+          <div class="user-menu-panel" id="userMenuPanel" hidden>
+            <button type="button" class="user-menu-item" id="userSettingsButton">사용자설정</button>
+            <button type="button" class="user-menu-item danger" id="logoutButton">로그아웃</button>
+          </div>
+        </div>
+      </header>
+
+      <main class="history-workspace">
+        <section class="card section-card summary-strip">
+          <div class="summary-tile">
+            <span>전체 분석</span>
+            <strong id="totalRunsValue">0</strong>
+          </div>
+          <div class="summary-tile">
+            <span>완료</span>
+            <strong id="completedRunsValue">0</strong>
+          </div>
+          <div class="summary-tile">
+            <span>검토 필요</span>
+            <strong id="reviewRunsValue">0</strong>
+          </div>
+          <div class="summary-tile">
+            <span>평균 검출건수</span>
+            <strong id="averageDetectionValue">0</strong>
+          </div>
+        </section>
+
+        <section class="card section-card history-list-card">
+          <div class="toolbar-row">
+            <label class="search-field history-search-field">
+              <span class="visually-hidden">점검이력 검색</span>
+              <input type="text" id="analysisSearchInput" placeholder="분석명, 대상명, 범위 검색">
+            </label>
+            <button type="button" class="ghost-btn" id="toggleHistoryFilterButton">🔎 상세필터</button>
+            <div class="filter-summary" id="historyFilterSummary" hidden>
+              <span class="filter-badge">필터 적용됨</span>
+              <button type="button" class="text-btn" id="clearHistoryFilters">초기화</button>
+            </div>
+            <div class="toolbar-actions inline-actions">
+              <button type="button" class="ghost-btn" id="compareReportButton">비교 보고서</button>
+              <button type="button" class="primary-btn" id="historyExportButton">📥 이력 내보내기</button>
+            </div>
+          </div>
+
+          <div class="table-shell">
+            <table class="data-table history-run-table">
+              <colgroup>
+                <col style="width:11%">
+                <col style="width:19%">
+                <col style="width:20%">
+                <col style="width:16%">
+                <col style="width:11%">
+                <col style="width:11%">
+                <col style="width:12%">
+              </colgroup>
+              <thead>
+                <tr>
+                  <th>
+                    <button type="button" class="sort-btn" data-sort-key="runName">
+                      분석차수
+                      <span class="sort-indicator" id="sortIndicatorRunName"></span>
+                    </button>
+                  </th>
+                  <th>
+                    <button type="button" class="sort-btn" data-sort-key="targetName">
+                      대상명
+                      <span class="sort-indicator" id="sortIndicatorTargetName"></span>
+                    </button>
+                  </th>
+                  <th>범위</th>
+                  <th>
+                    <button type="button" class="sort-btn" data-sort-key="endedAt">
+                      종료일시
+                      <span class="sort-indicator" id="sortIndicatorEndedAt"></span>
+                    </button>
+                  </th>
+                  <th class="number-cell">
+                    <button type="button" class="sort-btn" data-sort-key="detectionCount">
+                      검출건수
+                      <span class="sort-indicator" id="sortIndicatorDetectionCount"></span>
+                    </button>
+                  </th>
+                  <th>
+                    <button type="button" class="sort-btn" data-sort-key="status">
+                      상태
+                      <span class="sort-indicator" id="sortIndicatorStatus"></span>
+                    </button>
+                  </th>
+                  <th>
+                    <button type="button" class="sort-btn" data-sort-key="owner">
+                      담당자
+                      <span class="sort-indicator" id="sortIndicatorOwner"></span>
+                    </button>
+                  </th>
+                </tr>
+              </thead>
+              <tbody id="analysisTableBody"></tbody>
+            </table>
+            <div class="empty-state" id="analysisEmpty" hidden>조건에 맞는 점검이력이 없습니다.</div>
+          </div>
+
+          <div class="pagination-row">
+            <p class="pagination-caption" id="analysisPaginationCaption"></p>
+            <div class="pagination" id="analysisPagination"></div>
+          </div>
+        </section>
+
+        <section class="card section-card history-detail-card">
+          <div class="detail-header">
+            <div>
+              <h3 id="detailRunTitle">선택된 분석 없음</h3>
+              <p class="detail-subtitle" id="detailRunTarget">목록에서 점검이력을 선택하세요.</p>
+            </div>
+            <div class="detail-actions">
+              <button type="button" class="ghost-btn" id="openDetectionPageButton">검출목록 보기</button>
+            </div>
+          </div>
+
+          <div class="detail-grid history-detail-grid">
+            <div class="detail-field">
+              <span>분석 상태</span>
+              <strong id="detailStatus">-</strong>
+            </div>
+            <div class="detail-field">
+              <span>담당자</span>
+              <strong id="detailOwner">-</strong>
+            </div>
+            <div class="detail-field">
+              <span>수행 시간</span>
+              <strong id="detailDuration">-</strong>
+            </div>
+            <div class="detail-field">
+              <span>검출 유형 수</span>
+              <strong id="detailPiiTypes">-</strong>
+            </div>
+          </div>
+
+          <div class="detail-grid history-detail-grid">
+            <div class="detail-field full-span">
+              <span>분석 요약</span>
+              <strong id="detailSummary">-</strong>
+            </div>
+          </div>
+
+          <div class="context-block history-note-block">
+            <span>업체 전달 메모</span>
+            <ul id="detailNotes"></ul>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div class="filter-popover" id="historyFilterModal" hidden>
+    <div class="filter-popover-card">
+      <div class="filter-popover-header">
+        <strong>상세필터</strong>
+      </div>
+
+      <div class="filter-popover-body">
+        <div class="filter-panel history-filter-panel">
+          <div class="filter-group">
+            <span>분석 상태</span>
+            <div class="filter-select" id="historyStatusFilterSelect">
+              <button type="button" class="filter-select-trigger" id="historyStatusFilterTrigger">전체</button>
+              <div class="filter-select-panel" id="historyStatusFilterPanel" hidden>
+                <input type="text" id="historyStatusFilterSearch" placeholder="분석 상태 검색">
+                <div class="filter-select-options" id="historyStatusFilterList"></div>
+              </div>
+            </div>
+          </div>
+          <div class="filter-group">
+            <span>담당자</span>
+            <div class="filter-select" id="historyOwnerFilterSelect">
+              <button type="button" class="filter-select-trigger" id="historyOwnerFilterTrigger">전체</button>
+              <div class="filter-select-panel" id="historyOwnerFilterPanel" hidden>
+                <input type="text" id="historyOwnerFilterSearch" placeholder="담당자 검색">
+                <div class="filter-select-options" id="historyOwnerFilterList"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="filter-popover-footer">
+        <button type="button" class="ghost-btn filter-action-btn" id="cancelHistoryFilterButton">취소</button>
+        <button type="button" class="primary-btn filter-action-btn" id="applyHistoryFilterButton">적용</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-stack" id="toastStack" aria-live="polite" aria-atomic="true"></div>
+
+  <script src="./shared.js"></script>
+  <script src="./mock-analysis-history-service.js"></script>
+  <script src="./analysis-history.js"></script>
+</body>
+</html>
