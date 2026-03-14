@@ -249,7 +249,6 @@ body.sidebar-collapsed .app-shell {
   padding-left: 14px;
   color: rgba(255, 255, 255, 0.84);
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.04);
 }
 
 .sidebar-item.is-child-item:hover {
@@ -856,6 +855,23 @@ body.sidebar-collapsed .sidebar .role-switch {
   box-shadow: inset 4px 0 0 var(--accent);
 }
 
+.selection-banner-row td {
+  padding: 9px 12px;
+  background: rgba(152, 123, 233, 0.08);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.selection-banner-row .selection-banner-link {
+  margin-left: 6px;
+  color: var(--accent);
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .clickable-row {
   cursor: pointer;
 }
@@ -886,6 +902,48 @@ body.sidebar-collapsed .sidebar .role-switch {
 .modal-caption,
 #commentCount {
   color: var(--muted);
+}
+
+.toolbar-caption {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.toolbar-caption-strong {
+  color: var(--accent);
+  font-weight: 800;
+}
+
+.toolbar-caption-highlight {
+  color: var(--text);
+}
+
+.toolbar-caption-selected {
+  color: var(--accent);
+  font-weight: 800;
+}
+
+.accent-action-btn {
+  background: var(--button);
+  color: #fff;
+  border: 1px solid transparent;
+}
+
+.accent-action-btn:hover:not(:disabled) {
+  background: var(--button-hover);
+}
+
+.export-action-btn {
+  background: #fff;
+  color: var(--text);
+  border: 1px solid var(--line);
+}
+
+.export-action-btn:hover:not(:disabled) {
+  background: #f7f9fc;
 }
 
 #commentCount {

@@ -4,13 +4,39 @@
   const STATUS_META = {
     READY: { label: "대기", className: "inspection-status-ready" },
     RUNNING: { label: "점검중", className: "inspection-status-running" },
-    COMPLETED: { label: "최근완료", className: "inspection-status-completed" },
+    COMPLETED: { label: "점검완료", className: "inspection-status-completed" },
     FAILED: { label: "오류", className: "inspection-status-failed" },
   };
 
   const STATUS_ORDER = ["RUNNING", "READY", "COMPLETED", "FAILED"];
 
   const DB_TYPES = ["Oracle", "DB2", "Sybase", "MSSQL", "MySQL", "PostgreSQL", "Tibero", "MariaDB"];
+  const TARGET_NAMES = [
+    "개인정보통합관리",
+    "통합로그",
+    "부동산시스템",
+    "결제리포트",
+    "고객마스터",
+    "회원포털",
+    "인사정보",
+    "급여정산",
+    "전자계약",
+    "민원처리",
+    "대외연계",
+    "영업지원",
+    "물류추적",
+    "정산허브",
+    "리스크관리",
+    "감사추적",
+    "데이터허브",
+    "API게이트웨이",
+    "통합모니터링",
+    "문서중앙화",
+    "채널관리",
+    "자산관리",
+    "예산통제",
+    "점포운영",
+  ];
   const DOMAINS = ["고객", "결제", "민원", "영업", "물류", "인사", "마케팅", "통합", "정산", "파트너"];
   const SYSTEMS = ["운영", "분석", "중계", "리포트", "원장", "백업"];
   const ENVIRONMENTS = ["운영", "개발", "검증", "DR"];
@@ -46,10 +72,10 @@
       const status = STATUS_ORDER[(index * 3) % STATUS_ORDER.length];
       const startedAt = new Date(baseDate - ((index % 19) * 54 + index * 17) * 60000).toISOString();
       const durationMinutes = 12 + ((index * 11) % 214);
+      const searchCount = 4 + ((index * 13) % 186);
       const recentTableCount = 24 + ((index * 17) % 612);
       const recentDetectionCount = index % 6 === 0 ? 0 : 8 + ((index * 29) % 1830);
       const labelSeed = [
-        dbType,
         environment,
         `${domain}계`,
         index % 2 === 0 ? "핵심" : "실시간",
@@ -68,7 +94,7 @@
         labelSeed.push("고위험");
       }
 
-      const name = `${domain}${system} ${dbType} DB ${String(index).padStart(3, "0")}`;
+      const name = `${TARGET_NAMES[(index - 1) % TARGET_NAMES.length]} ${String(index).padStart(3, "0")}`;
       const serviceName = `${domain.toUpperCase()}_${system.toUpperCase()}_${String(index).padStart(3, "0")}`;
 
       list.push({
@@ -76,6 +102,7 @@
         name,
         serviceName,
         dbType,
+        searchCount,
         status,
         recentTableCount,
         recentDetectionCount,
@@ -94,7 +121,7 @@
   }
 
   function uniqueLabels(labels) {
-    return [...new Set(labels.map((label) => String(label).trim()).filter(Boolean))];
+    return [...new Set(labels.map((label) => String(label).trim()).filter((label) => label && !DB_TYPES.includes(label)))];
   }
 
   function getTargets() {

@@ -44,11 +44,9 @@
         <div class="user-menu" id="userMenu">
           <button type="button" class="user-menu-trigger" id="userMenuTrigger" aria-expanded="false" aria-haspopup="true">
             김성진(5492438)
-          <svg class="user-menu-caret" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false"
-            style="vertical-align: middle;">
-            <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"
-              stroke-linejoin="round" />
-          </svg>
+            <svg class="user-menu-caret" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+              <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
           </button>
           <div class="user-menu-panel" id="userMenuPanel" hidden>
             <button type="button" class="user-menu-item" id="userSettingsButton">사용자설정</button>
@@ -77,25 +75,69 @@
 
         <section class="card section-card run-target-card">
           <div class="toolbar-row">
-            <div class="run-caption" id="runCaption">선택 대상 요약</div>
+            <label class="search-field run-search-field">
+              <span class="visually-hidden">DB명 또는 라벨 검색</span>
+              <input type="text" id="runSearchInput" placeholder="DB명, 라벨 검색">
+            </label>
+            <button type="button" class="ghost-btn" id="toggleRunFilterButton">
+              <span class="btn-icon" aria-hidden="true">
+                <svg viewBox="0 0 16 16" focusable="false">
+                  <path d="M2.5 3.5h11l-4.2 4.5v3.3l-2.6 1.2V8z"></path>
+                </svg>
+              </span>
+              상세필터
+            </button>
+            <div class="filter-summary" id="runFilterSummary" hidden>
+              <span class="filter-badge" id="runFilterBadgeText">필터 적용됨</span>
+              <button type="button" class="text-btn" id="clearRunFiltersButton">초기화</button>
+            </div>
             <div class="toolbar-actions inline-actions">
-              <a class="ghost-btn run-link-btn" href="./inspection-target.html">목록으로</a>
-              <button type="button" class="primary-btn" id="startRunButton">점검 시작</button>
+              <button type="button" class="ghost-btn" id="bulkRunLabelButton" disabled>
+                <span class="btn-icon" aria-hidden="true">
+                  <svg viewBox="0 0 16 16" focusable="false">
+                    <path d="M11.8 2.3 13.7 4.2 5.1 12.8 2.5 13.5 3.2 10.9z"></path>
+                    <path d="M10.9 3.2 12.8 5.1"></path>
+                  </svg>
+                </span>
+                라벨 수정
+              </button>
+              <button type="button" class="ghost-btn" id="startRunButton" disabled>
+                <span class="btn-icon" aria-hidden="true">
+                  <svg viewBox="0 0 16 16" focusable="false">
+                    <path d="M6 4.2 11.5 8 6 11.8z"></path>
+                  </svg>
+                </span>
+                점검
+              </button>
+              <button type="button" class="primary-btn" id="exportRunButton" disabled>
+                <span class="btn-icon" aria-hidden="true">
+                  <svg viewBox="0 0 16 16" focusable="false">
+                    <path d="M8 2.5v7.2"></path>
+                    <path d="M5.4 7.8 8 10.5l2.6-2.7"></path>
+                    <path d="M3 12.5h10"></path>
+                  </svg>
+                </span>
+                내보내기
+              </button>
             </div>
           </div>
 
           <div class="table-shell run-table-shell">
             <table class="data-table run-table">
               <colgroup>
+                <col style="width:44px">
                 <col style="width:28%">
                 <col style="width:10%">
                 <col style="width:10%">
                 <col style="width:12%">
                 <col style="width:12%">
-                <col style="width:28%">
+                <col style="width:24%">
               </colgroup>
               <thead>
                 <tr>
+                  <th class="checkbox-cell">
+                    <input type="checkbox" id="selectAllRunTargets" aria-label="전체 선택">
+                  </th>
                   <th>DB명</th>
                   <th>DB종류</th>
                   <th>점검상태</th>
@@ -107,8 +149,91 @@
               <tbody id="runTargetTableBody"></tbody>
             </table>
           </div>
+
+          <div class="run-list-footer">
+            <p class="run-caption" id="runCaption">선택 대상 요약</p>
+          </div>
         </section>
       </main>
+    </div>
+  </div>
+
+  <div class="filter-popover" id="runFilterModal" hidden>
+    <div class="filter-popover-card">
+      <div class="filter-popover-header">
+        <strong>상세필터</strong>
+      </div>
+      <div class="filter-popover-body">
+        <div class="filter-panel run-filter-panel">
+          <div class="filter-group">
+            <span>점검상태</span>
+            <div class="filter-select">
+              <button type="button" class="filter-select-trigger" id="runStatusFilterTrigger">전체</button>
+              <div class="filter-select-panel" id="runStatusFilterPanel" hidden>
+                <input type="text" id="runStatusFilterSearch" placeholder="점검상태 검색">
+                <div class="filter-select-options" id="runStatusFilterList"></div>
+              </div>
+            </div>
+          </div>
+          <div class="filter-group">
+            <span>DB종류</span>
+            <div class="filter-select">
+              <button type="button" class="filter-select-trigger" id="runDbTypeFilterTrigger">전체</button>
+              <div class="filter-select-panel" id="runDbTypeFilterPanel" hidden>
+                <input type="text" id="runDbTypeFilterSearch" placeholder="DB종류 검색">
+                <div class="filter-select-options" id="runDbTypeFilterList"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="filter-popover-footer">
+        <button type="button" class="ghost-btn filter-action-btn" id="cancelRunFilterButton">취소</button>
+        <button type="button" class="primary-btn filter-action-btn" id="applyRunFilterButton">적용</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="runLabelModal" hidden>
+    <div class="modal-card run-label-modal-card">
+      <div class="modal-header">
+        <div>
+          <h3>라벨 일괄 수정</h3>
+          <p class="modal-caption" id="runLabelSelectionCaption">선택 DB 0대</p>
+        </div>
+      </div>
+      <div class="modal-body run-label-modal-body">
+        <div class="run-label-summary">
+          <span>선택 DB 현재 라벨</span>
+          <div class="run-label-chip-wrap" id="runSelectedLabelSummary"></div>
+        </div>
+        <div class="run-label-editor-grid">
+          <section class="run-label-editor-panel">
+            <div class="run-label-editor-head">
+              <strong>추가할 라벨</strong>
+            </div>
+            <div class="run-token-input-row">
+              <input type="text" id="runAddLabelInput" placeholder="추가 라벨 입력 후 Enter">
+              <button type="button" class="ghost-btn" id="runAddLabelButton">추가</button>
+            </div>
+            <div class="run-editable-chip-list" id="runAddLabelTokens"></div>
+          </section>
+          <section class="run-label-editor-panel">
+            <div class="run-label-editor-head">
+              <strong>제거할 라벨</strong>
+            </div>
+            <div class="run-token-input-row">
+              <input type="text" id="runRemoveLabelInput" placeholder="제거 라벨 입력 후 Enter">
+              <button type="button" class="ghost-btn" id="runRemoveLabelButton">추가</button>
+            </div>
+            <div class="run-editable-chip-list" id="runRemoveLabelTokens"></div>
+          </section>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="ghost-btn" id="closeRunLabelModalButton">취소</button>
+        <button type="button" class="primary-btn" id="applyRunLabelModalButton" disabled>적용</button>
+      </div>
     </div>
   </div>
 

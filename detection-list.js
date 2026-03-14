@@ -110,11 +110,12 @@ function cacheRefs() {
     "cancelFilterButton",
     "detectionFilterSummary",
     "clearDetectionFilters",
+    "detectionToolbarCaption",
     "selectAllDetections",
+    "detectionSelectionBannerBody",
     "detectionTableBody",
     "detectionEmpty",
     "detectionPagination",
-    "detectionPaginationCaption",
     "detectionSortIndicatorPath",
     "detectionSortIndicatorDetectType",
     "detectionSortIndicatorCount",
@@ -286,6 +287,17 @@ function bindEvents() {
       } else {
         state.checkedDetectionIds.delete(item.id);
       }
+    });
+    render();
+  });
+
+  refs.detectionSelectionBannerBody.addEventListener("click", (event) => {
+    const button = event.target.closest("#selectAllFilteredDetections");
+    if (!button) {
+      return;
+    }
+    getFilteredDetections().forEach((item) => {
+      state.checkedDetectionIds.add(item.id);
     });
     render();
   });
@@ -756,6 +768,7 @@ function renderDetectionTable() {
   syncSelectionState();
   const { all, items } = getDetectionPageItems();
   refs.detectionTableBody.innerHTML = "";
+  refs.detectionSelectionBannerBody.innerHTML = "";
   refs.detectionEmpty.hidden = all.length > 0;
   refs.detectionFilterSummary.hidden = !isDetectionFiltered();
 
@@ -814,8 +827,19 @@ function renderDetectionTable() {
   });
 
   const allSelectedOnPage = items.length > 0 && items.every((item) => state.checkedDetectionIds.has(item.id));
+  const checkedCountInFiltered = all.filter((item) => state.checkedDetectionIds.has(item.id)).length;
   refs.selectAllDetections.checked = allSelectedOnPage;
   refs.selectAllDetections.indeterminate = !allSelectedOnPage && items.some((item) => state.checkedDetectionIds.has(item.id));
+  refs.detectionSelectionBannerBody.hidden = !(allSelectedOnPage && checkedCountInFiltered > 0 && checkedCountInFiltered < all.length);
+  if (!refs.detectionSelectionBannerBody.hidden) {
+    const row = document.createElement("tr");
+    row.className = "selection-banner-row";
+    const cell = document.createElement("td");
+    cell.colSpan = 7;
+    cell.innerHTML = `페이지에서 ${items.length}개가 선택되었습니다. <button type="button" class="text-btn selection-banner-link" id="selectAllFilteredDetections">목록에서 총 ${all.length}개 데이터 선택</button>`;
+    row.appendChild(cell);
+    refs.detectionSelectionBannerBody.appendChild(row);
+  }
   refs.bulkEditButton.disabled = state.checkedDetectionIds.size === 0;
   refs.recheckButton.disabled = state.checkedDetectionIds.size === 0;
   refs.deleteButton.disabled = state.checkedDetectionIds.size === 0;
@@ -824,9 +848,9 @@ function renderDetectionTable() {
   refs.detectionSortIndicatorCount.textContent = state.detectionSort.key === "count" ? (state.detectionSort.dir === "asc" ? "▲" : "▼") : "";
   refs.detectionSortIndicatorAssignees.textContent = state.detectionSort.key === "assignees" ? (state.detectionSort.dir === "asc" ? "▲" : "▼") : "";
   refs.detectionSortIndicatorStatus.textContent = state.detectionSort.key === "status" ? (state.detectionSort.dir === "asc" ? "▲" : "▼") : "";
-  refs.detectionPaginationCaption.textContent = all.length
-    ? `${Math.min((state.pagination.detectionPage - 1) * state.pagination.detectionPageSize + 1, all.length)}-${Math.min(state.pagination.detectionPage * state.pagination.detectionPageSize, all.length)} / ${all.length}건`
-    : "0건";
+  refs.detectionToolbarCaption.innerHTML = all.length
+    ? `<span class="toolbar-caption-strong">전체 ${all.length}건</span> <span class="toolbar-caption-highlight">${Math.min((state.pagination.detectionPage - 1) * state.pagination.detectionPageSize + 1, all.length)} - ${Math.min(state.pagination.detectionPage * state.pagination.detectionPageSize, all.length)} 표시됨</span>${checkedCountInFiltered > 0 ? ` <span class="toolbar-caption-selected">${checkedCountInFiltered}건 선택됨</span>` : ""}`
+    : '<span class="toolbar-caption-strong">전체 0건</span> <span class="toolbar-caption-highlight">0 - 0 표시됨</span>';
   renderPagination(refs.detectionPagination, all.length, state.pagination.detectionPageSize, state.pagination.detectionPage, (page) => {
     state.pagination.detectionPage = page;
     render();

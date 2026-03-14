@@ -38,17 +38,22 @@
   min-height: 0;
 }
 
+.run-search-field {
+  flex-basis: 320px;
+  max-width: 320px;
+}
+
 .run-caption {
+  margin: 0;
   color: var(--muted);
   font-size: 12px;
   font-weight: 700;
 }
 
-.run-link-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  text-decoration: none;
+.run-list-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 6px;
 }
 
 .run-table-shell {
@@ -63,22 +68,23 @@
   font-size: 13px;
 }
 
-.run-label-wrap {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+.run-table tbody tr.is-checked {
+  background: rgba(152, 123, 233, 0.1);
 }
 
-.run-label-chip {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 8px;
-  border: 1px solid rgba(152, 123, 233, 0.2);
-  border-radius: 999px;
-  background: rgba(152, 123, 233, 0.1);
+.run-table tbody tr.is-checked td:first-child {
+  box-shadow: inset 4px 0 0 var(--accent);
+}
+
+#toggleRunFilterButton.is-filtered {
+  border-color: var(--accent);
   color: var(--accent);
-  font-size: 11px;
-  font-weight: 700;
+  background: linear-gradient(135deg, rgba(152, 123, 233, 0.18), rgba(125, 138, 247, 0.18));
+  box-shadow: inset 0 0 0 1px rgba(152, 123, 233, 0.18);
+}
+
+.run-filter-panel {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .run-status-chip {
@@ -117,4 +123,105 @@
 .inspection-status-failed {
   color: #b23c5a;
   background: rgba(217, 91, 120, 0.14);
+}
+
+.run-label-wrap,
+.run-label-chip-wrap,
+.run-editable-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.run-label-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border: 1px solid rgba(152, 123, 233, 0.2);
+  border-radius: 999px;
+  background: rgba(152, 123, 233, 0.1);
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.run-label-modal-card {
+  width: min(760px, 100%);
+}
+
+.run-label-modal-body {
+  gap: 16px;
+}
+
+.run-label-summary {
+  display: grid;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid rgba(201, 208, 227, 0.82);
+  border-radius: 12px;
+  background: linear-gradient(180deg, #fcfcff 0%, #f6f8fd 100%);
+}
+
+.run-label-summary > span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.run-label-editor-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.run-label-editor-panel {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(201, 208, 227, 0.82);
+  border-radius: 14px;
+  background: #fff;
+}
+
+.run-token-input-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.run-editable-chip-list {
+  min-height: 42px;
+  align-content: flex-start;
+}
+
+.run-editable-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.run-editable-chip.is-add {
+  color: #157a63;
+  background: rgba(45, 161, 131, 0.12);
+}
+
+.run-editable-chip.is-remove {
+  color: #b23c5a;
+  background: rgba(217, 91, 120, 0.12);
+}
+
+.run-editable-chip button {
+  color: inherit;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.run-label-chip.is-muted {
+  color: var(--muted);
+  border-style: dashed;
+  background: rgba(104, 112, 137, 0.08);
 }

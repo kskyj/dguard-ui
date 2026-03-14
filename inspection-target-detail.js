@@ -103,7 +103,7 @@ function renderDetailPage() {
   detailRefs.infoDescription.textContent = target.description;
   detailRefs.detailLabelList.innerHTML = target.labels.map((label) => `<span class="label-chip">${escapeHtml(label)}</span>`).join("");
   detailRefs.detailNotes.innerHTML = [
-    `${target.dbType} 유형 라벨은 등록 시 기본 부여됩니다.`,
+    `DB종류는 ${target.dbType}이며 라벨과 별도 속성으로 관리됩니다.`,
     `${target.ownerTeam} 기준 운영 대상이며 최근 점검 소요시간은 ${formatDuration(target.durationMinutes)}입니다.`,
     `최근 검출건수 ${target.recentDetectionCount.toLocaleString("ko-KR")}건 상세는 검출목록 링크로 이동합니다.`,
   ]
@@ -126,15 +126,11 @@ function formatDateTime(value) {
 }
 
 function formatDuration(minutes) {
-  const hours = Math.floor(minutes / 60);
-  const remainMinutes = minutes % 60;
-  if (!hours) {
-    return `${remainMinutes}분`;
-  }
-  if (!remainMinutes) {
-    return `${hours}시간`;
-  }
-  return `${hours}시간 ${remainMinutes}분`;
+  const totalSeconds = Math.max(0, Math.round(minutes * 60));
+  const hours = Math.floor(totalSeconds / 3600);
+  const remainMinutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  return `${String(hours).padStart(2, "0")}:${String(remainMinutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 }
 
 function pushDetailToast(message, type = "default") {

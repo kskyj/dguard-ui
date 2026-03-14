@@ -36,7 +36,7 @@
     <div class="page-shell">
       <header class="hero-card card">
         <div>
-          <h1>점검대상 <span class="hero-target" id="heroTargetPill">등록 DB 420대</span></h1>
+          <h1>점검대상</h1>
           <nav class="breadcrumb" aria-label="breadcrumb">
             <a href="./inspection-target.html" class="breadcrumb-link">점검대상</a>
             <span class="breadcrumb-separator">&gt;</span>
@@ -44,18 +44,10 @@
           </nav>
         </div>
         <div class="user-menu" id="userMenu">
-          <button
-            type="button"
-            class="user-menu-trigger"
-            id="userMenuTrigger"
-            aria-expanded="false"
-            aria-haspopup="true"
-          >
+          <button type="button" class="user-menu-trigger" id="userMenuTrigger" aria-expanded="false" aria-haspopup="true">
             김성진(5492438)
-            <svg class="user-menu-caret" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false"
-              style="vertical-align: middle;">
-              <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"
-                stroke-linejoin="round" />
+            <svg class="user-menu-caret" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+              <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></path>
             </svg>
           </button>
           <div class="user-menu-panel" id="userMenuPanel" hidden>
@@ -66,40 +58,71 @@
       </header>
 
       <main class="inspection-workspace">
-        <section class="card section-card summary-strip">
-          <div class="summary-tile">
-            <span>전체 DB</span>
-            <strong id="summaryTotal">0</strong>
-          </div>
-          <div class="summary-tile">
-            <span>점검중</span>
-            <strong id="summaryRunning">0</strong>
-          </div>
-          <div class="summary-tile">
-            <span>최근완료</span>
-            <strong id="summaryCompleted">0</strong>
-          </div>
-          <div class="summary-tile">
-            <span>등록 라벨</span>
-            <strong id="summaryLabels">0</strong>
-          </div>
-        </section>
-
         <section class="card section-card target-list-card">
+          <div class="summary-strip target-summary-strip">
+            <div class="summary-tile">
+              <span>전체 DB</span>
+              <strong id="summaryTotal">0</strong>
+            </div>
+            <div class="summary-tile is-completed">
+              <span>점검완료</span>
+              <strong id="summaryCompleted">0</strong>
+            </div>
+            <div class="summary-tile is-running">
+              <span>점검중</span>
+              <strong id="summaryRunning">0</strong>
+            </div>
+            <div class="summary-tile is-failed">
+              <span>점검오류</span>
+              <strong id="summaryFailed">0</strong>
+            </div>
+          </div>
+
           <div class="toolbar-row">
             <label class="search-field target-search-field">
-              <span class="visually-hidden">DB명 또는 라벨 검색</span>
-              <input type="text" id="targetSearchInput" placeholder="DB명, 라벨 검색">
+              <span class="visually-hidden">DB명, 라벨, DB종류 검색</span>
+              <input type="text" id="targetSearchInput" placeholder="DB명, 라벨, DB종류 검색">
             </label>
-            <button type="button" class="ghost-btn" id="toggleFilterButton">상세필터</button>
+            <button type="button" class="ghost-btn" id="toggleFilterButton">
+              <span class="btn-icon" aria-hidden="true">
+                <svg viewBox="0 0 16 16" focusable="false">
+                  <path d="M2.5 3.5h11l-4.2 4.5v3.3l-2.6 1.2V8z"></path>
+                </svg>
+              </span>
+              상세필터
+            </button>
             <div class="filter-summary" id="targetFilterSummary" hidden>
               <span class="filter-badge" id="filterBadgeText">필터 적용됨</span>
               <button type="button" class="text-btn" id="clearFiltersButton">초기화</button>
             </div>
             <div class="toolbar-actions inline-actions">
-              <button type="button" class="ghost-btn" id="bulkLabelButton" disabled>라벨 수정</button>
-              <button type="button" class="ghost-btn" id="startInspectionButton" disabled>점검</button>
-              <button type="button" class="primary-btn" id="exportButton" disabled>내보내기</button>
+              <button type="button" class="ghost-btn" id="bulkLabelButton" disabled>
+                <span class="btn-icon" aria-hidden="true">
+                  <svg viewBox="0 0 16 16" focusable="false">
+                    <path d="M11.8 2.3 13.7 4.2 5.1 12.8 2.5 13.5 3.2 10.9z"></path>
+                    <path d="M10.9 3.2 12.8 5.1"></path>
+                  </svg>
+                </span>
+                라벨수정
+              </button>
+              <button type="button" class="ghost-btn" id="startInspectionButton" disabled>
+                <span class="btn-icon" aria-hidden="true">
+                  <svg viewBox="0 0 16 16" focusable="false">
+                    <path d="M6 4.2 11.5 8 6 11.8z"></path>
+                  </svg>
+                </span>
+                점검
+              </button>
+              <button type="button" class="primary-btn" id="exportButton" disabled>
+                <span class="btn-icon" aria-hidden="true">
+                  <svg viewBox="0 0 16 16" focusable="false">
+                    <path d="M8 2.5v7.2"></path>
+                    <path d="M5.4 7.8 8 10.5l2.6-2.7"></path>
+                    <path d="M3 12.5h10"></path>
+                  </svg>
+                </span>
+                내보내기
+              </button>
             </div>
           </div>
 
@@ -107,23 +130,44 @@
             <table class="data-table inspection-table">
               <colgroup>
                 <col style="width:44px">
-                <col style="width:22%">
+                <col style="width:7%">
+                <col style="width:18%">
+                <col style="width:8%">
+                <col style="width:7%">
                 <col style="width:10%">
                 <col style="width:10%">
                 <col style="width:10%">
-                <col style="width:15%">
-                <col style="width:11%">
-                <col style="width:22%">
+                <col style="width:13%">
+                <col style="width:9%">
+                <col style="width:18%">
               </colgroup>
               <thead>
                 <tr>
                   <th class="checkbox-cell">
                     <input type="checkbox" id="selectAllTargets" aria-label="전체 선택">
                   </th>
+                  <th class="center-cell">
+                    <button type="button" class="sort-btn" data-sort-key="id">
+                      ID
+                      <span class="sort-indicator" id="sortIndicatorId"></span>
+                    </button>
+                  </th>
                   <th>
                     <button type="button" class="sort-btn" data-sort-key="name">
                       DB명
                       <span class="sort-indicator" id="sortIndicatorName"></span>
+                    </button>
+                  </th>
+                  <th class="center-cell">
+                    <button type="button" class="sort-btn" data-sort-key="dbType">
+                      DB종류
+                      <span class="sort-indicator" id="sortIndicatorDbType"></span>
+                    </button>
+                  </th>
+                  <th class="number-cell">
+                    <button type="button" class="sort-btn" data-sort-key="searchCount">
+                      검색 수
+                      <span class="sort-indicator" id="sortIndicatorSearchCount"></span>
                     </button>
                   </th>
                   <th>
@@ -144,13 +188,13 @@
                       <span class="sort-indicator" id="sortIndicatorDetectionCount"></span>
                     </button>
                   </th>
-                  <th>
+                  <th class="center-cell">
                     <button type="button" class="sort-btn" data-sort-key="inspectionStartedAt">
                       점검시작일시
                       <span class="sort-indicator" id="sortIndicatorStartedAt"></span>
                     </button>
                   </th>
-                  <th class="number-cell">
+                  <th class="center-cell">
                     <button type="button" class="sort-btn" data-sort-key="durationMinutes">
                       점검소요시간
                       <span class="sort-indicator" id="sortIndicatorDuration"></span>

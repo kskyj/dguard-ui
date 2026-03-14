@@ -77,11 +77,10 @@ function cacheRefs() {
     "userMenuPanel",
     "userSettingsButton",
     "logoutButton",
-    "heroTargetPill",
     "summaryTotal",
     "summaryRunning",
     "summaryCompleted",
-    "summaryLabels",
+    "summaryFailed",
     "targetSearchInput",
     "toggleFilterButton",
     "targetFilterSummary",
@@ -114,7 +113,10 @@ function cacheRefs() {
     "labelSuggestionList",
     "closeLabelModalButton",
     "applyLabelModalButton",
+    "sortIndicatorId",
     "sortIndicatorName",
+    "sortIndicatorDbType",
+    "sortIndicatorSearchCount",
     "sortIndicatorStatus",
     "sortIndicatorTableCount",
     "sortIndicatorDetectionCount",
@@ -211,7 +213,8 @@ function bindEvents() {
         state.sort.dir = state.sort.dir === "asc" ? "desc" : "asc";
       } else {
         state.sort.key = key;
-        state.sort.dir = key === "recentDetectionCount" || key === "recentTableCount" ? "desc" : "asc";
+        state.sort.dir =
+          key === "searchCount" || key === "recentDetectionCount" || key === "recentTableCount" ? "desc" : "asc";
       }
       render();
     });
@@ -405,13 +408,15 @@ function renderSummary() {
   refs.summaryTotal.textContent = summary.total.toLocaleString("ko-KR");
   refs.summaryRunning.textContent = summary.running.toLocaleString("ko-KR");
   refs.summaryCompleted.textContent = summary.completed.toLocaleString("ko-KR");
-  refs.summaryLabels.textContent = summary.labelCount.toLocaleString("ko-KR");
-  refs.heroTargetPill.textContent = `등록 DB ${summary.total.toLocaleString("ko-KR")}대`;
+  refs.summaryFailed.textContent = summary.failed.toLocaleString("ko-KR");
 }
 
 function renderSortIndicators() {
   const indicatorMap = {
+    id: refs.sortIndicatorId,
     name: refs.sortIndicatorName,
+    dbType: refs.sortIndicatorDbType,
+    searchCount: refs.sortIndicatorSearchCount,
     status: refs.sortIndicatorStatus,
     recentTableCount: refs.sortIndicatorTableCount,
     recentDetectionCount: refs.sortIndicatorDetectionCount,
@@ -446,16 +451,28 @@ function renderTable() {
       state.checkedTargetIds.has(item.id) ? "checked" : ""
     } aria-label="${escapeHtml(item.name)} 선택">`;
 
+    const idCell = document.createElement("td");
+    idCell.className = "center-cell";
+    idCell.textContent = item.id.toUpperCase();
+
     const nameCell = document.createElement("td");
     nameCell.innerHTML = `
       <div class="db-name-cell">
         <a class="db-link" href="./inspection-target-detail.html?dbId=${encodeURIComponent(item.id)}">${escapeHtml(item.name)}</a>
-        <span class="subtle-text">${escapeHtml(item.host)}:${escapeHtml(item.port)} / ${escapeHtml(item.instanceName)}</span>
+        <span class="subtle-text">${escapeHtml(item.host)}:${escapeHtml(item.port)}/${escapeHtml(item.instanceName)}</span>
       </div>
     `;
 
     const statusCell = document.createElement("td");
     statusCell.appendChild(createStatusChip(item.status));
+
+    const dbTypeCell = document.createElement("td");
+    dbTypeCell.className = "center-cell";
+    dbTypeCell.textContent = item.dbType;
+
+    const searchCountCell = document.createElement("td");
+    searchCountCell.className = "number-cell";
+    searchCountCell.textContent = item.searchCount.toLocaleString("ko-KR");
 
     const tableCountCell = document.createElement("td");
     tableCountCell.className = "number-cell";
@@ -470,16 +487,29 @@ function renderTable() {
     }
 
     const startedAtCell = document.createElement("td");
+    startedAtCell.className = "center-cell";
     startedAtCell.textContent = formatDateTime(item.inspectionStartedAt);
 
     const durationCell = document.createElement("td");
-    durationCell.className = "number-cell";
+    durationCell.className = "center-cell";
     durationCell.textContent = formatDuration(item.durationMinutes);
 
     const labelCell = document.createElement("td");
     labelCell.innerHTML = renderLabelCell(item.labels);
 
-    row.append(checkboxCell, nameCell, statusCell, tableCountCell, detectionCountCell, startedAtCell, durationCell, labelCell);
+    row.append(
+      checkboxCell,
+      idCell,
+      nameCell,
+      dbTypeCell,
+      searchCountCell,
+      statusCell,
+      tableCountCell,
+      detectionCountCell,
+      startedAtCell,
+      durationCell,
+      labelCell
+    );
     refs.targetTableBody.appendChild(row);
   });
 
@@ -628,6 +658,7 @@ function getFilteredTargets() {
     const matchesQuery =
       !query ||
       item.name.toLowerCase().includes(query) ||
+      item.dbType.toLowerCase().includes(query) ||
       item.labels.some((label) => label.toLowerCase().includes(query));
     const matchesStatus = !state.filters.statuses.length || state.filters.statuses.includes(item.status);
     const matchesLabelKeyword =
@@ -643,7 +674,12 @@ function getFilteredTargets() {
     if (state.sort.key === "inspectionStartedAt") {
       return (new Date(left.inspectionStartedAt).getTime() - new Date(right.inspectionStartedAt).getTime()) * dir;
     }
-    if (state.sort.key === "recentTableCount" || state.sort.key === "recentDetectionCount" || state.sort.key === "durationMinutes") {
+    if (
+      state.sort.key === "searchCount" ||
+      state.sort.key === "recentTableCount" ||
+      state.sort.key === "recentDetectionCount" ||
+      state.sort.key === "durationMinutes"
+    ) {
       return (left[state.sort.key] - right[state.sort.key]) * dir;
     }
     return String(left[state.sort.key]).localeCompare(String(right[state.sort.key]), "ko") * dir;
@@ -675,7 +711,10 @@ function buildFilterSummaryText() {
 
 function downloadExcel(rows) {
   const header = [
+    "ID",
     "DB명",
+    "DB종류",
+    "검색 수",
     "점검상태",
     "최근검색테이블수",
     "최근검출건수",
@@ -684,7 +723,10 @@ function downloadExcel(rows) {
     "라벨",
   ];
   const body = rows.map((item) => [
+    item.id.toUpperCase(),
     item.name,
+    item.dbType,
+    item.searchCount,
     STATUS_META[item.status].label,
     item.recentTableCount,
     item.recentDetectionCount,
@@ -752,15 +794,11 @@ function formatDuration(minutes) {
   if (!Number.isFinite(minutes)) {
     return "-";
   }
-  const hours = Math.floor(minutes / 60);
-  const remainMinutes = minutes % 60;
-  if (!hours) {
-    return `${remainMinutes}분`;
-  }
-  if (!remainMinutes) {
-    return `${hours}시간`;
-  }
-  return `${hours}시간 ${remainMinutes}분`;
+  const totalSeconds = Math.max(0, Math.round(minutes * 60));
+  const hours = Math.floor(totalSeconds / 3600);
+  const remainMinutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  return `${String(hours).padStart(2, "0")}:${String(remainMinutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 }
 
 function getFileTimestamp() {

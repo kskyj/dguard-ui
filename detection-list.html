@@ -97,6 +97,7 @@
               </span>
               상세필터
             </button>
+            <p class="toolbar-caption" id="detectionToolbarCaption"><span class="toolbar-caption-strong">전체 0건</span> <span class="toolbar-caption-highlight">0 - 0 표시됨</span></p>
             <div class="filter-summary" id="detectionFilterSummary" hidden>
               <span class="filter-badge">필터 적용됨</span>
               <button type="button" class="text-btn" id="clearDetectionFilters">초기화</button>
@@ -123,16 +124,7 @@
                 </span>
                 삭제
               </button>
-              <button type="button" class="ghost-btn" id="recheckButton">
-                <span class="btn-icon" aria-hidden="true">
-                  <svg viewBox="0 0 16 16" focusable="false">
-                    <path d="M12.5 5.5V2.8H9.8"></path>
-                    <path d="M12.2 3.2A5.2 5.2 0 1 0 13 8"></path>
-                  </svg>
-                </span>
-                이행점검
-              </button>
-              <button type="button" class="primary-btn" id="exportButton">
+              <button type="button" class="ghost-btn export-action-btn" id="exportButton">
                 <span class="btn-icon" aria-hidden="true">
                   <svg viewBox="0 0 16 16" focusable="false">
                     <path d="M8 2.5v7.2"></path>
@@ -141,6 +133,15 @@
                   </svg>
                 </span>
                 내보내기
+              </button>
+              <button type="button" class="primary-btn accent-action-btn" id="recheckButton">
+                <span class="btn-icon" aria-hidden="true">
+                  <svg viewBox="0 0 16 16" focusable="false">
+                    <path d="M12.5 5.5V2.8H9.8"></path>
+                    <path d="M12.2 3.2A5.2 5.2 0 1 0 13 8"></path>
+                  </svg>
+                </span>
+                이행점검
               </button>
             </div>
           </div>
@@ -194,13 +195,13 @@
                   </th>
                 </tr>
               </thead>
+              <tbody id="detectionSelectionBannerBody" hidden></tbody>
               <tbody id="detectionTableBody"></tbody>
             </table>
             <div class="empty-state" id="detectionEmpty" hidden>검색 조건에 맞는 검출 항목이 없습니다.</div>
           </div>
 
           <div class="pagination-row">
-            <p class="pagination-caption" id="detectionPaginationCaption"></p>
             <div class="pagination" id="detectionPagination"></div>
           </div>
       </article>
@@ -293,7 +294,8 @@
             <div class="detail-header">
               <h3>상세정보</h3>
               <div class="detail-actions">
-                <button type="button" class="ghost-btn" id="detailRecheckButton">
+                <button type="button" class="ghost-btn" id="copyQueryButton">조회 Query 복사</button>
+                <button type="button" class="primary-btn accent-action-btn" id="detailRecheckButton">
                   <span class="btn-icon" aria-hidden="true">
                     <svg viewBox="0 0 16 16" focusable="false">
                       <path d="M12.5 5.5V2.8H9.8"></path>
@@ -302,7 +304,6 @@
                   </span>
                   이행점검
                 </button>
-                <button type="button" class="ghost-btn" id="copyQueryButton">조회 Query 복사</button>
               </div>
             </div>
 
