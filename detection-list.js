@@ -68,12 +68,17 @@ const state = {
   deleteModalOpen: false,
   historyModalOpen: false,
   userMenuOpen: false,
+  routeContext: {
+    targetName: "",
+    detectType: "",
+  },
 };
 
 document.addEventListener("DOMContentLoaded", init);
 
 function init() {
   cacheRefs();
+  applyInitialRouteState();
   bindEvents();
   populateStaticControls();
   syncSelectionState();
@@ -174,6 +179,31 @@ function cacheRefs() {
   });
   refs.sidebarNav = document.querySelector(".sidebar-nav");
   refs.roleButtons = [...document.querySelectorAll(".role-btn")];
+  refs.detectionHeroTarget = document.querySelector(".hero-target");
+  const breadcrumbLinks = [...document.querySelectorAll(".breadcrumb-link")];
+  refs.detectionBreadcrumbTarget = breadcrumbLinks[1] ?? null;
+  refs.detectionBreadcrumbCurrent = breadcrumbLinks[2] ?? null;
+}
+
+function applyInitialRouteState() {
+  const params = new URLSearchParams(window.location.search);
+  state.routeContext.targetName = (params.get("target") ?? "").trim();
+  state.routeContext.detectType = (params.get("detectType") ?? "").trim();
+  state.detectionFilters.query = (params.get("detectionQuery") ?? "").trim();
+  state.piiFilters.query = (params.get("piiQuery") ?? "").trim();
+
+  if (state.routeContext.detectType && getDetectTypes().includes(state.routeContext.detectType)) {
+    state.detectionFilters.detectTypes = [state.routeContext.detectType];
+    state.detectionFilterDraft.detectTypes = [state.routeContext.detectType];
+  }
+
+  const detectionId = (params.get("detectionId") ?? "").trim();
+  if (detectionId && service.findDetectionById(detectionId)) {
+    state.selectedDetectionId = detectionId;
+  }
+
+  refs.detectionSearchInput.value = state.detectionFilters.query;
+  refs.piiSearchInput.value = state.piiFilters.query;
 }
 
 function bindEvents() {
@@ -729,6 +759,7 @@ function render() {
     button.classList.toggle("is-active", button.dataset.role === state.role);
   });
   renderSidebar();
+  renderRouteContext();
   refs.filterModal.hidden = !state.detectionFilters.panelOpen;
   refs.deleteButton.hidden = state.role !== "admin";
   refs.toggleFilterButton.classList.toggle("is-filtered", isDetectionFiltered());
@@ -745,6 +776,21 @@ function render() {
   renderBulkModal();
   renderDeleteModal();
   renderHistoryModal();
+}
+
+function renderRouteContext() {
+  if (state.routeContext.targetName) {
+    refs.detectionHeroTarget.textContent = state.routeContext.targetName;
+    if (refs.detectionBreadcrumbTarget) {
+      refs.detectionBreadcrumbTarget.textContent = state.routeContext.targetName;
+    }
+  }
+
+  if (refs.detectionBreadcrumbCurrent && (state.routeContext.targetName || state.routeContext.detectType)) {
+    refs.detectionBreadcrumbCurrent.textContent = state.routeContext.detectType
+      ? `${state.routeContext.detectType} 필터 결과`
+      : "검출목록";
+  }
 }
 
 function getDetectTypes() {
