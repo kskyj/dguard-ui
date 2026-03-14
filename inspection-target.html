@@ -91,6 +91,7 @@
               </span>
               상세필터
             </button>
+            <p class="toolbar-caption" id="targetToolbarCaption"><span class="toolbar-caption-strong">전체 0건</span> <span class="toolbar-caption-highlight">0 - 0 표시됨</span></p>
             <div class="filter-summary" id="targetFilterSummary" hidden>
               <span class="filter-badge" id="filterBadgeText">필터 적용됨</span>
               <button type="button" class="text-btn" id="clearFiltersButton">초기화</button>
@@ -105,15 +106,7 @@
                 </span>
                 라벨수정
               </button>
-              <button type="button" class="ghost-btn" id="startInspectionButton" disabled>
-                <span class="btn-icon" aria-hidden="true">
-                  <svg viewBox="0 0 16 16" focusable="false">
-                    <path d="M6 4.2 11.5 8 6 11.8z"></path>
-                  </svg>
-                </span>
-                점검
-              </button>
-              <button type="button" class="primary-btn" id="exportButton" disabled>
+              <button type="button" class="ghost-btn" id="exportButton" disabled>
                 <span class="btn-icon" aria-hidden="true">
                   <svg viewBox="0 0 16 16" focusable="false">
                     <path d="M8 2.5v7.2"></path>
@@ -122,6 +115,14 @@
                   </svg>
                 </span>
                 내보내기
+              </button>
+              <button type="button" class="primary-btn" id="startInspectionButton" disabled>
+                <span class="btn-icon" aria-hidden="true">
+                  <svg viewBox="0 0 16 16" focusable="false">
+                    <path d="M6 4.2 11.5 8 6 11.8z"></path>
+                  </svg>
+                </span>
+                점검
               </button>
             </div>
           </div>
@@ -170,7 +171,7 @@
                       <span class="sort-indicator" id="sortIndicatorSearchCount"></span>
                     </button>
                   </th>
-                  <th>
+                  <th class="center-cell">
                     <button type="button" class="sort-btn" data-sort-key="status">
                       점검상태
                       <span class="sort-indicator" id="sortIndicatorStatus"></span>
@@ -203,13 +204,10 @@
                   <th>라벨</th>
                 </tr>
               </thead>
+              <tbody id="targetSelectionBannerBody" hidden></tbody>
               <tbody id="targetTableBody"></tbody>
             </table>
             <div class="empty-state" id="targetEmpty" hidden>조건에 맞는 점검대상이 없습니다.</div>
-          </div>
-
-          <div class="list-footer">
-            <p class="list-caption" id="listCaption">0 / 0대</p>
           </div>
         </section>
       </main>

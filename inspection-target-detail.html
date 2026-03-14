@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>대상정보 | D-Guard</title>
+  <title>점검대상 상세 | D-Guard</title>
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="./shared.css">
   <link rel="stylesheet" href="./inspection-target-detail.css">
@@ -34,20 +34,20 @@
     <div class="page-shell">
       <header class="hero-card card">
         <div>
-          <h1>대상정보 <span class="hero-target" id="detailHeroTarget">선택 DB</span></h1>
+          <h1>점검대상 상세<span class="hero-target" id="detailHeroTarget">DB 선택</span></h1>
           <nav class="breadcrumb" aria-label="breadcrumb">
             <a href="./inspection-target.html" class="breadcrumb-link">점검대상</a>
             <span class="breadcrumb-separator">&gt;</span>
-            <a href="#" class="breadcrumb-link" id="detailBreadcrumbName">대상정보</a>
+            <a href="#" class="breadcrumb-link" id="detailBreadcrumbName">DB 상세</a>
             <span class="breadcrumb-separator">&gt;</span>
-            <a href="#" class="breadcrumb-link is-current" aria-current="page">대상정보</a>
+            <a href="#" class="breadcrumb-link is-current" aria-current="page">상세정보</a>
           </nav>
         </div>
         <div class="user-menu" id="userMenu">
           <button type="button" class="user-menu-trigger" id="userMenuTrigger" aria-expanded="false" aria-haspopup="true">
             김성진(5492438)
-            <svg class="user-menu-caret" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false" style="vertical-align: middle;">
-              <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            <svg class="user-menu-caret" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+              <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></path>
             </svg>
           </button>
           <div class="user-menu-panel" id="userMenuPanel" hidden>
@@ -57,89 +57,179 @@
         </div>
       </header>
 
-      <main class="detail-workspace">
+      <main class="detail-page">
         <section class="card section-card detail-summary-strip">
           <div class="summary-tile">
-            <span>DB종류</span>
-            <strong id="detailDbType">-</strong>
+            <span>그룹명</span>
+            <strong id="summaryGroupName">-</strong>
           </div>
           <div class="summary-tile">
-            <span>점검상태</span>
-            <strong id="detailStatusText">-</strong>
+            <span>매핑 테이블</span>
+            <strong id="summaryTableCount">0</strong>
           </div>
           <div class="summary-tile">
-            <span>최근검색테이블수</span>
-            <strong id="detailTableCount">0</strong>
+            <span>매핑 담당자</span>
+            <strong id="summaryOwnerCount">0</strong>
           </div>
           <div class="summary-tile">
-            <span>최근검출건수</span>
-            <strong id="detailDetectionCount">0</strong>
+            <span>최근 점검 상태</span>
+            <strong id="summaryLatestStatus">-</strong>
           </div>
         </section>
 
-        <section class="detail-grid-layout">
-          <section class="card section-card">
+        <section class="detail-overview">
+          <section class="card section-card db-info-card">
             <div class="detail-header">
               <div>
-                <h3>기본정보</h3>
-              </div>
-              <div class="detail-actions">
-                <a class="ghost-btn detail-link-btn" id="openDetectionListLink" href="./detection-list.html">검출목록</a>
-                <a class="ghost-btn detail-link-btn" href="./inspection-target.html">목록으로</a>
+                <h3>DB 정보</h3>
+                <p class="section-caption">DB 등록 정보와 에이전트, 라벨, 메모를 확인합니다.</p>
               </div>
             </div>
-            <div class="detail-grid info-grid">
-              <div class="detail-field">
-                <span>DB명</span>
-                <strong id="infoName">-</strong>
-              </div>
-              <div class="detail-field">
-                <span>서비스명</span>
-                <strong id="infoServiceName">-</strong>
-              </div>
-              <div class="detail-field">
-                <span>호스트</span>
-                <strong id="infoHost">-</strong>
-              </div>
-              <div class="detail-field">
-                <span>인스턴스</span>
-                <strong id="infoInstance">-</strong>
-              </div>
-              <div class="detail-field">
-                <span>운영팀</span>
-                <strong id="infoOwnerTeam">-</strong>
-              </div>
-              <div class="detail-field">
-                <span>최근점검시작</span>
-                <strong id="infoStartedAt">-</strong>
-              </div>
-              <div class="detail-field full-span">
-                <span>설명</span>
-                <strong id="infoDescription">-</strong>
-              </div>
+            <div class="detail-grid db-info-grid" id="dbInfoGrid"></div>
+
+            <div class="db-meta-grid">
+              <section class="context-block db-label-block">
+                <span>Label</span>
+                <div class="label-chip-wrap" id="detailLabelList"></div>
+              </section>
+              <section class="context-block db-memo-block">
+                <span>메모</span>
+                <ul id="detailMemoList"></ul>
+              </section>
             </div>
           </section>
 
-          <section class="card section-card">
+          <section class="card section-card table-info-card">
             <div class="detail-header">
               <div>
-                <h3>라벨 및 운영메모</h3>
-              </div>
-              <div class="detail-actions">
-                <a class="primary-btn detail-link-btn" id="openRunPageLink" href="./inspection-run.html">점검페이지</a>
+                <h3>테이블 정보</h3>
+                <p class="section-caption">테이블별 업데이트된 ROW 검출 설정과 담당자 매핑 현황입니다.</p>
               </div>
             </div>
-            <div class="label-section">
-              <span>등록 라벨</span>
-              <div class="label-chip-wrap" id="detailLabelList"></div>
-            </div>
-            <div class="context-block detail-note-block">
-              <span>운영 메모</span>
-              <ul id="detailNotes"></ul>
+
+            <div class="table-info-summary" id="tableInfoSummary"></div>
+
+            <div class="table-shell mapping-table-shell">
+              <table class="data-table mapping-table">
+                <colgroup>
+                  <col style="width:13%">
+                  <col style="width:20%">
+                  <col style="width:15%">
+                  <col style="width:13%">
+                  <col style="width:20%">
+                  <col style="width:11%">
+                  <col style="width:8%">
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th>스키마</th>
+                    <th>테이블명</th>
+                    <th>검출 범위</th>
+                    <th>변경 감지 키</th>
+                    <th>매핑 담당자</th>
+                    <th class="center-cell">최근 수정일시</th>
+                    <th>비고</th>
+                  </tr>
+                </thead>
+                <tbody id="tableInfoBody"></tbody>
+              </table>
+              <div class="empty-state" id="tableInfoEmpty" hidden>표시할 테이블 정보가 없습니다.</div>
             </div>
           </section>
+        </section>
+
+        <section class="card section-card history-section">
+          <div class="detail-header">
+            <div>
+              <h3>점검 이력</h3>
+              <p class="section-caption" id="historyCaption">최근 점검 이력</p>
+            </div>
+            <div class="inspection-actions">
+              <button type="button" class="primary-btn" id="startInspectionButton">
+                <span class="btn-icon" aria-hidden="true">
+                  <svg viewBox="0 0 16 16" focusable="false">
+                    <path d="M6 4.2 11.5 8 6 11.8z"></path>
+                  </svg>
+                </span>
+                점검
+              </button>
+            </div>
+          </div>
+
+          <div class="table-shell history-table-shell">
+            <table class="data-table history-table">
+              <colgroup>
+                <col style="width:9%">
+                <col style="width:11%">
+                <col style="width:7%">
+                <col style="width:8%">
+                <col style="width:13%">
+                <col style="width:10%">
+                <col style="width:10%">
+                <col style="width:8%">
+                <col style="width:7%">
+                <col style="width:8%">
+                <col style="width:8%">
+                <col style="width:8%">
+                <col style="width:8%">
+                <col style="width:8%">
+              </colgroup>
+              <thead>
+                <tr>
+                  <th>검출ID</th>
+                  <th>스케줄명</th>
+                  <th>점검자</th>
+                  <th>검출상태</th>
+                  <th>검출룰</th>
+                  <th class="center-cell">시작일시</th>
+                  <th class="center-cell">종료일시</th>
+                  <th class="number-cell">점검소요시간</th>
+                  <th class="number-cell">검색량</th>
+                  <th class="number-cell">검출건수</th>
+                  <th class="number-cell">주민번호건수</th>
+                  <th class="number-cell">운전면허건수</th>
+                  <th class="number-cell">여권번호건수</th>
+                  <th class="number-cell">카드번호건수</th>
+                </tr>
+              </thead>
+              <tbody id="historyTableBody"></tbody>
+            </table>
+            <div class="empty-state" id="historyEmpty" hidden>점검 이력이 없습니다.</div>
+          </div>
         </section>
       </main>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="failureReasonModal" hidden>
+    <div class="modal-card reason-modal-card">
+      <div class="modal-header">
+        <div>
+          <h3>실패 사유</h3>
+          <p class="modal-caption" id="failureReasonCaption">점검 실패 상세</p>
+        </div>
+        <button type="button" class="ghost-btn" id="closeFailureReasonButton">닫기</button>
+      </div>
+      <div class="modal-body reason-modal-body">
+        <div class="detail-grid single-column reason-grid">
+          <div class="detail-field">
+            <span>검출ID</span>
+            <strong id="failureDetectId">-</strong>
+          </div>
+          <div class="detail-field">
+            <span>스케줄명</span>
+            <strong id="failureScheduleName">-</strong>
+          </div>
+          <div class="detail-field">
+            <span>검출상태</span>
+            <strong id="failureStatusText">-</strong>
+          </div>
+          <div class="context-block reason-detail-block">
+            <span>실패 사유</span>
+            <ul id="failureReasonList"></ul>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -147,6 +237,7 @@
 
   <script src="./shared.js"></script>
   <script src="./mock-inspection-target-service.js"></script>
+  <script src="./mock-inspection-target-detail-service.js"></script>
   <script src="./inspection-target-detail.js"></script>
 </body>
 </html>

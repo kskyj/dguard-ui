@@ -83,6 +83,7 @@ function cacheRefs() {
     "summaryFailed",
     "targetSearchInput",
     "toggleFilterButton",
+    "targetToolbarCaption",
     "targetFilterSummary",
     "filterBadgeText",
     "clearFiltersButton",
@@ -90,9 +91,9 @@ function cacheRefs() {
     "startInspectionButton",
     "exportButton",
     "selectAllTargets",
+    "targetSelectionBannerBody",
     "targetTableBody",
     "targetEmpty",
-    "listCaption",
     "targetFilterModal",
     "statusFilterTrigger",
     "statusFilterPanel",
@@ -195,11 +196,40 @@ function bindEvents() {
     if (!id) {
       return;
     }
-    if (event.target.checked) {
-      state.checkedTargetIds.add(id);
-    } else {
-      state.checkedTargetIds.delete(id);
+    setTargetChecked(id, event.target.checked);
+    render();
+  });
+
+  refs.targetTableBody.addEventListener("click", (event) => {
+    const row = event.target.closest("tr[data-target-id]");
+    if (!row || !canToggleRowCheckbox(event.target)) {
+      return;
     }
+    toggleTargetChecked(row.dataset.targetId);
+    render();
+  });
+
+  refs.targetTableBody.addEventListener("keydown", (event) => {
+    const row = event.target.closest("tr[data-target-id]");
+    if (!row || (event.key !== " " && event.key !== "Enter")) {
+      return;
+    }
+    if (!canToggleRowCheckbox(event.target)) {
+      return;
+    }
+    event.preventDefault();
+    toggleTargetChecked(row.dataset.targetId);
+    render();
+  });
+
+  refs.targetSelectionBannerBody.addEventListener("click", (event) => {
+    const clearButton = event.target.closest("#clearAllTargetSelections");
+    if (!clearButton) {
+      return;
+    }
+    getFilteredTargets().forEach((item) => {
+      state.checkedTargetIds.delete(item.id);
+    });
     render();
   });
 
@@ -438,12 +468,17 @@ function renderToolbarState() {
 
 function renderTable() {
   const items = getFilteredTargets();
+  refs.targetSelectionBannerBody.innerHTML = "";
   refs.targetTableBody.innerHTML = "";
   refs.targetEmpty.hidden = items.length > 0;
 
   items.forEach((item) => {
     const row = document.createElement("tr");
+    row.classList.add("clickable-row");
     row.classList.toggle("is-checked", state.checkedTargetIds.has(item.id));
+    row.dataset.targetId = item.id;
+    row.tabIndex = 0;
+    row.setAttribute("aria-selected", String(state.checkedTargetIds.has(item.id)));
 
     const checkboxCell = document.createElement("td");
     checkboxCell.className = "checkbox-cell";
@@ -464,6 +499,7 @@ function renderTable() {
     `;
 
     const statusCell = document.createElement("td");
+    statusCell.className = "center-cell";
     statusCell.appendChild(createStatusChip(item.status));
 
     const dbTypeCell = document.createElement("td");
@@ -514,9 +550,29 @@ function renderTable() {
   });
 
   const checkedVisibleCount = items.filter((item) => state.checkedTargetIds.has(item.id)).length;
-  refs.selectAllTargets.checked = items.length > 0 && checkedVisibleCount === items.length;
+  const allSelectedInFiltered = items.length > 0 && checkedVisibleCount === items.length;
+  refs.selectAllTargets.disabled = items.length === 0;
+  refs.selectAllTargets.checked = allSelectedInFiltered;
   refs.selectAllTargets.indeterminate = checkedVisibleCount > 0 && checkedVisibleCount < items.length;
-  refs.listCaption.textContent = `총 ${targetService.getTargets().length.toLocaleString("ko-KR")}대 중 ${items.length.toLocaleString("ko-KR")}대 표시 · 선택 ${state.checkedTargetIds.size.toLocaleString("ko-KR")}대`;
+  refs.targetSelectionBannerBody.hidden = !allSelectedInFiltered;
+  if (allSelectedInFiltered) {
+    const row = document.createElement("tr");
+    row.className = "selection-banner-row";
+    const cell = document.createElement("td");
+    cell.colSpan = 11;
+    cell.innerHTML = `현재 검색 결과 ${items.length.toLocaleString(
+      "ko-KR"
+    )}개 DB가 선택되었습니다. <button type="button" class="text-btn selection-banner-link" id="clearAllTargetSelections">선택 해제</button>`;
+    row.appendChild(cell);
+    refs.targetSelectionBannerBody.appendChild(row);
+  }
+  refs.targetToolbarCaption.innerHTML = items.length
+    ? `<span class="toolbar-caption-strong">전체 ${items.length.toLocaleString("ko-KR")}건</span> <span class="toolbar-caption-highlight">1 - ${items.length.toLocaleString("ko-KR")} 표시됨</span>${
+        checkedVisibleCount > 0
+          ? ` <span class="toolbar-caption-selected">${checkedVisibleCount.toLocaleString("ko-KR")}건 선택됨</span>`
+          : ""
+      }`
+    : '<span class="toolbar-caption-strong">전체 0건</span> <span class="toolbar-caption-highlight">0 - 0 표시됨</span>';
 }
 
 function renderLabelCell(labels) {
@@ -649,6 +705,28 @@ function closeBulkLabelModal() {
   state.bulkLabel.open = false;
   state.bulkLabel.addLabels = [];
   state.bulkLabel.removeLabels = [];
+}
+
+function setTargetChecked(id, checked) {
+  if (!id) {
+    return;
+  }
+  if (checked) {
+    state.checkedTargetIds.add(id);
+    return;
+  }
+  state.checkedTargetIds.delete(id);
+}
+
+function toggleTargetChecked(id) {
+  if (!id) {
+    return;
+  }
+  setTargetChecked(id, !state.checkedTargetIds.has(id));
+}
+
+function canToggleRowCheckbox(target) {
+  return !target.closest("a, button, input, label");
 }
 
 function getFilteredTargets() {
