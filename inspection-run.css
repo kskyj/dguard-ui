@@ -1,0 +1,120 @@
+.run-workspace {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 8px;
+  min-height: calc(100vh - 72px);
+  max-height: calc(100vh - 72px);
+}
+
+.run-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.run-summary-grid .summary-tile {
+  display: grid;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px solid rgba(201, 208, 227, 0.8);
+  border-radius: 14px;
+  background: linear-gradient(180deg, #fff 0%, #f7f9ff 100%);
+}
+
+.run-summary-grid .summary-tile span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.run-summary-grid .summary-tile strong {
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.run-target-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.run-caption {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.run-link-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.run-table-shell {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
+
+.run-table th,
+.run-table td {
+  padding: 9px 10px;
+  font-size: 13px;
+}
+
+.run-label-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.run-label-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border: 1px solid rgba(152, 123, 233, 0.2);
+  border-radius: 999px;
+  background: rgba(152, 123, 233, 0.1);
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.run-status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.run-status-chip::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.inspection-status-ready {
+  color: #687089;
+  background: rgba(104, 112, 137, 0.12);
+}
+
+.inspection-status-running {
+  color: #2f66d0;
+  background: rgba(68, 125, 242, 0.14);
+}
+
+.inspection-status-completed {
+  color: #157a63;
+  background: rgba(45, 161, 131, 0.14);
+}
+
+.inspection-status-failed {
+  color: #b23c5a;
+  background: rgba(217, 91, 120, 0.14);
+}

@@ -55,7 +55,7 @@
         <div>
           <h1>검출목록 <span class="hero-target">부동산플랫폼(192.168.20.1:3306/DSTTT)</span></h1>
           <nav class="breadcrumb" aria-label="breadcrumb">
-            <a href="#" class="breadcrumb-link">점검대상</a>
+            <a href="./inspection-target.html" class="breadcrumb-link">점검대상</a>
             <span class="breadcrumb-separator">&gt;</span>
             <a href="#" class="breadcrumb-link">부동산플랫폼(192.168.20.1:3306/DSTTT)</a>
             <span class="breadcrumb-separator">&gt;</span>
@@ -70,7 +70,10 @@
             aria-expanded="false"
             aria-haspopup="true"
           >
-            👤 김성진(5492438) v
+            김성진(5492438)
+            <svg class="user-menu-caret" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false" style="vertical-align: middle;">
+              <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
           </button>
           <div class="user-menu-panel" id="userMenuPanel" hidden>
             <button type="button" class="user-menu-item" id="userSettingsButton">사용자설정</button>
@@ -86,16 +89,59 @@
               <span class="visually-hidden">검출경로 검색</span>
               <input type="text" id="detectionSearchInput" placeholder="검출경로 검색">
             </label>
-            <button type="button" class="ghost-btn" id="toggleFilterButton">🔎 상세필터</button>
+            <button type="button" class="ghost-btn" id="toggleFilterButton">
+              <span class="btn-icon" aria-hidden="true">
+                <svg viewBox="0 0 16 16" focusable="false">
+                  <path d="M2.5 3.5h11l-4.2 4.5v3.3l-2.6 1.2V8z"></path>
+                </svg>
+              </span>
+              상세필터
+            </button>
             <div class="filter-summary" id="detectionFilterSummary" hidden>
               <span class="filter-badge">필터 적용됨</span>
               <button type="button" class="text-btn" id="clearDetectionFilters">초기화</button>
             </div>
             <div class="toolbar-actions inline-actions">
-              <button type="button" class="ghost-btn" id="bulkEditButton" disabled>✏️ 수정</button>
-              <button type="button" class="danger-btn" id="deleteButton" hidden disabled>🗑 삭제</button>
-              <button type="button" class="ghost-btn" id="recheckButton">🔄 이행점검</button>
-              <button type="button" class="primary-btn" id="exportButton">📥 내보내기</button>
+              <button type="button" class="ghost-btn" id="bulkEditButton" disabled>
+                <span class="btn-icon" aria-hidden="true">
+                  <svg viewBox="0 0 16 16" focusable="false">
+                    <path d="M11.8 2.3 13.7 4.2 5.1 12.8 2.5 13.5 3.2 10.9z"></path>
+                    <path d="M10.9 3.2 12.8 5.1"></path>
+                  </svg>
+                </span>
+                수정
+              </button>
+              <button type="button" class="danger-btn" id="deleteButton" hidden disabled>
+                <span class="btn-icon" aria-hidden="true">
+                  <svg viewBox="0 0 16 16" focusable="false">
+                    <path d="M3.5 4.5h9"></path>
+                    <path d="M6 2.8h4"></path>
+                    <path d="M5 4.5v8h6v-8"></path>
+                    <path d="M6.8 6.2v4.6"></path>
+                    <path d="M9.2 6.2v4.6"></path>
+                  </svg>
+                </span>
+                삭제
+              </button>
+              <button type="button" class="ghost-btn" id="recheckButton">
+                <span class="btn-icon" aria-hidden="true">
+                  <svg viewBox="0 0 16 16" focusable="false">
+                    <path d="M12.5 5.5V2.8H9.8"></path>
+                    <path d="M12.2 3.2A5.2 5.2 0 1 0 13 8"></path>
+                  </svg>
+                </span>
+                이행점검
+              </button>
+              <button type="button" class="primary-btn" id="exportButton">
+                <span class="btn-icon" aria-hidden="true">
+                  <svg viewBox="0 0 16 16" focusable="false">
+                    <path d="M8 2.5v7.2"></path>
+                    <path d="M5.4 7.6 8 10.2l2.6-2.6"></path>
+                    <path d="M3 12.5h10"></path>
+                  </svg>
+                </span>
+                내보내기
+              </button>
             </div>
           </div>
 
@@ -247,7 +293,15 @@
             <div class="detail-header">
               <h3>상세정보</h3>
               <div class="detail-actions">
-                <button type="button" class="ghost-btn" id="detailRecheckButton">🔄 이행점검</button>
+                <button type="button" class="ghost-btn" id="detailRecheckButton">
+                  <span class="btn-icon" aria-hidden="true">
+                    <svg viewBox="0 0 16 16" focusable="false">
+                      <path d="M12.5 5.5V2.8H9.8"></path>
+                      <path d="M12.2 3.2A5.2 5.2 0 1 0 13 8"></path>
+                    </svg>
+                  </span>
+                  이행점검
+                </button>
                 <button type="button" class="ghost-btn" id="copyQueryButton">조회 Query 복사</button>
               </div>
             </div>

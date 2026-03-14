@@ -201,6 +201,10 @@ function bindEvents() {
       window.location.href = "analysis-history.html";
       return;
     }
+    if (state.selectedMenuKey === "inspection-target") {
+      window.location.href = "inspection-target.html";
+      return;
+    }
     render();
   });
 

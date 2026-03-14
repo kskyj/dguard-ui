@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>점검대상 | D-Guard</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="./shared.css">
+  <link rel="stylesheet" href="./inspection-target.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar card" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-brand">
+          <span class="sidebar-logo">DG</span>
+          <div class="sidebar-brand-text">
+            <strong>D-Guard</strong>
+            <span>DB Scan</span>
+          </div>
+        </div>
+        <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-expanded="true" aria-label="사이드바 접기">&lt;</button>
+      </div>
+
+      <nav class="sidebar-nav" aria-label="주요 메뉴"></nav>
+
+      <div class="sidebar-footer">
+        <span class="sidebar-footer-label">테스트용</span>
+        <div class="role-switch" aria-label="역할 선택">
+          <button type="button" class="role-btn is-active" data-role="admin">관리자</button>
+          <button type="button" class="role-btn" data-role="user">일반사용자</button>
+        </div>
+      </div>
+    </aside>
+
+    <div class="page-shell">
+      <header class="hero-card card">
+        <div>
+          <h1>점검대상 <span class="hero-target" id="heroTargetPill">등록 DB 420대</span></h1>
+          <nav class="breadcrumb" aria-label="breadcrumb">
+            <a href="./inspection-target.html" class="breadcrumb-link">점검대상</a>
+            <span class="breadcrumb-separator">&gt;</span>
+            <a href="#" class="breadcrumb-link is-current" aria-current="page">DB 점검 대상 목록</a>
+          </nav>
+        </div>
+        <div class="user-menu" id="userMenu">
+          <button
+            type="button"
+            class="user-menu-trigger"
+            id="userMenuTrigger"
+            aria-expanded="false"
+            aria-haspopup="true"
+          >
+            김성진(5492438)
+            <svg class="user-menu-caret" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false"
+              style="vertical-align: middle;">
+              <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"
+                stroke-linejoin="round" />
+            </svg>
+          </button>
+          <div class="user-menu-panel" id="userMenuPanel" hidden>
+            <button type="button" class="user-menu-item" id="userSettingsButton">사용자설정</button>
+            <button type="button" class="user-menu-item danger" id="logoutButton">로그아웃</button>
+          </div>
+        </div>
+      </header>
+
+      <main class="inspection-workspace">
+        <section class="card section-card summary-strip">
+          <div class="summary-tile">
+            <span>전체 DB</span>
+            <strong id="summaryTotal">0</strong>
+          </div>
+          <div class="summary-tile">
+            <span>점검중</span>
+            <strong id="summaryRunning">0</strong>
+          </div>
+          <div class="summary-tile">
+            <span>최근완료</span>
+            <strong id="summaryCompleted">0</strong>
+          </div>
+          <div class="summary-tile">
+            <span>등록 라벨</span>
+            <strong id="summaryLabels">0</strong>
+          </div>
+        </section>
+
+        <section class="card section-card target-list-card">
+          <div class="toolbar-row">
+            <label class="search-field target-search-field">
+              <span class="visually-hidden">DB명 또는 라벨 검색</span>
+              <input type="text" id="targetSearchInput" placeholder="DB명, 라벨 검색">
+            </label>
+            <button type="button" class="ghost-btn" id="toggleFilterButton">상세필터</button>
+            <div class="filter-summary" id="targetFilterSummary" hidden>
+              <span class="filter-badge" id="filterBadgeText">필터 적용됨</span>
+              <button type="button" class="text-btn" id="clearFiltersButton">초기화</button>
+            </div>
+            <div class="toolbar-actions inline-actions">
+              <button type="button" class="ghost-btn" id="bulkLabelButton" disabled>라벨 수정</button>
+              <button type="button" class="ghost-btn" id="startInspectionButton" disabled>점검</button>
+              <button type="button" class="primary-btn" id="exportButton" disabled>내보내기</button>
+            </div>
+          </div>
+
+          <div class="table-shell target-table-shell">
+            <table class="data-table inspection-table">
+              <colgroup>
+                <col style="width:44px">
+                <col style="width:22%">
+                <col style="width:10%">
+                <col style="width:10%">
+                <col style="width:10%">
+                <col style="width:15%">
+                <col style="width:11%">
+                <col style="width:22%">
+              </colgroup>
+              <thead>
+                <tr>
+                  <th class="checkbox-cell">
+                    <input type="checkbox" id="selectAllTargets" aria-label="전체 선택">
+                  </th>
+                  <th>
+                    <button type="button" class="sort-btn" data-sort-key="name">
+                      DB명
+                      <span class="sort-indicator" id="sortIndicatorName"></span>
+                    </button>
+                  </th>
+                  <th>
+                    <button type="button" class="sort-btn" data-sort-key="status">
+                      점검상태
+                      <span class="sort-indicator" id="sortIndicatorStatus"></span>
+                    </button>
+                  </th>
+                  <th class="number-cell">
+                    <button type="button" class="sort-btn" data-sort-key="recentTableCount">
+                      최근검색테이블수
+                      <span class="sort-indicator" id="sortIndicatorTableCount"></span>
+                    </button>
+                  </th>
+                  <th class="number-cell">
+                    <button type="button" class="sort-btn" data-sort-key="recentDetectionCount">
+                      최근검출건수
+                      <span class="sort-indicator" id="sortIndicatorDetectionCount"></span>
+                    </button>
+                  </th>
+                  <th>
+                    <button type="button" class="sort-btn" data-sort-key="inspectionStartedAt">
+                      점검시작일시
+                      <span class="sort-indicator" id="sortIndicatorStartedAt"></span>
+                    </button>
+                  </th>
+                  <th class="number-cell">
+                    <button type="button" class="sort-btn" data-sort-key="durationMinutes">
+                      점검소요시간
+                      <span class="sort-indicator" id="sortIndicatorDuration"></span>
+                    </button>
+                  </th>
+                  <th>라벨</th>
+                </tr>
+              </thead>
+              <tbody id="targetTableBody"></tbody>
+            </table>
+            <div class="empty-state" id="targetEmpty" hidden>조건에 맞는 점검대상이 없습니다.</div>
+          </div>
+
+          <div class="list-footer">
+            <p class="list-caption" id="listCaption">0 / 0대</p>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div class="filter-popover" id="targetFilterModal" hidden>
+    <div class="filter-popover-card">
+      <div class="filter-popover-header">
+        <strong>상세필터</strong>
+      </div>
+      <div class="filter-popover-body">
+        <div class="filter-panel target-filter-panel">
+          <div class="filter-group">
+            <span>점검상태</span>
+            <div class="filter-select">
+              <button type="button" class="filter-select-trigger" id="statusFilterTrigger">전체</button>
+              <div class="filter-select-panel" id="statusFilterPanel" hidden>
+                <input type="text" id="statusFilterSearch" placeholder="점검상태 검색">
+                <div class="filter-select-options" id="statusFilterList"></div>
+              </div>
+            </div>
+          </div>
+          <label class="filter-group">
+            <span>라벨 검색</span>
+            <input type="text" id="labelKeywordInput" placeholder="라벨 키워드 입력">
+          </label>
+        </div>
+      </div>
+      <div class="filter-popover-footer">
+        <button type="button" class="ghost-btn filter-action-btn" id="cancelFilterButton">취소</button>
+        <button type="button" class="primary-btn filter-action-btn" id="applyFilterButton">적용</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="bulkLabelModal" hidden>
+    <div class="modal-card label-modal-card">
+      <div class="modal-header">
+        <div>
+          <h3>라벨 일괄 수정</h3>
+          <p class="modal-caption" id="bulkLabelSelectionCaption">선택 DB 0대</p>
+        </div>
+      </div>
+      <div class="modal-body label-modal-body">
+        <div class="label-modal-summary">
+          <span>선택 DB 현재 라벨</span>
+          <div class="label-chip-wrap" id="selectedLabelSummary"></div>
+        </div>
+
+        <div class="label-editor-grid">
+          <section class="label-editor-panel">
+            <div class="label-editor-head">
+              <strong>추가할 라벨</strong>
+            </div>
+            <div class="token-input-row">
+              <input type="text" id="bulkAddLabelInput" placeholder="추가 라벨 입력 후 Enter">
+              <button type="button" class="ghost-btn" id="addLabelTokenButton">추가</button>
+            </div>
+            <div class="editable-chip-list" id="bulkAddLabelTokens"></div>
+          </section>
+
+          <section class="label-editor-panel">
+            <div class="label-editor-head">
+              <strong>제거할 라벨</strong>
+            </div>
+            <div class="token-input-row">
+              <input type="text" id="bulkRemoveLabelInput" placeholder="제거 라벨 입력 후 Enter">
+              <button type="button" class="ghost-btn" id="removeLabelTokenButton">추가</button>
+            </div>
+            <div class="editable-chip-list" id="bulkRemoveLabelTokens"></div>
+          </section>
+        </div>
+
+        <div class="form-group">
+          <span>빠른 추천</span>
+          <div class="suggestion-list" id="labelSuggestionList"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="ghost-btn" id="closeLabelModalButton">취소</button>
+        <button type="button" class="primary-btn" id="applyLabelModalButton" disabled>적용</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-stack" id="toastStack" aria-live="polite" aria-atomic="true"></div>
+
+  <script src="./shared.js"></script>
+  <script src="./mock-inspection-target-service.js"></script>
+  <script src="./inspection-target.js"></script>
+</body>
+</html>

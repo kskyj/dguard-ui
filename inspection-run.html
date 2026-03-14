@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>점검페이지 | D-Guard</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="./shared.css">
+  <link rel="stylesheet" href="./inspection-run.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar card" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-brand">
+          <span class="sidebar-logo">DG</span>
+          <div class="sidebar-brand-text">
+            <strong>D-Guard</strong>
+            <span>DB Scan</span>
+          </div>
+        </div>
+        <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-expanded="true" aria-label="사이드바 접기">&lt;</button>
+      </div>
+      <nav class="sidebar-nav" aria-label="주요 메뉴"></nav>
+      <div class="sidebar-footer">
+        <span class="sidebar-footer-label">테스트용</span>
+        <div class="role-switch" aria-label="역할 선택">
+          <button type="button" class="role-btn is-active" data-role="admin">관리자</button>
+          <button type="button" class="role-btn" data-role="user">일반사용자</button>
+        </div>
+      </div>
+    </aside>
+
+    <div class="page-shell">
+      <header class="hero-card card">
+        <div>
+          <h1>점검페이지 <span class="hero-target" id="runHeroTarget">선택 DB 0대</span></h1>
+          <nav class="breadcrumb" aria-label="breadcrumb">
+            <a href="./inspection-target.html" class="breadcrumb-link">점검대상</a>
+            <span class="breadcrumb-separator">&gt;</span>
+            <a href="#" class="breadcrumb-link is-current" aria-current="page">선택 DB 점검</a>
+          </nav>
+        </div>
+        <div class="user-menu" id="userMenu">
+          <button type="button" class="user-menu-trigger" id="userMenuTrigger" aria-expanded="false" aria-haspopup="true">
+            김성진(5492438)
+          <svg class="user-menu-caret" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false"
+            style="vertical-align: middle;">
+            <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"
+              stroke-linejoin="round" />
+          </svg>
+          </button>
+          <div class="user-menu-panel" id="userMenuPanel" hidden>
+            <button type="button" class="user-menu-item" id="userSettingsButton">사용자설정</button>
+            <button type="button" class="user-menu-item danger" id="logoutButton">로그아웃</button>
+          </div>
+        </div>
+      </header>
+
+      <main class="run-workspace">
+        <section class="card section-card run-summary-card">
+          <div class="run-summary-grid">
+            <div class="summary-tile">
+              <span>선택 DB</span>
+              <strong id="runSelectedCount">0</strong>
+            </div>
+            <div class="summary-tile">
+              <span>점검중 대상</span>
+              <strong id="runRunningCount">0</strong>
+            </div>
+            <div class="summary-tile">
+              <span>최근검출건수 합계</span>
+              <strong id="runDetectionTotal">0</strong>
+            </div>
+          </div>
+        </section>
+
+        <section class="card section-card run-target-card">
+          <div class="toolbar-row">
+            <div class="run-caption" id="runCaption">선택 대상 요약</div>
+            <div class="toolbar-actions inline-actions">
+              <a class="ghost-btn run-link-btn" href="./inspection-target.html">목록으로</a>
+              <button type="button" class="primary-btn" id="startRunButton">점검 시작</button>
+            </div>
+          </div>
+
+          <div class="table-shell run-table-shell">
+            <table class="data-table run-table">
+              <colgroup>
+                <col style="width:28%">
+                <col style="width:10%">
+                <col style="width:10%">
+                <col style="width:12%">
+                <col style="width:12%">
+                <col style="width:28%">
+              </colgroup>
+              <thead>
+                <tr>
+                  <th>DB명</th>
+                  <th>DB종류</th>
+                  <th>점검상태</th>
+                  <th class="number-cell">최근검색테이블수</th>
+                  <th class="number-cell">최근검출건수</th>
+                  <th>라벨</th>
+                </tr>
+              </thead>
+              <tbody id="runTargetTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div class="toast-stack" id="toastStack" aria-live="polite" aria-atomic="true"></div>
+
+  <script src="./shared.js"></script>
+  <script src="./mock-inspection-target-service.js"></script>
+  <script src="./inspection-run.js"></script>
+</body>
+</html>
