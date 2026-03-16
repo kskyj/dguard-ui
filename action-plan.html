@@ -1,0 +1,231 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>조치계획관리 | D-Guard</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="./shared.css">
+  <link rel="stylesheet" href="./action-plan.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar card" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-brand">
+          <span class="sidebar-logo">DG</span>
+          <div class="sidebar-brand-text">
+            <strong>D-Guard</strong>
+            <span>DB Scan</span>
+          </div>
+        </div>
+        <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-expanded="true" aria-label="사이드바 접기">⟨</button>
+      </div>
+      <nav class="sidebar-nav" aria-label="주요 메뉴"></nav>
+      <div class="sidebar-footer">
+        <span class="sidebar-footer-label">테스트용</span>
+        <div class="role-switch" aria-label="역할 선택">
+          <button type="button" class="role-btn is-active" data-role="admin">관리자</button>
+          <button type="button" class="role-btn" data-role="user">일반사용자</button>
+        </div>
+      </div>
+    </aside>
+
+    <div class="page-shell">
+      <header class="hero-card card">
+        <div>
+          <h1>조치계획관리</h1>
+          <nav class="breadcrumb" aria-label="breadcrumb">
+            <a href="./inspection-target.html" class="breadcrumb-link">점검대상</a>
+            <span class="breadcrumb-separator">&gt;</span>
+            <span class="breadcrumb-link is-current" aria-current="page">조치계획관리</span>
+          </nav>
+        </div>
+        <div class="user-menu" id="userMenu">
+          <button type="button" class="user-menu-trigger" id="userMenuTrigger" aria-expanded="false" aria-haspopup="true">
+            김성진(5492438)
+            <svg class="user-menu-caret" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false" style="vertical-align: middle;">
+              <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+          </button>
+          <div class="user-menu-panel" id="userMenuPanel" hidden>
+            <button type="button" class="user-menu-item" id="userSettingsButton">사용자설정</button>
+            <button type="button" class="user-menu-item danger" id="logoutButton">로그아웃</button>
+          </div>
+        </div>
+      </header>
+
+      <main class="action-plan-workspace">
+        <section class="card section-card action-plan-card">
+          <div class="toolbar-row">
+            <div class="toolbar-leading">
+              <label class="search-field action-plan-search">
+                <span class="visually-hidden">조치계획서 검색</span>
+                <input type="text" id="planSearchInput" placeholder="조치계획서ID/작성자/DB명/조치방법 검색">
+              </label>
+              <button type="button" class="ghost-btn" id="togglePlanFilterButton">
+                <span class="btn-icon" aria-hidden="true">
+                  <svg viewBox="0 0 16 16" focusable="false">
+                    <path d="M2.5 3.5h11l-4.2 4.5v3.3l-2.6 1.2V8z"></path>
+                  </svg>
+                </span>
+                상세필터
+              </button>
+              <p class="toolbar-caption" id="planToolbarCaption"></p>
+            </div>
+            <div class="toolbar-actions inline-actions">
+              <button type="button" class="ghost-btn" id="noteSendButton">
+                <span class="btn-icon" aria-hidden="true">
+                  <svg viewBox="0 0 16 16" focusable="false">
+                    <path d="M3 4h10v7H7l-2 2v-2H3z"></path>
+                  </svg>
+                </span>
+                쪽지발송
+              </button>
+              <a class="primary-btn" href="./action-plan-create.html">조치계획작성</a>
+            </div>
+          </div>
+
+          <div class="filter-summary" id="planFilterSummary" hidden>
+            <span class="filter-badge" id="planFilterBadge"></span>
+            <button type="button" class="text-btn" id="clearPlanFilters">초기화</button>
+          </div>
+
+          <div class="table-shell">
+            <table class="data-table action-plan-table">
+              <colgroup>
+                <col style="width:12%">
+                <col style="width:10%">
+                <col style="width:13%">
+                <col style="width:10%">
+                <col style="width:18%">
+                <col style="width:9%">
+                <col style="width:11%">
+                <col style="width:12%">
+                <col style="width:5%">
+              </colgroup>
+              <thead>
+                <tr>
+                  <th>조치계획서ID</th>
+                  <th>상태</th>
+                  <th>작성일시</th>
+                  <th>작성자</th>
+                  <th>DB명</th>
+                  <th class="number-cell">조치대상수</th>
+                  <th>조치완료일</th>
+                  <th>조치방법</th>
+                  <th class="number-cell">이행점검결과</th>
+                </tr>
+              </thead>
+              <tbody id="planTableBody"></tbody>
+            </table>
+            <div class="empty-state" id="planEmpty" hidden>조건에 맞는 조치계획서가 없습니다.</div>
+          </div>
+
+          <div class="pagination-row">
+            <label class="page-size-control" for="planPageSizeSelect">
+              <span>표시 개수</span>
+              <select id="planPageSizeSelect">
+                <option value="5">5개</option>
+                <option value="10">10개</option>
+                <option value="20">20개</option>
+              </select>
+            </label>
+            <div class="pagination" id="planPagination"></div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="planDetailModal" hidden>
+    <div class="modal-card plan-detail-modal">
+      <div class="modal-header">
+        <div>
+          <h3 id="planDetailTitle">조치계획서 상세</h3>
+          <p class="modal-caption" id="planDetailSubtitle">조치대상 및 업로드 정보를 확인하세요.</p>
+        </div>
+        <button type="button" class="icon-btn" data-close-modal="planDetailModal" aria-label="모달 닫기">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="detail-grid">
+          <div class="detail-field">
+            <span>조치방법</span>
+            <strong id="planDetailMethod">-</strong>
+          </div>
+          <div class="detail-field">
+            <span>조치완료일</span>
+            <strong id="planDetailDueDate">-</strong>
+          </div>
+        </div>
+
+        <div class="table-shell">
+          <table class="data-table plan-target-table">
+            <colgroup>
+              <col style="width:45%">
+              <col style="width:15%">
+              <col style="width:20%">
+              <col style="width:20%">
+            </colgroup>
+            <thead>
+              <tr>
+                <th>검출경로</th>
+                <th class="number-cell">건수</th>
+                <th>이행점검일시</th>
+                <th class="number-cell">이행점검 결과 수</th>
+              </tr>
+            </thead>
+            <tbody id="planTargetDetailBody"></tbody>
+          </table>
+          <div class="empty-state" id="planTargetDetailEmpty" hidden>조치대상 정보가 없습니다.</div>
+        </div>
+
+        <div class="upload-panel">
+          <div class="upload-header">
+            <strong>조치계획서 업로드</strong>
+            <span>PDF 파일만 업로드 가능</span>
+          </div>
+          <input type="file" id="planUploadInput" accept="application/pdf" multiple>
+          <div class="file-list" id="planUploadList"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="ghost-btn" id="planDownloadButton">조치계획서 다운로드</button>
+        <button type="button" class="primary-btn" id="planRecheckButton">이행점검</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="filter-popover" id="planFilterModal" hidden>
+    <div class="filter-popover-card">
+      <div class="filter-popover-header">
+        <strong>상세필터</strong>
+      </div>
+      <div class="filter-popover-body">
+        <div class="filter-panel popover-filter-panel plan-filter-panel">
+          <div class="filter-group">
+            <span>상태</span>
+            <div class="filter-select" id="planStatusFilterSelect">
+              <button type="button" class="filter-select-trigger" id="planStatusFilterTrigger">전체</button>
+              <div class="filter-select-panel" id="planStatusFilterPanel" hidden>
+                <input type="text" id="planStatusFilterSearch" placeholder="상태 검색">
+                <div class="filter-select-options" id="planStatusFilterList"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="filter-popover-footer">
+        <button type="button" class="ghost-btn filter-action-btn" id="cancelPlanFilterButton">취소</button>
+        <button type="button" class="primary-btn filter-action-btn" id="applyPlanFilterButton">적용</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-stack" id="toastStack" aria-live="polite" aria-atomic="true"></div>
+
+  <script src="./shared.js"></script>
+  <script src="./mock-action-plan-service.js"></script>
+  <script src="./action-plan.js"></script>
+</body>
+</html>

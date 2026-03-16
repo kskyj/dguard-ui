@@ -1,0 +1,129 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>조치계획 작성 | D-Guard</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="./shared.css">
+  <link rel="stylesheet" href="./action-plan-create.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar card" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-brand">
+          <span class="sidebar-logo">DG</span>
+          <div class="sidebar-brand-text">
+            <strong>D-Guard</strong>
+            <span>DB Scan</span>
+          </div>
+        </div>
+        <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-expanded="true" aria-label="사이드바 접기">⟨</button>
+      </div>
+      <nav class="sidebar-nav" aria-label="주요 메뉴"></nav>
+      <div class="sidebar-footer">
+        <span class="sidebar-footer-label">테스트용</span>
+        <div class="role-switch" aria-label="역할 선택">
+          <button type="button" class="role-btn is-active" data-role="admin">관리자</button>
+          <button type="button" class="role-btn" data-role="user">일반사용자</button>
+        </div>
+      </div>
+    </aside>
+
+    <div class="page-shell">
+      <header class="hero-card card">
+        <div>
+          <h1>조치계획 작성 <span class="hero-target" id="planTargetName">DB 선택</span></h1>
+          <nav class="breadcrumb" aria-label="breadcrumb">
+            <a href="./inspection-target.html" class="breadcrumb-link">점검대상</a>
+            <span class="breadcrumb-separator">&gt;</span>
+            <a href="./action-plan.html" class="breadcrumb-link">조치계획관리</a>
+            <span class="breadcrumb-separator">&gt;</span>
+            <span class="breadcrumb-link is-current" aria-current="page">조치계획 작성</span>
+          </nav>
+        </div>
+        <div class="user-menu" id="userMenu">
+          <button type="button" class="user-menu-trigger" id="userMenuTrigger" aria-expanded="false" aria-haspopup="true">
+            김성진(5492438)
+            <svg class="user-menu-caret" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false" style="vertical-align: middle;">
+              <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+          </button>
+          <div class="user-menu-panel" id="userMenuPanel" hidden>
+            <button type="button" class="user-menu-item" id="userSettingsButton">사용자설정</button>
+            <button type="button" class="user-menu-item danger" id="logoutButton">로그아웃</button>
+          </div>
+        </div>
+      </header>
+
+      <main class="action-plan-create">
+        <section class="card section-card plan-form-card">
+          <div class="detail-header">
+            <div>
+              <h3>조치대상목록</h3>
+              <p class="section-subtitle" id="planSelectionCaption">선택된 조치대상 검출단위를 확인하세요.</p>
+            </div>
+          </div>
+
+          <div class="table-shell">
+            <table class="data-table plan-target-table">
+              <colgroup>
+                <col style="width:16%">
+                <col style="width:46%">
+                <col style="width:18%">
+                <col style="width:10%">
+                <col style="width:10%">
+              </colgroup>
+              <thead>
+                <tr>
+                  <th>검출ID</th>
+                  <th>검출경로</th>
+                  <th>검출타입</th>
+                  <th class="number-cell">건수</th>
+                  <th>상태</th>
+                </tr>
+              </thead>
+              <tbody id="planTargetBody"></tbody>
+            </table>
+            <div class="empty-state" id="planTargetEmpty" hidden>조치계획 대상 검출단위가 없습니다.</div>
+          </div>
+
+          <div class="plan-form-grid">
+            <label class="form-group">
+              <span>검출원인</span>
+              <textarea id="planCauseInput" rows="4" maxlength="600" placeholder="검출원인을 입력하세요."></textarea>
+              <small class="form-counter" id="planCauseCount">0 / 600</small>
+            </label>
+            <label class="form-group">
+              <span>조치방법</span>
+              <textarea id="planMethodInput" rows="4" maxlength="600" placeholder="조치방법을 입력하세요."></textarea>
+              <small class="form-counter" id="planMethodCount">0 / 600</small>
+            </label>
+            <label class="form-group">
+              <span>조치완료일</span>
+              <input type="date" id="planDueDateInput">
+            </label>
+          </div>
+
+          <div class="notice-box">
+            <strong>주의사항</strong>
+            <p>조치계획서를 작성하고, 출력하여 담당팀장 결재 후 업로드 하여야 합니다.</p>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="primary-btn" id="savePlanButton" disabled>저장</button>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div class="toast-stack" id="toastStack" aria-live="polite" aria-atomic="true"></div>
+
+  <script src="./shared.js"></script>
+  <script src="./mock-detection-service.js"></script>
+  <script src="./mock-action-plan-service.js"></script>
+  <script src="./action-plan-create.js"></script>
+</body>
+</html>
