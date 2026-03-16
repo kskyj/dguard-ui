@@ -1,0 +1,8 @@
+interface:
+  display_name: "D-Guard UI"
+  short_description: "Build dense D-Guard web UI pages consistently."
+  brand_color: "#987BE9"
+  default_prompt: "Use $dguard-ui to build or update a D-Guard multi-page static HTML/CSS/JS screen with shared/page-specific file separation and verify it in the browser."
+
+policy:
+  allow_implicit_invocation: true
