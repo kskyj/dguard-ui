@@ -94,15 +94,17 @@
           <section class="tab-panel" id="pendingPanel" role="tabpanel" aria-labelledby="pendingTabButton">
             <div class="toolbar-row">
               <div class="toolbar-leading">
-                <label class="search-field request-search-field">
-                  <span class="visually-hidden">신청자, DB명, URL, 검출경로 검색</span>
-                  <input type="text" id="pendingSearchInput" placeholder="신청자/DB명/URL/검출경로 검색">
-                </label>
+                <div class="toolbar-search-group">
+                  <label class="search-field request-search-field">
+                    <span class="visually-hidden">신청자, DB명, URL, 검출경로 검색</span>
+                    <input type="text" id="pendingSearchInput" placeholder="신청자/DB명/URL/검출경로 검색">
+                  </label>
+                  <p class="toolbar-caption" id="pendingToolbarCaption"></p>
+                </div>
                 <div class="filter-summary" id="pendingFilterSummary" hidden>
                   <span class="filter-badge" id="pendingFilterText"></span>
                   <button type="button" class="text-btn" id="clearPendingFilters">초기화</button>
                 </div>
-                <p class="toolbar-caption" id="pendingToolbarCaption"></p>
               </div>
               <div class="toolbar-actions inline-actions">
                 <button type="button" class="ghost-btn" id="cancelRequestButton" hidden>
@@ -183,23 +185,25 @@
           <section class="tab-panel" id="processedPanel" role="tabpanel" aria-labelledby="processedTabButton" hidden>
             <div class="toolbar-row">
               <div class="toolbar-leading">
-                <label class="search-field request-search-field">
-                  <span class="visually-hidden">신청자, DB명, URL, 검출경로 검색</span>
-                  <input type="text" id="processedSearchInput" placeholder="신청자/DB명/URL/검출경로 검색">
-                </label>
-                <button type="button" class="ghost-btn" id="toggleProcessedFilterButton">
-                  <span class="btn-icon" aria-hidden="true">
-                    <svg viewBox="0 0 16 16" focusable="false">
-                      <path d="M2.5 3.5h11l-4.2 4.5v3.3l-2.6 1.2V8z"></path>
-                    </svg>
-                  </span>
-                  상세필터
-                </button>
+                <div class="toolbar-search-group">
+                  <label class="search-field request-search-field">
+                    <span class="visually-hidden">신청자, DB명, URL, 검출경로 검색</span>
+                    <input type="text" id="processedSearchInput" placeholder="신청자/DB명/URL/검출경로 검색">
+                  </label>
+                  <button type="button" class="ghost-btn" id="toggleProcessedFilterButton">
+                    <span class="btn-icon" aria-hidden="true">
+                      <svg viewBox="0 0 16 16" focusable="false">
+                        <path d="M2.5 3.5h11l-4.2 4.5v3.3l-2.6 1.2V8z"></path>
+                      </svg>
+                    </span>
+                    상세필터
+                  </button>
+                  <p class="toolbar-caption" id="processedToolbarCaption"></p>
+                </div>
                 <div class="filter-summary" id="processedFilterSummary" hidden>
                   <span class="filter-badge" id="processedFilterText"></span>
                   <button type="button" class="text-btn" id="clearProcessedFilters">초기화</button>
                 </div>
-                <p class="toolbar-caption" id="processedToolbarCaption"></p>
               </div>
             </div>
 

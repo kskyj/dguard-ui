@@ -81,21 +81,80 @@
           <section class="card section-card db-info-card">
             <div class="detail-header">
               <div>
-                <h3>DB 정보</h3>
-                <p class="section-caption">DB 등록 정보와 에이전트, 라벨, 메모를 확인합니다.</p>
+                <h3>점검대상 정보</h3>
               </div>
             </div>
-            <div class="detail-grid db-info-grid" id="dbInfoGrid"></div>
-
-            <div class="db-meta-grid">
-              <section class="context-block db-label-block">
-                <span>Label</span>
+            <div class="detail-grid db-info-grid db-info-line" id="dbInfoGrid">
+              <div class="db-info-segment">
+                <span class="segment-label">점검대상 ID</span>
+                <strong class="segment-value" id="detailDbId">-</strong>
+              </div>
+              <div class="db-info-segment">
+                <span class="segment-label">DB 등록일시</span>
+                <strong class="segment-value" id="detailRegisteredAt">-</strong>
+              </div>
+              <div class="db-info-segment">
+                <span class="segment-label">Proxy(에이전트)</span>
+                <div class="segment-inline">
+                  <strong class="segment-value" id="detailProxyName">-</strong>
+                  <span class="segment-note" id="detailProxyAddress">-</span>
+                  <span class="proxy-pill" id="detailProxyStatus">-</span>
+                </div>
+              </div>
+              <div class="db-info-segment">
+                <div class="segment-header">
+                  <span class="segment-label">DB 인프라 담당자</span>
+                  <button type="button" class="icon-btn edit-icon-btn" data-edit-action="infra-open" aria-label="DB 인프라 담당자 수정" title="DB 인프라 담당자 수정">
+                    <svg viewBox="0 0 16 16" focusable="false">
+                      <path d="M11.8 2.3 13.7 4.2 5.1 12.8 2.5 13.5 3.2 10.9z"></path>
+                      <path d="M10.9 3.2 12.8 5.1"></path>
+                    </svg>
+                  </button>
+                </div>
+                <div class="segment-body" id="detailInfraBody"></div>
+              </div>
+              <div class="db-info-segment is-wide">
+                <div class="segment-header">
+                  <span class="segment-label">메모</span>
+                  <button type="button" class="icon-btn edit-icon-btn" id="editMemoButton" aria-label="메모 수정" title="메모 수정">
+                    <svg viewBox="0 0 16 16" focusable="false">
+                      <path d="M11.8 2.3 13.7 4.2 5.1 12.8 2.5 13.5 3.2 10.9z"></path>
+                      <path d="M10.9 3.2 12.8 5.1"></path>
+                    </svg>
+                  </button>
+                </div>
+                <div class="memo-line" id="detailMemoList">-</div>
+                <div class="memo-edit-panel" id="memoEditPanel" hidden>
+                  <textarea id="memoEditInput" rows="4" placeholder="메모를 줄바꿈으로 입력"></textarea>
+                  <div class="edit-action-row">
+                    <button type="button" class="ghost-btn" id="cancelMemoButton">취소</button>
+                    <button type="button" class="primary-btn" id="saveMemoButton">저장</button>
+                  </div>
+                </div>
+              </div>
+              <div class="db-info-segment is-wide">
+                <div class="segment-header">
+                  <span class="segment-label">Label</span>
+                  <button type="button" class="icon-btn edit-icon-btn" id="editLabelButton" aria-label="Label 수정" title="Label 수정">
+                    <svg viewBox="0 0 16 16" focusable="false">
+                      <path d="M11.8 2.3 13.7 4.2 5.1 12.8 2.5 13.5 3.2 10.9z"></path>
+                      <path d="M10.9 3.2 12.8 5.1"></path>
+                    </svg>
+                  </button>
+                </div>
                 <div class="label-chip-wrap" id="detailLabelList"></div>
-              </section>
-              <section class="context-block db-memo-block">
-                <span>메모</span>
-                <ul id="detailMemoList"></ul>
-              </section>
+                <div class="label-edit-panel" id="labelEditPanel" hidden>
+                  <div class="label-edit-row">
+                    <input type="text" id="labelEditInput" placeholder="라벨 입력 후 추가">
+                    <button type="button" class="ghost-btn" id="addLabelButton">추가</button>
+                  </div>
+                  <div class="label-chip-wrap editable" id="labelDraftList"></div>
+                  <div class="edit-action-row">
+                    <button type="button" class="ghost-btn" id="cancelLabelButton">취소</button>
+                    <button type="button" class="primary-btn" id="saveLabelButton">저장</button>
+                  </div>
+                </div>
+              </div>
             </div>
           </section>
 
@@ -103,7 +162,6 @@
             <div class="detail-header">
               <div>
                 <h3>테이블 정보</h3>
-                <p class="section-caption">테이블별 업데이트된 ROW 검출 설정과 담당자 매핑 현황입니다.</p>
               </div>
             </div>
 
@@ -142,7 +200,6 @@
           <div class="detail-header">
             <div>
               <h3>점검 이력</h3>
-              <p class="section-caption" id="historyCaption">최근 점검 이력</p>
             </div>
             <div class="inspection-actions">
               <button type="button" class="primary-btn" id="startInspectionButton">

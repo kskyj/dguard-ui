@@ -11,6 +11,24 @@ const detailState = {
   openSidebarGroupKey: null,
   userMenuOpen: false,
   selectedFailureHistoryId: null,
+  edit: {
+    targetId: null,
+    infraOpen: false,
+    labelOpen: false,
+    memoOpen: false,
+    saved: {
+      infraManager: "",
+      infraContact: "",
+      labels: [],
+      memoLines: [],
+    },
+    draft: {
+      infraManager: "",
+      infraContact: "",
+      labels: [],
+      memoText: "",
+    },
+  },
 };
 
 document.addEventListener("DOMContentLoaded", initDetailPage);
@@ -56,12 +74,29 @@ function cacheDetailRefs() {
     "summaryOwnerCount",
     "summaryLatestStatus",
     "dbInfoGrid",
+    "detailDbId",
+    "detailRegisteredAt",
+    "detailProxyName",
+    "detailProxyAddress",
+    "detailProxyStatus",
+    "detailInfraBody",
     "detailLabelList",
     "detailMemoList",
+    "editLabelButton",
+    "labelEditPanel",
+    "labelEditInput",
+    "addLabelButton",
+    "labelDraftList",
+    "saveLabelButton",
+    "cancelLabelButton",
+    "editMemoButton",
+    "memoEditPanel",
+    "memoEditInput",
+    "saveMemoButton",
+    "cancelMemoButton",
     "tableInfoSummary",
     "tableInfoBody",
     "tableInfoEmpty",
-    "historyCaption",
     "historyTableBody",
     "historyEmpty",
     "startInspectionButton",
@@ -82,6 +117,99 @@ function cacheDetailRefs() {
 }
 
 function bindDetailEvents() {
+  detailRefs.dbInfoGrid.addEventListener("click", (event) => {
+    const action = event.target.closest("[data-edit-action]")?.dataset.editAction;
+    if (!action) {
+      return;
+    }
+    if (action === "infra-open") {
+      openEdit("infra");
+      renderDetailPage();
+      return;
+    }
+    if (action === "infra-save") {
+      saveEdit("infra");
+      renderDetailPage();
+      return;
+    }
+    if (action === "infra-cancel") {
+      cancelEdit("infra");
+      renderDetailPage();
+    }
+  });
+
+  detailRefs.dbInfoGrid.addEventListener("input", (event) => {
+    if (!(event.target instanceof HTMLInputElement)) {
+      return;
+    }
+    if (!event.target.matches("[data-infra-input]")) {
+      return;
+    }
+    const key = event.target.dataset.infraInput;
+    if (key === "name") {
+      detailState.edit.draft.infraManager = event.target.value;
+    }
+    if (key === "contact") {
+      detailState.edit.draft.infraContact = event.target.value;
+    }
+  });
+
+  detailRefs.editLabelButton.addEventListener("click", () => {
+    openEdit("label");
+    renderDetailPage();
+  });
+
+  detailRefs.addLabelButton.addEventListener("click", () => {
+    appendLabelDraft();
+    renderLabelSection(getCurrentDetail());
+  });
+
+  detailRefs.labelEditInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      appendLabelDraft();
+      renderLabelSection(getCurrentDetail());
+    }
+  });
+
+  detailRefs.labelDraftList.addEventListener("click", (event) => {
+    const remove = event.target.closest("[data-remove-label]");
+    if (!remove) {
+      return;
+    }
+    detailState.edit.draft.labels = detailState.edit.draft.labels.filter((label) => label !== remove.dataset.removeLabel);
+    renderLabelSection(getCurrentDetail());
+  });
+
+  detailRefs.saveLabelButton.addEventListener("click", () => {
+    saveEdit("label");
+    renderDetailPage();
+  });
+
+  detailRefs.cancelLabelButton.addEventListener("click", () => {
+    cancelEdit("label");
+    renderDetailPage();
+  });
+
+  detailRefs.editMemoButton.addEventListener("click", () => {
+    openEdit("memo");
+    renderDetailPage();
+  });
+
+  detailRefs.memoEditInput.addEventListener("input", (event) => {
+    detailState.edit.draft.memoText = event.target.value;
+  });
+
+  detailRefs.saveMemoButton.addEventListener("click", () => {
+    saveEdit("memo");
+    renderDetailPage();
+  });
+
+  detailRefs.cancelMemoButton.addEventListener("click", () => {
+    cancelEdit("memo");
+    renderDetailPage();
+  });
+
   detailRefs.startInspectionButton.addEventListener("click", () => {
     const detail = getCurrentDetail();
     if (!detail) {
@@ -151,6 +279,8 @@ function renderDetailPage() {
     return;
   }
 
+  syncEditState(detail);
+
   const latestHistory = detail.inspectionHistory[0] ?? null;
   const latestStatusMeta = latestHistory
     ? detailService.HISTORY_STATUS_META[latestHistory.status]
@@ -179,77 +309,67 @@ function renderEmptyDetailState() {
   detailRefs.summaryOwnerCount.textContent = "0";
   detailRefs.summaryLatestStatus.textContent = "-";
   detailRefs.summaryLatestStatus.className = "";
-  detailRefs.dbInfoGrid.innerHTML = "";
+  detailRefs.detailDbId.textContent = "-";
+  detailRefs.detailRegisteredAt.textContent = "-";
+  detailRefs.detailProxyName.textContent = "-";
+  detailRefs.detailProxyAddress.textContent = "-";
+  detailRefs.detailProxyStatus.textContent = "-";
+  detailRefs.detailProxyStatus.className = "proxy-pill";
+  detailRefs.detailInfraBody.innerHTML = "";
   detailRefs.detailLabelList.innerHTML = "";
-  detailRefs.detailMemoList.innerHTML = "";
+  detailRefs.detailMemoList.textContent = "";
   detailRefs.tableInfoSummary.innerHTML = "";
   detailRefs.tableInfoBody.innerHTML = "";
   detailRefs.historyTableBody.innerHTML = "";
   detailRefs.tableInfoEmpty.hidden = false;
   detailRefs.historyEmpty.hidden = false;
   detailRefs.startInspectionButton.disabled = true;
+  detailRefs.labelEditPanel.hidden = true;
+  detailRefs.labelEditPanel.style.display = "none";
+  detailRefs.memoEditPanel.hidden = true;
+  detailRefs.memoEditPanel.style.display = "none";
+  detailRefs.detailLabelList.hidden = false;
+  detailRefs.detailMemoList.hidden = false;
   closeFailureReasonModal();
 }
 
 function renderDbInfo(detail) {
   const proxyStatusMeta = detailService.PROXY_STATUS_META[detail.dbInfo.proxy.status];
-  const fields = [
-    { label: "DB ID", value: detail.dbInfo.dbId },
-    { label: "그룹명", value: detail.dbInfo.groupName },
-    {
-      label: "Proxy(에이전트)",
-      value: detail.dbInfo.proxy.name,
-      note: `${detail.dbInfo.proxy.ip} / ${detail.dbInfo.proxy.version}`,
-      badge: `<span class="proxy-pill ${proxyStatusMeta.className}">${proxyStatusMeta.label}</span>`,
-    },
-    {
-      label: "Host / Instance",
-      value: `${detail.target.host}:${detail.target.port}`,
-      note: detail.target.instanceName,
-    },
-    { label: "DB 등록일시", value: formatDateTime(detail.dbInfo.registeredAt) },
-    { label: "최근 점검일시", value: formatDateTime(detail.summary.latestStartedAt) },
-    {
-      label: "DB 인프라 담당자",
-      value: detail.dbInfo.infraManager,
-      note: detail.dbInfo.infraContact,
-    },
-    { label: "메인 설명", value: detail.target.description },
-  ];
+  const editState = detailState.edit;
 
-  detailRefs.dbInfoGrid.innerHTML = fields
-    .map((field) => {
-      const valueHtml = field.note
-        ? `
-          <div class="value-with-note">
-            <div class="inline-badge-row">
-              <strong>${escapeHtml(field.value)}</strong>
-              ${field.badge ?? ""}
-            </div>
-            <span class="field-note">${escapeHtml(field.note)}</span>
-          </div>
-        `
-        : `
-          <div class="inline-badge-row">
-            <strong>${escapeHtml(field.value)}</strong>
-            ${field.badge ?? ""}
-          </div>
-        `;
-      return `
-        <div class="detail-field">
-          <span>${escapeHtml(field.label)}</span>
-          ${valueHtml}
-        </div>
-      `;
-    })
-    .join("");
+  const infraView = `
+    <div class="chip-row">
+      <span class="label-chip">${escapeHtml(editState.saved.infraManager || "미지정")}</span>
+    </div>
+  `;
+  const infraEdit = `
+    <div class="infra-edit-panel">
+      <div class="infra-edit-grid">
+        <input type="text" data-infra-input="name" value="${escapeHtml(editState.draft.infraManager)}" placeholder="담당자 이름">
+        <input type="text" data-infra-input="contact" value="${escapeHtml(editState.draft.infraContact)}" placeholder="조직/연락처">
+      </div>
+      <div class="edit-action-row">
+        <button type="button" class="ghost-btn" data-edit-action="infra-cancel">취소</button>
+        <button type="button" class="primary-btn" data-edit-action="infra-save">저장</button>
+      </div>
+    </div>
+  `;
 
-  detailRefs.detailLabelList.innerHTML = detail.dbInfo.labels
-    .map((label) => `<span class="label-chip">${escapeHtml(label)}</span>`)
-    .join("");
-  detailRefs.detailMemoList.innerHTML = detail.dbInfo.memo
-    .map((note) => `<li>${escapeHtml(note)}</li>`)
-    .join("");
+  detailRefs.detailDbId.textContent = detail.dbInfo.dbId;
+  detailRefs.detailRegisteredAt.textContent = formatDateTime(detail.dbInfo.registeredAt);
+  detailRefs.detailProxyName.textContent = detail.dbInfo.proxy.name;
+  const proxyAddress = detail.dbInfo.proxy.port
+    ? `${detail.dbInfo.proxy.ip}:${detail.dbInfo.proxy.port}`
+    : detail.dbInfo.proxy.version
+      ? `${detail.dbInfo.proxy.ip}/${detail.dbInfo.proxy.version}`
+      : detail.dbInfo.proxy.ip;
+  detailRefs.detailProxyAddress.textContent = proxyAddress;
+  detailRefs.detailProxyStatus.textContent = proxyStatusMeta.label;
+  detailRefs.detailProxyStatus.className = `proxy-pill ${proxyStatusMeta.className}`;
+  detailRefs.detailInfraBody.innerHTML = editState.infraOpen ? infraEdit : infraView;
+
+  renderLabelSection(detail);
+  renderMemoSection(detail);
 }
 
 function renderTableInfo(detail) {
@@ -289,7 +409,6 @@ function renderTableInfo(detail) {
 function renderHistory(detail) {
   detailRefs.startInspectionButton.disabled = false;
   detailRefs.historyEmpty.hidden = detail.inspectionHistory.length > 0;
-  detailRefs.historyCaption.textContent = `최근 ${detail.inspectionHistory.length}건의 점검 실행 이력입니다.`;
 
   detailRefs.historyTableBody.innerHTML = detail.inspectionHistory
     .map((record) => {
@@ -345,6 +464,144 @@ function renderHistory(detail) {
       `;
     })
     .join("");
+}
+
+function syncEditState(detail) {
+  const editState = detailState.edit;
+  if (editState.targetId === detail.target.id) {
+    return;
+  }
+  editState.targetId = detail.target.id;
+  editState.infraOpen = false;
+  editState.labelOpen = false;
+  editState.memoOpen = false;
+  editState.saved = {
+    infraManager: detail.dbInfo.infraManager,
+    infraContact: detail.dbInfo.infraContact,
+    labels: [...detail.dbInfo.labels],
+    memoLines: [...detail.dbInfo.memo],
+  };
+  resetDraftFromSaved();
+}
+
+function resetDraftFromSaved() {
+  detailState.edit.draft = {
+    infraManager: detailState.edit.saved.infraManager,
+    infraContact: detailState.edit.saved.infraContact,
+    labels: [...detailState.edit.saved.labels],
+    memoText: detailState.edit.saved.memoLines.join("\n"),
+  };
+}
+
+function openEdit(kind) {
+  resetDraftFromSaved();
+  detailState.edit.infraOpen = false;
+  detailState.edit.labelOpen = false;
+  detailState.edit.memoOpen = false;
+  if (kind === "infra") {
+    detailState.edit.infraOpen = true;
+  }
+  if (kind === "label") {
+    detailState.edit.labelOpen = true;
+  }
+  if (kind === "memo") {
+    detailState.edit.memoOpen = true;
+  }
+}
+
+function saveEdit(kind) {
+  if (kind === "infra") {
+    detailState.edit.saved.infraManager = normalizeText(detailState.edit.draft.infraManager) || "미지정";
+    detailState.edit.saved.infraContact = normalizeText(detailState.edit.draft.infraContact);
+    detailState.edit.infraOpen = false;
+  }
+  if (kind === "label") {
+    detailState.edit.saved.labels = uniqueValues(detailState.edit.draft.labels);
+    detailState.edit.labelOpen = false;
+  }
+  if (kind === "memo") {
+    detailState.edit.saved.memoLines = normalizeLines(detailState.edit.draft.memoText);
+    detailState.edit.memoOpen = false;
+  }
+  resetDraftFromSaved();
+}
+
+function cancelEdit(kind) {
+  if (kind === "infra") {
+    detailState.edit.infraOpen = false;
+  }
+  if (kind === "label") {
+    detailState.edit.labelOpen = false;
+  }
+  if (kind === "memo") {
+    detailState.edit.memoOpen = false;
+  }
+  resetDraftFromSaved();
+}
+
+function renderLabelSection(detail) {
+  if (!detail) {
+    return;
+  }
+  const editState = detailState.edit;
+  detailRefs.detailLabelList.hidden = editState.labelOpen;
+  detailRefs.labelEditPanel.hidden = !editState.labelOpen;
+  detailRefs.labelEditPanel.style.display = editState.labelOpen ? "grid" : "none";
+  detailRefs.detailLabelList.innerHTML = editState.saved.labels
+    .map((label) => `<span class="label-chip">${escapeHtml(label)}</span>`)
+    .join("");
+  detailRefs.labelDraftList.innerHTML = editState.draft.labels
+    .map(
+      (label) =>
+        `<span class="label-chip is-editable">${escapeHtml(label)}<button type="button" class="chip-remove" data-remove-label="${escapeHtml(label)}">×</button></span>`
+    )
+    .join("");
+  detailRefs.labelEditInput.value = "";
+}
+
+function renderMemoSection(detail) {
+  if (!detail) {
+    return;
+  }
+  const editState = detailState.edit;
+  detailRefs.detailMemoList.hidden = editState.memoOpen;
+  detailRefs.memoEditPanel.hidden = !editState.memoOpen;
+  detailRefs.memoEditPanel.style.display = editState.memoOpen ? "grid" : "none";
+  const memoLine = editState.saved.memoLines.join(" · ");
+  detailRefs.detailMemoList.textContent = memoLine || "-";
+  detailRefs.detailMemoList.title = memoLine;
+  detailRefs.memoEditInput.value = editState.draft.memoText;
+}
+
+function appendLabelDraft() {
+  const raw = detailRefs.labelEditInput.value;
+  if (!raw) {
+    return;
+  }
+  const nextValues = raw
+    .split(",")
+    .map((value) => normalizeText(value))
+    .filter(Boolean);
+  if (!nextValues.length) {
+    return;
+  }
+  detailState.edit.draft.labels = uniqueValues([...detailState.edit.draft.labels, ...nextValues]);
+  detailRefs.labelEditInput.value = "";
+}
+
+function normalizeLines(text) {
+  return text
+    .split(/\r?\n/)
+    .map((line) => normalizeText(line))
+    .filter(Boolean);
+}
+
+function normalizeText(value) {
+  return String(value ?? "").trim();
+}
+
+function uniqueValues(values) {
+  return [...new Set(values.map((value) => normalizeText(value)).filter(Boolean))];
 }
 
 function renderFailureReasonModal(detail) {

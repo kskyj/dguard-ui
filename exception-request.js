@@ -1,4 +1,4 @@
-const exceptionService = window.MockExceptionRequestService;
+﻿const exceptionService = window.MockExceptionRequestService;
 const exceptionShared = window.DGuardShared;
 
 const refs = {};
@@ -541,12 +541,17 @@ function renderPendingTable() {
     const cell = document.createElement("td");
     cell.colSpan = 8;
     if (state.pendingSelectionScope === "filtered") {
-      cell.innerHTML = `검색 결과 총 ${all.length}건이 선택되었습니다.`;
-    } else if (allSelectedOnPage && all.length > items.length) {
-      cell.innerHTML = `페이지에서 ${items.length}개가 선택되었습니다. <button type="button" class="text-btn selection-banner-link" id="selectAllFilteredPending">목록에서 총 ${all.length}개 데이터 선택</button>`;
+      cell.innerHTML = `검색결과 총 ${all.length}건이 선택되었습니다.`;
+    } else if (allSelectedOnPage) {
+      const pageMessage = `페이지에서 ${items.length}개가 선택되었습니다.`;
+      if (all.length > items.length) {
+        cell.innerHTML = `${pageMessage} <button type="button" class="text-btn selection-banner-link" id="selectAllFilteredPending">목록에서 총 ${all.length}개 데이터 선택</button>`;
+      } else {
+        cell.innerHTML = `${pageMessage} 목록에서 총 ${all.length}개 데이터 선택`;
+      }
     } else {
-      cell.innerHTML = `현재 선택된 제외신청 ${checkedCount}건이 작업 대상입니다.`;
-    }
+      cell.innerHTML = `현재 선택된 제외신청 ${checkedCount}건이 업무 대상입니다.`;
+      }
     row.appendChild(cell);
     refs.pendingSelectionBannerBody.appendChild(row);
     refs.pendingSelectionBannerBody.hidden = false;
@@ -869,3 +874,4 @@ function escapeHtml(value) {
 function pushToast(message, type = "default") {
   exceptionShared.pushToast(refs.toastStack, message, type);
 }
+

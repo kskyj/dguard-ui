@@ -130,6 +130,7 @@ function cacheRefs() {
     "detectionSortIndicatorStatus",
     "bulkEditButton",
     "deleteButton",
+    "actionPlanButton",
     "recheckButton",
     "exportButton",
     "editorSummary",
@@ -517,6 +518,8 @@ function bindEvents() {
     state.bulkEditDraft.open = true;
     render();
   });
+
+  refs.actionPlanButton.addEventListener("click", handleActionPlanCreate);
 
   refs.deleteButton.addEventListener("click", () => {
     state.deleteModalOpen = true;
@@ -911,6 +914,7 @@ function renderDetectionTable() {
   refs.bulkEditButton.disabled = state.checkedDetectionIds.size === 0;
   refs.recheckButton.disabled = state.checkedDetectionIds.size === 0;
   refs.deleteButton.disabled = state.checkedDetectionIds.size === 0;
+  refs.actionPlanButton.disabled = state.checkedDetectionIds.size === 0;
   refs.detectionSortIndicatorPath.textContent = state.detectionSort.key === "path" ? (state.detectionSort.dir === "asc" ? "▲" : "▼") : "";
   refs.detectionSortIndicatorDetectType.textContent = state.detectionSort.key === "detectType" ? (state.detectionSort.dir === "asc" ? "▲" : "▼") : "";
   refs.detectionSortIndicatorCount.textContent = state.detectionSort.key === "count" ? (state.detectionSort.dir === "asc" ? "▲" : "▼") : "";
@@ -1348,6 +1352,29 @@ function applyBulkEdit() {
   syncEditorDraft();
   render();
   pushToast(isExclusionRequest ? "선택 항목 제외신청이 완료되었습니다." : "선택 항목 일괄수정이 완료되었습니다.", "success");
+}
+
+function handleActionPlanCreate() {
+  const selected = [...state.checkedDetectionIds]
+    .map((id) => service.findDetectionById(id))
+    .filter(Boolean);
+
+  if (!selected.length) {
+    pushToast("조치계획 대상 검출 항목을 선택하세요.", "danger");
+    return;
+  }
+  const invalid = selected.filter((item) => item.status !== "ACTION_REQUIRED");
+  if (invalid.length) {
+    pushToast("조치필요 상태만 조치계획 작성이 가능합니다.", "danger");
+    return;
+  }
+
+  const targetName = (state.routeContext.targetName || refs.detectionHeroTarget?.textContent || "").trim();
+  sessionStorage.setItem("dguard.actionPlanSelection", JSON.stringify(selected.map((item) => item.id)));
+  if (targetName) {
+    sessionStorage.setItem("dguard.actionPlanTarget", targetName);
+  }
+  window.location.href = "action-plan-create.html";
 }
 
 function renderDeleteModal() {

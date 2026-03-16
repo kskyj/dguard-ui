@@ -138,11 +138,26 @@
   margin-top: 8px;
 }
 
+#processedPanel .pagination-row {
+  margin-top: 2px;
+}
+
 .toolbar-leading {
   display: flex;
   align-items: center;
   gap: 8px;
   min-width: 0;
+}
+
+.toolbar-search-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.exception-card .toolbar-caption {
+  white-space: nowrap;
 }
 
 .request-search-field {
@@ -164,7 +179,7 @@
 }
 
 .selection-banner-row td {
-  text-align: left;
+  text-align: center;
 }
 
 .comment-text,
@@ -172,6 +187,46 @@
 .url-text {
   line-height: 1.4;
   word-break: break-word;
+}
+
+.exception-card .filter-badge {
+  white-space: nowrap;
+}
+
+#toggleProcessedFilterButton {
+  white-space: nowrap;
+}
+
+#processedPanel .toolbar-leading {
+  flex-wrap: wrap;
+  row-gap: 6px;
+}
+
+#pendingPanel .toolbar-leading {
+  flex-wrap: wrap;
+  row-gap: 6px;
+}
+
+#pendingPanel .filter-summary {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+#pendingPanel .filter-badge {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#processedPanel .filter-summary {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+#processedPanel .filter-badge {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .path-block {

@@ -152,6 +152,7 @@
         proxy: {
           name: proxyName,
           ip: `172.22.${12 + (seed % 18)}.${30 + (seed % 140)}`,
+          port: 9988,
           version: `v3.${(seed % 4) + 1}.${(seed % 7) + 2}`,
           status: proxyStatus,
         },

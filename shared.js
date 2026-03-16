@@ -8,7 +8,7 @@
       { key: "inspection-target", label: "점검대상", icon: "◎", href: "inspection-target.html" },
       { key: "analysis-history", label: "점검이력", icon: "◴", href: "analysis-history.html" },
       { key: "exception-request", label: "제외신청관리", icon: "⊖", href: "exception-request.html" },
-      { key: "action-plan", label: "조치계획관리", icon: "✎", href: "#" },
+      { key: "action-plan", label: "조치계획관리", icon: "✎", href: "action-plan.html" },
       { key: "board", label: "게시판", icon: "☰", href: "#" },
       {
         key: "policy-management",
@@ -47,7 +47,7 @@
       { key: "inspection-target", label: "점검대상", icon: "◎", href: "inspection-target.html" },
       { key: "analysis-history", label: "점검이력", icon: "◴", href: "analysis-history.html" },
       { key: "exception-request", label: "제외신청관리", icon: "⊖", href: "exception-request.html" },
-      { key: "action-plan", label: "조치계획관리", icon: "✎", href: "#" },
+      { key: "action-plan", label: "조치계획관리", icon: "✎", href: "action-plan.html" },
       { key: "board", label: "게시판", icon: "☰", href: "#" },
     ],
   };

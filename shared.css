@@ -388,6 +388,9 @@ body.sidebar-collapsed .sidebar .role-switch {
 }
 
 .user-menu-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   min-height: 32px;
   padding: 0 12px;
   border: 1px solid rgba(152, 123, 233, 0.22);
@@ -396,6 +399,10 @@ body.sidebar-collapsed .sidebar .role-switch {
   color: var(--accent);
   font-size: 13px;
   font-weight: 800;
+}
+
+.user-menu-caret {
+  display: block;
 }
 
 .user-menu-trigger:hover {

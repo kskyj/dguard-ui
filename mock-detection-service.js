@@ -647,10 +647,10 @@ function getDetectTypes() {
 }
 
 function isStatusAllowedForRole(status, role) {
-  if (status === "EXCLUDED" || status === "EXCLUSION_REJECTED") {
-    return false;
+  if (role === "admin") {
+    return true;
   }
-  return role === "admin" || USER_ALLOWED_STATUSES.has(status);
+  return USER_ALLOWED_STATUSES.has(status);
 }
 
 function findDetectionById(id) {
