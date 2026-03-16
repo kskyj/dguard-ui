@@ -209,6 +209,19 @@
             </table>
             <div class="empty-state" id="targetEmpty" hidden>조건에 맞는 점검대상이 없습니다.</div>
           </div>
+
+          <div class="pagination-row">
+            <label class="page-size-control" for="targetPageSizeSelect">
+              <span>표시 개수</span>
+              <select id="targetPageSizeSelect">
+                <option value="10">10개</option>
+                <option value="20">20개</option>
+                <option value="50">50개</option>
+                <option value="100">100개</option>
+              </select>
+            </label>
+            <div class="pagination" id="targetPagination"></div>
+          </div>
         </section>
       </main>
     </div>

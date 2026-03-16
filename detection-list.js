@@ -114,6 +114,7 @@ function cacheRefs() {
     "applyFilterButton",
     "cancelFilterButton",
     "detectionFilterSummary",
+    "detectionFilterBadge",
     "clearDetectionFilters",
     "detectionToolbarCaption",
     "selectAllDetections",
@@ -121,6 +122,7 @@ function cacheRefs() {
     "detectionTableBody",
     "detectionEmpty",
     "detectionPagination",
+    "detectionPageSizeSelect",
     "detectionSortIndicatorPath",
     "detectionSortIndicatorDetectType",
     "detectionSortIndicatorCount",
@@ -144,6 +146,7 @@ function cacheRefs() {
     "saveButton",
     "piiSearchInput",
     "piiFilterSummary",
+    "piiFilterBadge",
     "clearPiiFilters",
     "piiTableBody",
     "piiEmpty",
@@ -232,6 +235,10 @@ function bindEvents() {
       window.location.href = "analysis-history.html";
       return;
     }
+    if (state.selectedMenuKey === "exception-request") {
+      window.location.href = "exception-request.html";
+      return;
+    }
     if (state.selectedMenuKey === "inspection-target") {
       window.location.href = "inspection-target.html";
       return;
@@ -318,6 +325,17 @@ function bindEvents() {
         state.checkedDetectionIds.delete(item.id);
       }
     });
+    render();
+  });
+
+  refs.detectionPageSizeSelect.addEventListener("change", (event) => {
+    const nextSize = Number.parseInt(event.target.value, 10);
+    if (!Number.isFinite(nextSize)) {
+      return;
+    }
+    state.pagination.detectionPageSize = nextSize;
+    state.pagination.detectionPage = 1;
+    state.checkedDetectionIds.clear();
     render();
   });
 
@@ -817,6 +835,9 @@ function renderDetectionTable() {
   refs.detectionSelectionBannerBody.innerHTML = "";
   refs.detectionEmpty.hidden = all.length > 0;
   refs.detectionFilterSummary.hidden = !isDetectionFiltered();
+  if (!refs.detectionFilterSummary.hidden) {
+    refs.detectionFilterBadge.textContent = buildDetectionFilterSummary();
+  }
 
   items.forEach((item) => {
     const row = document.createElement("tr");
@@ -876,6 +897,7 @@ function renderDetectionTable() {
   const checkedCountInFiltered = all.filter((item) => state.checkedDetectionIds.has(item.id)).length;
   refs.selectAllDetections.checked = allSelectedOnPage;
   refs.selectAllDetections.indeterminate = !allSelectedOnPage && items.some((item) => state.checkedDetectionIds.has(item.id));
+  refs.detectionPageSizeSelect.value = String(state.pagination.detectionPageSize);
   refs.detectionSelectionBannerBody.hidden = !(allSelectedOnPage && checkedCountInFiltered > 0 && checkedCountInFiltered < all.length);
   if (!refs.detectionSelectionBannerBody.hidden) {
     const row = document.createElement("tr");
@@ -916,6 +938,34 @@ function isDetectionFiltered() {
       state.detectionFilters.assignees.length ||
       state.detectionFilters.statuses.length
   );
+}
+
+function buildDetectionFilterSummary() {
+  const parts = [];
+  if (state.detectionFilters.query) {
+    parts.push(`검색 "${state.detectionFilters.query}"`);
+  }
+  if (state.detectionFilters.detectTypes.length) {
+    parts.push(formatFilterList("검출타입", state.detectionFilters.detectTypes));
+  }
+  if (state.detectionFilters.assignees.length) {
+    parts.push(formatFilterList("담당자", state.detectionFilters.assignees));
+  }
+  if (state.detectionFilters.statuses.length) {
+    const labels = state.detectionFilters.statuses.map((status) => STATUS_META[status]?.label ?? status);
+    parts.push(formatFilterList("상태", labels));
+  }
+  return parts.length ? parts.join(" · ") : "필터 적용됨";
+}
+
+function formatFilterList(label, values, max = 2) {
+  if (!values.length) {
+    return label;
+  }
+  if (values.length <= max) {
+    return `${label} ${values.join(", ")}`;
+  }
+  return `${label} ${values.slice(0, max).join(", ")} 외 ${values.length - max}`;
 }
 
 function formatAssignees(assignees) {
@@ -1080,6 +1130,7 @@ function handleSave() {
   if (!detection) {
     return;
   }
+  const isExclusionRequest = state.editorDraft.status === "EXCLUSION_REQUESTED";
   service.updateDetection(detection.id, {
     status: state.editorDraft.status,
     comment: state.editorDraft.comment,
@@ -1087,7 +1138,7 @@ function handleSave() {
     actor: getCurrentActor(),
   });
   render();
-  pushToast("검출결과 상태 정보가 저장되었습니다.", "success");
+  pushToast(isExclusionRequest ? "제외신청 상태가 저장되었습니다." : "검출결과 상태 정보가 저장되었습니다.", "success");
 }
 
 function getCurrentActor() {
@@ -1166,6 +1217,9 @@ function renderPiiTable() {
   refs.piiTableBody.innerHTML = "";
   refs.piiEmpty.hidden = all.length > 0;
   refs.piiFilterSummary.hidden = !state.piiFilters.query;
+  if (!refs.piiFilterSummary.hidden) {
+    refs.piiFilterBadge.textContent = `검색 "${state.piiFilters.query}"`;
+  }
 
   items.forEach((item) => {
     const row = document.createElement("tr");
@@ -1277,6 +1331,7 @@ function applyBulkEdit() {
   if (state.checkedDetectionIds.size === 0) {
     return;
   }
+  const isExclusionRequest = state.bulkEditDraft.statusEnabled && state.bulkEditDraft.status === "EXCLUSION_REQUESTED";
   service.applyBulkEdit([...state.checkedDetectionIds], {
     ...state.bulkEditDraft,
     actor: getCurrentActor(),
@@ -1292,7 +1347,7 @@ function applyBulkEdit() {
   };
   syncEditorDraft();
   render();
-  pushToast("선택 항목 일괄수정이 완료되었습니다.", "success");
+  pushToast(isExclusionRequest ? "선택 항목 제외신청이 완료되었습니다." : "선택 항목 일괄수정이 완료되었습니다.", "success");
 }
 
 function renderDeleteModal() {

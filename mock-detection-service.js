@@ -647,6 +647,9 @@ function getDetectTypes() {
 }
 
 function isStatusAllowedForRole(status, role) {
+  if (status === "EXCLUDED" || status === "EXCLUSION_REJECTED") {
+    return false;
+  }
   return role === "admin" || USER_ALLOWED_STATUSES.has(status);
 }
 

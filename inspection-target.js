@@ -31,6 +31,10 @@ const state = {
     key: "name",
     dir: "asc",
   },
+  pagination: {
+    targetPage: 1,
+    targetPageSize: 50,
+  },
   bulkLabel: {
     open: false,
     addLabels: [],
@@ -94,6 +98,8 @@ function cacheRefs() {
     "targetSelectionBannerBody",
     "targetTableBody",
     "targetEmpty",
+    "targetPagination",
+    "targetPageSizeSelect",
     "targetFilterModal",
     "statusFilterTrigger",
     "statusFilterPanel",
@@ -135,6 +141,7 @@ function cacheRefs() {
 function bindEvents() {
   refs.targetSearchInput.addEventListener("input", (event) => {
     state.filters.query = event.target.value.trim();
+    state.pagination.targetPage = 1;
     render();
   });
 
@@ -156,6 +163,7 @@ function bindEvents() {
     state.filterDraft.statuses = [];
     state.filterDraft.labelKeyword = "";
     state.filterUi.statusesSearch = "";
+    state.pagination.targetPage = 1;
     refs.targetSearchInput.value = "";
     render();
   });
@@ -171,6 +179,7 @@ function bindEvents() {
   refs.applyFilterButton.addEventListener("click", () => {
     state.filters.statuses = [...state.filterDraft.statuses];
     state.filters.labelKeyword = state.filterDraft.labelKeyword.trim();
+    state.pagination.targetPage = 1;
     state.filters.panelOpen = false;
     state.filterUi.openKey = null;
     render();
@@ -178,7 +187,7 @@ function bindEvents() {
 
   refs.selectAllTargets.addEventListener("change", (event) => {
     const checked = event.target.checked;
-    getFilteredTargets().forEach((item) => {
+    getTargetPageItems().items.forEach((item) => {
       if (checked) {
         state.checkedTargetIds.add(item.id);
       } else {
@@ -223,6 +232,14 @@ function bindEvents() {
   });
 
   refs.targetSelectionBannerBody.addEventListener("click", (event) => {
+    const selectAllButton = event.target.closest("#selectAllFilteredTargets");
+    if (selectAllButton) {
+      getFilteredTargets().forEach((item) => {
+        state.checkedTargetIds.add(item.id);
+      });
+      render();
+      return;
+    }
     const clearButton = event.target.closest("#clearAllTargetSelections");
     if (!clearButton) {
       return;
@@ -246,6 +263,7 @@ function bindEvents() {
         state.sort.dir =
           key === "searchCount" || key === "recentDetectionCount" || key === "recentTableCount" ? "desc" : "asc";
       }
+      state.pagination.targetPage = 1;
       render();
     });
   });
@@ -376,6 +394,17 @@ function bindEvents() {
       positionFilterPopover();
     }
   });
+
+  refs.targetPageSizeSelect.addEventListener("change", (event) => {
+    const nextSize = Number.parseInt(event.target.value, 10);
+    if (!Number.isFinite(nextSize)) {
+      return;
+    }
+    state.pagination.targetPageSize = nextSize;
+    state.pagination.targetPage = 1;
+    state.checkedTargetIds.clear();
+    render();
+  });
 }
 
 function bindStatusFilter() {
@@ -467,10 +496,10 @@ function renderToolbarState() {
 }
 
 function renderTable() {
-  const items = getFilteredTargets();
+  const { all, items } = getTargetPageItems();
   refs.targetSelectionBannerBody.innerHTML = "";
   refs.targetTableBody.innerHTML = "";
-  refs.targetEmpty.hidden = items.length > 0;
+  refs.targetEmpty.hidden = all.length > 0;
 
   items.forEach((item) => {
     const row = document.createElement("tr");
@@ -549,30 +578,53 @@ function renderTable() {
     refs.targetTableBody.appendChild(row);
   });
 
-  const checkedVisibleCount = items.filter((item) => state.checkedTargetIds.has(item.id)).length;
-  const allSelectedInFiltered = items.length > 0 && checkedVisibleCount === items.length;
+  const checkedCountInFiltered = all.filter((item) => state.checkedTargetIds.has(item.id)).length;
+  const checkedCountOnPage = items.filter((item) => state.checkedTargetIds.has(item.id)).length;
+  const allSelectedOnPage = items.length > 0 && checkedCountOnPage === items.length;
   refs.selectAllTargets.disabled = items.length === 0;
-  refs.selectAllTargets.checked = allSelectedInFiltered;
-  refs.selectAllTargets.indeterminate = checkedVisibleCount > 0 && checkedVisibleCount < items.length;
-  refs.targetSelectionBannerBody.hidden = !allSelectedInFiltered;
-  if (allSelectedInFiltered) {
+  refs.selectAllTargets.checked = allSelectedOnPage;
+  refs.selectAllTargets.indeterminate = checkedCountOnPage > 0 && checkedCountOnPage < items.length;
+  refs.targetSelectionBannerBody.hidden = !(allSelectedOnPage && checkedCountInFiltered > 0);
+  if (!refs.targetSelectionBannerBody.hidden) {
     const row = document.createElement("tr");
     row.className = "selection-banner-row";
     const cell = document.createElement("td");
     cell.colSpan = 11;
-    cell.innerHTML = `현재 검색 결과 ${items.length.toLocaleString(
-      "ko-KR"
-    )}개 DB가 선택되었습니다. <button type="button" class="text-btn selection-banner-link" id="clearAllTargetSelections">선택 해제</button>`;
+    if (checkedCountInFiltered < all.length) {
+      cell.innerHTML = `페이지에서 ${items.length.toLocaleString(
+        "ko-KR"
+      )}개 DB가 선택되었습니다. <button type="button" class="text-btn selection-banner-link" id="selectAllFilteredTargets">목록에서 총 ${all.length.toLocaleString(
+        "ko-KR"
+      )}개 DB 선택</button>`;
+    } else {
+      cell.innerHTML = `목록의 전체 ${all.length.toLocaleString(
+        "ko-KR"
+      )}개 DB가 선택되었습니다. <button type="button" class="text-btn selection-banner-link" id="clearAllTargetSelections">선택 해제</button>`;
+    }
     row.appendChild(cell);
     refs.targetSelectionBannerBody.appendChild(row);
   }
-  refs.targetToolbarCaption.innerHTML = items.length
-    ? `<span class="toolbar-caption-strong">전체 ${items.length.toLocaleString("ko-KR")}건</span> <span class="toolbar-caption-highlight">1 - ${items.length.toLocaleString("ko-KR")} 표시됨</span>${
-        checkedVisibleCount > 0
-          ? ` <span class="toolbar-caption-selected">${checkedVisibleCount.toLocaleString("ko-KR")}건 선택됨</span>`
+  refs.targetToolbarCaption.innerHTML = all.length
+    ? `<span class="toolbar-caption-strong">전체 ${all.length.toLocaleString("ko-KR")}건</span> <span class="toolbar-caption-highlight">${Math.min(
+        (state.pagination.targetPage - 1) * state.pagination.targetPageSize + 1,
+        all.length
+      )} - ${Math.min(state.pagination.targetPage * state.pagination.targetPageSize, all.length)} 표시됨</span>${
+        checkedCountInFiltered > 0
+          ? ` <span class="toolbar-caption-selected">${checkedCountInFiltered.toLocaleString("ko-KR")}건 선택됨</span>`
           : ""
       }`
     : '<span class="toolbar-caption-strong">전체 0건</span> <span class="toolbar-caption-highlight">0 - 0 표시됨</span>';
+  targetShared.renderPagination(
+    refs.targetPagination,
+    all.length,
+    state.pagination.targetPageSize,
+    state.pagination.targetPage,
+    (page) => {
+      state.pagination.targetPage = page;
+      render();
+    }
+  );
+  refs.targetPageSizeSelect.value = String(state.pagination.targetPageSize);
 }
 
 function renderLabelCell(labels) {
@@ -727,6 +779,19 @@ function toggleTargetChecked(id) {
 
 function canToggleRowCheckbox(target) {
   return !target.closest("a, button, input, label");
+}
+
+function getTargetPageItems() {
+  const all = getFilteredTargets();
+  const maxPage = Math.max(1, Math.ceil(all.length / state.pagination.targetPageSize));
+  if (state.pagination.targetPage > maxPage) {
+    state.pagination.targetPage = maxPage;
+  }
+  const start = (state.pagination.targetPage - 1) * state.pagination.targetPageSize;
+  return {
+    all,
+    items: all.slice(start, start + state.pagination.targetPageSize),
+  };
 }
 
 function getFilteredTargets() {

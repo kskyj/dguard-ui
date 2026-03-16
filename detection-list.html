@@ -99,7 +99,7 @@
             </button>
             <p class="toolbar-caption" id="detectionToolbarCaption"><span class="toolbar-caption-strong">전체 0건</span> <span class="toolbar-caption-highlight">0 - 0 표시됨</span></p>
             <div class="filter-summary" id="detectionFilterSummary" hidden>
-              <span class="filter-badge">필터 적용됨</span>
+              <span class="filter-badge" id="detectionFilterBadge">필터 적용됨</span>
               <button type="button" class="text-btn" id="clearDetectionFilters">초기화</button>
             </div>
             <div class="toolbar-actions inline-actions">
@@ -202,6 +202,14 @@
           </div>
 
           <div class="pagination-row">
+            <label class="page-size-control" for="detectionPageSizeSelect">
+              <span>표시 개수</span>
+              <select id="detectionPageSizeSelect">
+                <option value="5">5개</option>
+                <option value="10">10개</option>
+                <option value="20">20개</option>
+              </select>
+            </label>
             <div class="pagination" id="detectionPagination"></div>
           </div>
       </article>
@@ -253,7 +261,7 @@
               <input type="text" id="piiSearchInput" placeholder="개인정보 또는 Unique 정보 검색">
             </label>
             <div class="filter-summary" id="piiFilterSummary" hidden>
-              <span class="filter-badge">검색 적용됨</span>
+              <span class="filter-badge" id="piiFilterBadge">검색 적용됨</span>
               <button type="button" class="text-btn" id="clearPiiFilters">초기화</button>
             </div>
           </div>

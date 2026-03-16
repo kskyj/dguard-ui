@@ -34,6 +34,11 @@
   font-size: 14px;
 }
 
+.detection-card .pagination-row,
+.pii-card .pagination-row {
+  margin-top: 10px;
+}
+
 .detection-card .table-shell,
 .pii-card .table-shell,
 .pii-table-shell {
