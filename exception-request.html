@@ -1,0 +1,311 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>제외신청관리 | D-Guard</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="./shared.css">
+  <link rel="stylesheet" href="./exception-request.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar card" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-brand">
+          <span class="sidebar-logo">DG</span>
+          <div class="sidebar-brand-text">
+            <strong>D-Guard</strong>
+            <span>DB Scan</span>
+          </div>
+        </div>
+        <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-expanded="true" aria-label="사이드바 접기"><</button>
+      </div>
+      <nav class="sidebar-nav" aria-label="주요 메뉴"></nav>
+      <div class="sidebar-footer">
+        <span class="sidebar-footer-label">테스트용</span>
+        <div class="role-switch" aria-label="역할 선택">
+          <button type="button" class="role-btn is-active" data-role="admin">관리자</button>
+          <button type="button" class="role-btn" data-role="user">일반사용자</button>
+        </div>
+      </div>
+    </aside>
+
+    <div class="page-shell">
+      <header class="hero-card card">
+        <div>
+          <h1 id="pageTitle">제외신청목록</h1>
+          <nav class="breadcrumb" aria-label="breadcrumb">
+            <a href="./inspection-target.html" class="breadcrumb-link">점검대상</a>
+            <span class="breadcrumb-separator">&gt;</span>
+            <a href="./exception-request.html" class="breadcrumb-link" id="breadcrumbSection">제외신청관리</a>
+            <span class="breadcrumb-separator">&gt;</span>
+            <span class="breadcrumb-link is-current" id="breadcrumbCurrent" aria-current="page">제외신청목록</span>
+          </nav>
+        </div>
+        <div class="user-menu" id="userMenu">
+          <button type="button" class="user-menu-trigger" id="userMenuTrigger" aria-expanded="false" aria-haspopup="true">
+            김성진(5492438)
+            <svg class="user-menu-caret" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false" style="vertical-align: middle;">
+              <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <div class="user-menu-panel" id="userMenuPanel" hidden>
+            <button type="button" class="user-menu-item" id="userSettingsButton">사용자설정</button>
+            <button type="button" class="user-menu-item danger" id="logoutButton">로그아웃</button>
+          </div>
+        </div>
+      </header>
+
+      <main class="exception-workspace">
+        <section class="card section-card exception-card">
+          <section class="summary-strip">
+            <div class="summary-tile">
+              <span>제외 대상</span>
+              <strong id="totalRowsValue">0</strong>
+            </div>
+            <div class="summary-tile">
+              <span>제외 신청</span>
+              <strong id="pendingRowsValue">0</strong>
+            </div>
+            <div class="summary-tile">
+              <span>제외 승인</span>
+              <strong id="approvedRowsValue">0</strong>
+            </div>
+            <div class="summary-tile">
+              <span>제외 거부</span>
+              <strong id="rejectedRowsValue">0</strong>
+            </div>
+          </section>
+
+          <div class="tab-header">
+            <div class="exception-tabs" role="tablist" aria-label="제외신청관리 탭">
+              <button type="button" class="tab-btn is-active" id="pendingTabButton" data-tab="pending" role="tab" aria-selected="true">
+                제외신청목록
+                <span class="tab-count" id="pendingTabCount">0</span>
+              </button>
+              <button type="button" class="tab-btn" id="processedTabButton" data-tab="processed" role="tab" aria-selected="false">
+                제외처리결과
+                <span class="tab-count" id="processedTabCount">0</span>
+              </button>
+            </div>
+          </div>
+
+          <section class="tab-panel" id="pendingPanel" role="tabpanel" aria-labelledby="pendingTabButton">
+            <div class="toolbar-row">
+              <div class="toolbar-leading">
+                <label class="search-field request-search-field">
+                  <span class="visually-hidden">신청자, DB명, URL, 검출경로 검색</span>
+                  <input type="text" id="pendingSearchInput" placeholder="신청자/DB명/URL/검출경로 검색">
+                </label>
+                <div class="filter-summary" id="pendingFilterSummary" hidden>
+                  <span class="filter-badge" id="pendingFilterText"></span>
+                  <button type="button" class="text-btn" id="clearPendingFilters">초기화</button>
+                </div>
+                <p class="toolbar-caption" id="pendingToolbarCaption"></p>
+              </div>
+              <div class="toolbar-actions inline-actions">
+                <button type="button" class="ghost-btn" id="cancelRequestButton" hidden>
+                  <span class="btn-icon" aria-hidden="true">
+                    <svg viewBox="0 0 16 16" focusable="false">
+                      <path d="M4.5 4.5 11.5 11.5"></path>
+                      <path d="M11.5 4.5 4.5 11.5"></path>
+                    </svg>
+                  </span>
+                  제외신청취소
+                </button>
+                <button type="button" class="ghost-btn" id="approveButton">
+                  <span class="btn-icon" aria-hidden="true">
+                    <svg viewBox="0 0 16 16" focusable="false">
+                      <path d="M3 8.2 6.2 11.4 13 4.6"></path>
+                    </svg>
+                  </span>
+                  제외승인
+                </button>
+                <button type="button" class="danger-btn" id="rejectButton">
+                  <span class="btn-icon" aria-hidden="true">
+                    <svg viewBox="0 0 16 16" focusable="false">
+                      <path d="M4.5 4.5 11.5 11.5"></path>
+                      <path d="M11.5 4.5 4.5 11.5"></path>
+                    </svg>
+                  </span>
+                  제외거부
+                </button>
+              </div>
+            </div>
+
+            <div class="table-shell">
+              <table class="data-table request-table">
+                <colgroup>
+                  <col style="width:44px">
+                  <col style="width:10%">
+                  <col style="width:13%">
+                  <col style="width:16%">
+                  <col style="width:15%">
+                  <col style="width:14%">
+                  <col style="width:7%">
+                  <col style="width:25%">
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th class="checkbox-cell">
+                      <input type="checkbox" id="selectAllPending" aria-label="제외신청 전체 선택">
+                    </th>
+                    <th><button type="button" class="sort-btn" data-tab="pending" data-sort-key="requestedBy">신청자 <span class="sort-indicator" id="pendingSortRequestedBy"></span></button></th>
+                    <th><button type="button" class="sort-btn" data-tab="pending" data-sort-key="requestedAt">신청일시 <span class="sort-indicator" id="pendingSortRequestedAt"></span></button></th>
+                    <th><button type="button" class="sort-btn" data-tab="pending" data-sort-key="requestComment">의견 <span class="sort-indicator" id="pendingSortRequestComment"></span></button></th>
+                    <th><button type="button" class="sort-btn" data-tab="pending" data-sort-key="dbName">DB명 <span class="sort-indicator" id="pendingSortDbName"></span></button></th>
+                    <th><button type="button" class="sort-btn" data-tab="pending" data-sort-key="url">URL <span class="sort-indicator" id="pendingSortUrl"></span></button></th>
+                    <th class="number-cell"><button type="button" class="sort-btn" data-tab="pending" data-sort-key="detectId">검출ID <span class="sort-indicator" id="pendingSortDetectId"></span></button></th>
+                    <th><button type="button" class="sort-btn" data-tab="pending" data-sort-key="path">검출경로 <span class="sort-indicator" id="pendingSortPath"></span></button></th>
+                  </tr>
+                </thead>
+                <tbody id="pendingSelectionBannerBody" hidden></tbody>
+                <tbody id="pendingTableBody"></tbody>
+              </table>
+              <div class="empty-state" id="pendingEmpty" hidden>조회 조건에 맞는 제외신청 건이 없습니다.</div>
+            </div>
+
+            <div class="pagination-row">
+              <label class="page-size-control" for="pendingPageSizeSelect">
+                <span>표시 개수</span>
+                <select id="pendingPageSizeSelect">
+                  <option value="10">10개</option>
+                  <option value="20">20개</option>
+                  <option value="50">50개</option>
+                  <option value="100">100개</option>
+                </select>
+              </label>
+              <div class="pagination" id="pendingPagination"></div>
+            </div>
+          </section>
+
+          <section class="tab-panel" id="processedPanel" role="tabpanel" aria-labelledby="processedTabButton" hidden>
+            <div class="toolbar-row">
+              <div class="toolbar-leading">
+                <label class="search-field request-search-field">
+                  <span class="visually-hidden">신청자, DB명, URL, 검출경로 검색</span>
+                  <input type="text" id="processedSearchInput" placeholder="신청자/DB명/URL/검출경로 검색">
+                </label>
+                <button type="button" class="ghost-btn" id="toggleProcessedFilterButton">
+                  <span class="btn-icon" aria-hidden="true">
+                    <svg viewBox="0 0 16 16" focusable="false">
+                      <path d="M2.5 3.5h11l-4.2 4.5v3.3l-2.6 1.2V8z"></path>
+                    </svg>
+                  </span>
+                  상세필터
+                </button>
+                <div class="filter-summary" id="processedFilterSummary" hidden>
+                  <span class="filter-badge" id="processedFilterText"></span>
+                  <button type="button" class="text-btn" id="clearProcessedFilters">초기화</button>
+                </div>
+                <p class="toolbar-caption" id="processedToolbarCaption"></p>
+              </div>
+            </div>
+
+            <div class="table-shell">
+              <table class="data-table result-table">
+                <colgroup>
+                  <col style="width:9%">
+                  <col style="width:12%">
+                  <col style="width:8%">
+                  <col style="width:14%">
+                  <col style="width:8%">
+                  <col style="width:14%">
+                  <col style="width:13%">
+                  <col style="width:12%">
+                  <col style="width:6%">
+                  <col style="width:14%">
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th><button type="button" class="sort-btn" data-tab="processed" data-sort-key="status">검출상태 <span class="sort-indicator" id="processedSortStatus"></span></button></th>
+                    <th><button type="button" class="sort-btn" data-tab="processed" data-sort-key="processedAt">처리일시 <span class="sort-indicator" id="processedSortProcessedAt"></span></button></th>
+                    <th><button type="button" class="sort-btn" data-tab="processed" data-sort-key="processedBy">처리자 <span class="sort-indicator" id="processedSortProcessedBy"></span></button></th>
+                    <th><button type="button" class="sort-btn" data-tab="processed" data-sort-key="processedComment">처리의견 <span class="sort-indicator" id="processedSortProcessedComment"></span></button></th>
+                    <th><button type="button" class="sort-btn" data-tab="processed" data-sort-key="requestedBy">신청자 <span class="sort-indicator" id="processedSortRequestedBy"></span></button></th>
+                    <th><button type="button" class="sort-btn" data-tab="processed" data-sort-key="requestComment">의견 <span class="sort-indicator" id="processedSortRequestComment"></span></button></th>
+                    <th><button type="button" class="sort-btn" data-tab="processed" data-sort-key="dbName">DB명 <span class="sort-indicator" id="processedSortDbName"></span></button></th>
+                    <th><button type="button" class="sort-btn" data-tab="processed" data-sort-key="url">URL <span class="sort-indicator" id="processedSortUrl"></span></button></th>
+                    <th class="number-cell"><button type="button" class="sort-btn" data-tab="processed" data-sort-key="detectId">검출ID <span class="sort-indicator" id="processedSortDetectId"></span></button></th>
+                    <th><button type="button" class="sort-btn" data-tab="processed" data-sort-key="path">검출경로 <span class="sort-indicator" id="processedSortPath"></span></button></th>
+                  </tr>
+                </thead>
+                <tbody id="processedTableBody"></tbody>
+              </table>
+              <div class="empty-state" id="processedEmpty" hidden>처리된 제외신청 결과가 없습니다.</div>
+            </div>
+
+            <div class="pagination-row">
+              <label class="page-size-control" for="processedPageSizeSelect">
+                <span>표시 개수</span>
+                <select id="processedPageSizeSelect">
+                  <option value="10">10개</option>
+                  <option value="20">20개</option>
+                  <option value="50">50개</option>
+                  <option value="100">100개</option>
+                </select>
+              </label>
+              <div class="pagination" id="processedPagination"></div>
+            </div>
+          </section>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div class="filter-popover" id="processedFilterModal" hidden>
+    <div class="filter-popover-card">
+      <div class="filter-popover-header">
+        <strong>상세필터</strong>
+      </div>
+      <div class="filter-popover-body">
+        <div class="filter-panel popover-filter-panel processed-filter-panel">
+          <div class="filter-group">
+            <span>검출상태</span>
+            <div class="filter-select" id="processedStatusFilterSelect">
+              <button type="button" class="filter-select-trigger" id="processedStatusFilterTrigger">전체</button>
+              <div class="filter-select-panel" id="processedStatusFilterPanel" hidden>
+                <input type="text" id="processedStatusFilterSearch" placeholder="검출상태 검색">
+                <div class="filter-select-options" id="processedStatusFilterList"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="filter-popover-footer">
+        <button type="button" class="ghost-btn filter-action-btn" id="cancelProcessedFilterButton">취소</button>
+        <button type="button" class="primary-btn filter-action-btn" id="applyProcessedFilterButton">적용</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="processModal" hidden>
+    <div class="modal-card compact-modal">
+      <div class="modal-header">
+        <h3 id="processModalTitle">제외 처리의견 입력</h3>
+        <button type="button" class="icon-btn" data-close-modal="processModal" aria-label="모달 닫기">×</button>
+      </div>
+      <div class="modal-body">
+        <p class="process-caption" id="processModalCaption">선택한 제외신청 건에 대한 처리의견을 입력하세요.</p>
+        <label class="form-group">
+          <span>처리의견</span>
+          <textarea id="processOpinionInput" rows="5" maxlength="500" placeholder="처리의견을 입력하세요."></textarea>
+          <small class="modal-counter" id="processOpinionCount">0 / 500</small>
+        </label>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="ghost-btn filter-action-btn" data-close-modal="processModal">취소</button>
+        <button type="button" class="primary-btn filter-action-btn" id="confirmProcessButton" disabled>확인</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-stack" id="toastStack" aria-live="polite" aria-atomic="true"></div>
+
+  <script src="./shared.js"></script>
+  <script src="./mock-inspection-target-service.js"></script>
+  <script src="./mock-exception-request-service.js"></script>
+  <script src="./exception-request.js"></script>
+</body>
+</html>

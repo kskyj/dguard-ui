@@ -1,0 +1,227 @@
+.exception-workspace {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 8px;
+  min-height: calc(100vh - 72px);
+  max-height: calc(100vh - 72px);
+}
+
+.summary-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.exception-card .summary-strip {
+  margin-bottom: 12px;
+}
+
+.summary-tile {
+  display: grid;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px solid rgba(201, 208, 227, 0.8);
+  border-radius: 14px;
+  background: linear-gradient(180deg, #fff 0%, #f7f9ff 100%);
+}
+
+.summary-tile span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.summary-tile strong {
+  color: var(--text);
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.exception-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.exception-card input,
+.exception-card button,
+.exception-card .text-btn,
+.exception-card .pagination-caption {
+  font-size: 14px;
+}
+
+.exception-card .data-table th,
+.exception-card .data-table td {
+  font-size: 14px;
+}
+
+.exception-card .data-table thead th {
+  font-size: 13px;
+}
+
+.exception-card .ghost-btn[hidden],
+.exception-card .danger-btn[hidden],
+.exception-card .primary-btn[hidden] {
+  display: none;
+}
+
+.tab-header {
+  margin-bottom: 8px;
+  border-bottom: 1px solid rgba(210, 216, 232, 0.95);
+}
+
+.exception-tabs {
+  display: flex;
+  gap: 2px;
+}
+
+.tab-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 16px;
+  border-radius: 14px 14px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.tab-btn::after {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: -1px;
+  height: 3px;
+  border-radius: 999px 999px 0 0;
+  background: transparent;
+}
+
+.tab-btn.is-active {
+  color: var(--text);
+  background: linear-gradient(180deg, rgba(152, 123, 233, 0.12), rgba(152, 123, 233, 0.02));
+}
+
+.tab-btn.is-active::after {
+  background: var(--accent);
+}
+
+.tab-count {
+  min-width: 26px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(32, 37, 58, 0.08);
+  color: inherit;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.tab-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.tab-panel[hidden] {
+  display: none;
+}
+
+.tab-panel .table-shell {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
+
+#pendingPanel .pagination-row {
+  margin-top: 8px;
+}
+
+.toolbar-leading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.request-search-field {
+  flex-basis: 320px;
+  max-width: 320px;
+}
+
+.request-table,
+.result-table {
+  min-width: 1460px;
+}
+
+.request-table tbody tr.is-checked {
+  background: rgba(152, 123, 233, 0.1);
+}
+
+.request-table tbody tr.is-checked td:first-child {
+  box-shadow: inset 4px 0 0 var(--accent);
+}
+
+.selection-banner-row td {
+  text-align: left;
+}
+
+.comment-text,
+.path-block,
+.url-text {
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.path-block {
+  color: #273252;
+  font-weight: 500;
+}
+
+.url-text {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.status-cell .status-chip {
+  font-size: 12px;
+}
+
+.page-size-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.page-size-control select {
+  width: auto;
+  min-width: 84px;
+  padding-right: 28px;
+  font-size: 13px;
+}
+
+.processed-filter-panel {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.process-caption {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+#processOpinionInput {
+  min-height: 100px;
+  font-size: 13px;
+}
+
+.modal-counter {
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+}
