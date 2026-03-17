@@ -75,7 +75,7 @@
 
 ## Top Search/Action Bar
 
-- Base order: `search input + detail filter button + filter state + action buttons`
+- Base order: `search input + detail filter button + action buttons`
 - Keep it on one line when possible.
 - Keep action buttons aligned to the right.
 - Keep main actions visually consistent with the current sample:
@@ -93,7 +93,8 @@
 - Baseline emphasis pattern:
   - `전체 N건`, `Z건 선택됨`: accent/purple emphasis
   - `X - Y 표시됨`: dark text
-- Show a clear applied-filter state and reset action.
+- Show a clear applied-filter state and reset action in a slim row placed under the text input filter and above the table.
+- Applied search summary pattern: `검색 "키워드"`, `초기화`.
 
 ## Detail Filter
 

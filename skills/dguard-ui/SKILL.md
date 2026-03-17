@@ -40,8 +40,9 @@ If you are starting a new page, read [references/page-input-checklist.md](C:\Use
 - Use the D-Guard color system and dense enterprise-style spacing.
 - Reproduce the existing header treatment closely: compact white header card, bold page title, highlighted target pill, breadcrumb below, and right-aligned user menu pill.
 - Use the standard top action bar pattern: search, detail filter, filter state, actions.
-- When search text is entered, reflect it in the filter state summary as `검색 "키워드"` (e.g., `검색 "mssql"`). Detail filters should remain distinguishable alongside the search term.
+- When search text is entered, reflect it in a filter state summary row placed under the text input filter and above the table. Use the pattern `검색 "키워드"  초기화` (e.g., `검색 "mssql"  초기화`). Detail filters should remain distinguishable alongside the search term.
 - For detail filters and multi-condition searches, the filter summary must show concrete criteria (e.g., `상태 2개 · 라벨 "ff"`), not just a generic "필터 적용됨".
+- For list/table pages with a toolbar summary, keep the order as `텍스트 입력 필터`, `상세필터`, `전체 N건 X - Y 표시됨 Z건 선택됨`, `상태 1개 · 라벨 "ff"`, `초기화`, use `·` between filter criteria, and apply rounded chip styling. Emphasize `전체 N건` and `초기화` with the highlight color.
 - Keep table-top action buttons aligned with the current baseline: `14px` text, `32px` height, unified minimum widths, monochrome SVG icons plus labels.
 - In sample or mock pages, preserve the established action-button style using monochrome icons plus text, not colorful emoji.
 - For list/table pages when the page benefits from it, include an inline list summary in the top action bar. The current baseline pattern is `전체 N건 X - Y 표시됨 Z건 선택됨`.
