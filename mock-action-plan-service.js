@@ -194,6 +194,7 @@
         return;
       }
       accepted.push({
+        id: `file-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
         name: file.name,
         size: file.size,
         type: file.type,
@@ -207,6 +208,22 @@
       persistPlans(plans);
     }
     return { added: accepted, rejected };
+  }
+
+  function removeAttachment(planId, index) {
+    const plan = getPlanById(planId);
+    if (!plan) {
+      return { ok: false };
+    }
+    if (!Number.isInteger(index) || index < 0 || index >= plan.attachments.length) {
+      return { ok: false };
+    }
+    plan.attachments.splice(index, 1);
+    if (plan.attachments.length === 0 && plan.status === "REGISTERED") {
+      plan.status = "PENDING";
+    }
+    persistPlans(plans);
+    return { ok: true };
   }
 
   function recheckPlan(planId) {
@@ -259,6 +276,7 @@
     getSelectionIds,
     createPlan,
     addAttachments,
+    removeAttachment,
     recheckPlan,
     getRecheckTotal,
     getOverduePlans,

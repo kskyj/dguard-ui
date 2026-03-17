@@ -499,6 +499,18 @@ body.sidebar-collapsed .sidebar .role-switch {
   display: none;
 }
 
+.filter-summary-row {
+  align-items: center;
+  flex-wrap: wrap;
+  margin: 2px 0 8px;
+}
+
+.filter-summary-row .text-btn::before {
+  margin: 0 6px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
 .toolbar-actions,
 .pagination {
   flex-wrap: wrap;
@@ -1299,6 +1311,12 @@ body.portal-body {
   gap: 14px;
 }
 
+@media (max-width: 900px) {
+  .portal-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .portal-card {
   display: grid;
   gap: 12px;
@@ -1334,4 +1352,5 @@ body.portal-body {
   color: var(--accent);
   font-size: 12px;
   font-weight: 700;
+  white-space: nowrap; 
 }

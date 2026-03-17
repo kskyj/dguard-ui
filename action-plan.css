@@ -43,6 +43,11 @@
   font-size: 14px;
 }
 
+.action-plan-card .toolbar-actions .primary-btn {
+  font-size: 14px;
+  text-decoration: none;
+}
+
 .action-plan-card .data-table th,
 .action-plan-card .data-table td {
   font-size: 14px;
@@ -128,6 +133,11 @@
   font-size: 12px;
 }
 
+.file-remove-btn {
+  min-width: 56px;
+  font-size: 12px;
+}
+
 .file-meta {
   display: flex;
   flex-direction: column;
@@ -148,6 +158,13 @@
 
 .modal-footer {
   justify-content: space-between;
+}
+
+.plan-detail-modal .modal-footer .ghost-btn,
+.plan-detail-modal .modal-footer .primary-btn {
+  min-height: 36px;
+  padding: 0 14px;
+  font-size: 14px;
 }
 
 @media (max-width: 1440px) {

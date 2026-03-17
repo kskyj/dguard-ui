@@ -281,7 +281,10 @@ function bindEvents() {
     render();
   });
 
-  refs.closeLabelModalButton.addEventListener("click", closeBulkLabelModal);
+  refs.closeLabelModalButton.addEventListener("click", () => {
+    closeBulkLabelModal();
+    render();
+  });
   refs.addLabelTokenButton.addEventListener("click", () => appendBulkLabel("add"));
   refs.removeLabelTokenButton.addEventListener("click", () => appendBulkLabel("remove"));
 

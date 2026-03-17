@@ -101,11 +101,7 @@
                   </label>
                   <p class="toolbar-caption" id="pendingToolbarCaption"></p>
                 </div>
-                <div class="filter-summary" id="pendingFilterSummary" hidden>
-                  <span class="filter-badge" id="pendingFilterText"></span>
-                  <button type="button" class="text-btn" id="clearPendingFilters">초기화</button>
-                </div>
-              </div>
+                              </div>
               <div class="toolbar-actions inline-actions">
                 <button type="button" class="ghost-btn" id="cancelRequestButton" hidden>
                   <span class="btn-icon" aria-hidden="true">
@@ -134,6 +130,11 @@
                   제외거부
                 </button>
               </div>
+            </div>
+
+            <div class="filter-summary filter-summary-row" id="pendingFilterSummary" hidden>
+              <span class="filter-badge" id="pendingFilterText"></span>
+              <button type="button" class="text-btn" id="clearPendingFilters">초기화</button>
             </div>
 
             <div class="table-shell">
@@ -200,11 +201,12 @@
                   </button>
                   <p class="toolbar-caption" id="processedToolbarCaption"></p>
                 </div>
-                <div class="filter-summary" id="processedFilterSummary" hidden>
-                  <span class="filter-badge" id="processedFilterText"></span>
-                  <button type="button" class="text-btn" id="clearProcessedFilters">초기화</button>
-                </div>
-              </div>
+                              </div>
+            </div>
+
+            <div class="filter-summary filter-summary-row" id="processedFilterSummary" hidden>
+              <span class="filter-badge" id="processedFilterText"></span>
+              <button type="button" class="text-btn" id="clearProcessedFilters">초기화</button>
             </div>
 
             <div class="table-shell">

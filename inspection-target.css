@@ -292,6 +292,11 @@
   width: min(760px, 100%);
 }
 
+.label-modal-card .modal-footer .ghost-btn,
+.label-modal-card .modal-footer .primary-btn {
+  font-size: 14px;
+}
+
 .label-modal-body {
   gap: 16px;
 }

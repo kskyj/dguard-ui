@@ -226,6 +226,21 @@ function bindEvents() {
     render();
   });
 
+  refs.planUploadList.addEventListener("click", (event) => {
+    const removeButton = event.target.closest("[data-attachment-remove]");
+    if (!removeButton || !state.detail.planId) {
+      return;
+    }
+    const index = Number.parseInt(removeButton.dataset.attachmentRemove, 10);
+    const result = actionPlanService.removeAttachment(state.detail.planId, index);
+    if (!result.ok) {
+      pushToast("파일 삭제에 실패했습니다.", "danger");
+      return;
+    }
+    pushToast("첨부 파일이 삭제되었습니다.", "success");
+    render();
+  });
+
   document.querySelectorAll("[data-close-modal]").forEach((button) => {
     button.addEventListener("click", () => {
       closeDetailModal();
@@ -552,7 +567,7 @@ function renderUploadList(files) {
     return;
   }
 
-  files.forEach((file) => {
+  files.forEach((file, index) => {
     const row = document.createElement("div");
     row.className = "file-row";
 
@@ -564,7 +579,13 @@ function renderUploadList(files) {
     info.textContent = `PDF · ${formatFileSize(file.size)}`;
     meta.append(name, info);
 
-    row.appendChild(meta);
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "ghost-btn file-remove-btn";
+    remove.dataset.attachmentRemove = String(index);
+    remove.textContent = "삭제";
+
+    row.append(meta, remove);
     refs.planUploadList.appendChild(row);
   });
 }
