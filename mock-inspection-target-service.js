@@ -40,6 +40,7 @@
   const DOMAINS = ["고객", "결제", "민원", "영업", "물류", "인사", "마케팅", "통합", "정산", "파트너"];
   const SYSTEMS = ["운영", "분석", "중계", "리포트", "원장", "백업"];
   const ENVIRONMENTS = ["운영", "개발", "검증", "DR"];
+  const SCHEDULE_TYPES = ["일일 점검", "주간 점검", "야간 재점검", "증분 점검", "정밀 점검", "긴급 점검"];
   const EXTRA_LABELS = [
     "핵심",
     "외부연계",
@@ -75,6 +76,7 @@
       const searchCount = 4 + ((index * 13) % 186);
       const recentTableCount = 24 + ((index * 17) % 612);
       const recentDetectionCount = index % 6 === 0 ? 0 : 8 + ((index * 29) % 1830);
+      const recentScheduleName = `${SCHEDULE_TYPES[(index - 1) % SCHEDULE_TYPES.length]} ${String(index).padStart(3, "0")}`;
       const labelSeed = [
         environment,
         `${domain}계`,
@@ -104,6 +106,7 @@
         dbType,
         searchCount,
         status,
+        recentScheduleName,
         recentTableCount,
         recentDetectionCount,
         inspectionStartedAt: startedAt,

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>점검페이지 | D-Guard</title>
+  <title>점검 스케줄 설정 | D-Guard</title>
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="./shared.css">
   <link rel="stylesheet" href="./inspection-run.css">
@@ -34,11 +34,11 @@
     <div class="page-shell">
       <header class="hero-card card">
         <div>
-          <h1>점검페이지 <span class="hero-target" id="runHeroTarget">선택 DB 0대</span></h1>
+          <h1>점검 스케줄 설정</h1>
           <nav class="breadcrumb" aria-label="breadcrumb">
             <a href="./inspection-target.html" class="breadcrumb-link">점검대상</a>
             <span class="breadcrumb-separator">&gt;</span>
-            <a href="#" class="breadcrumb-link is-current" aria-current="page">선택 DB 점검</a>
+            <a href="#" class="breadcrumb-link is-current" aria-current="page">선택 DB 스케줄 설정</a>
           </nav>
         </div>
         <div class="user-menu" id="userMenu">
@@ -55,185 +55,89 @@
         </div>
       </header>
 
-      <main class="run-workspace">
+      <main class="run-page">
         <section class="card section-card run-summary-card">
-          <div class="run-summary-grid">
-            <div class="summary-tile">
-              <span>선택 DB</span>
-              <strong id="runSelectedCount">0</strong>
+          <div class="run-summary-head">
+            <div>
+              <h3>이동 안내</h3>
+              <p class="section-caption">선택한 DB만 대상으로 스케줄을 설정합니다.</p>
             </div>
-            <div class="summary-tile">
-              <span>점검중 대상</span>
-              <strong id="runRunningCount">0</strong>
+            <strong class="run-selection-count" id="selectedTargetCount">0대 선택</strong>
+          </div>
+          <div class="run-guide-box">
+            <p>선택 대상 전용 점검 스케줄을 등록할 수 있습니다.</p>
+          </div>
+        </section>
+
+        <section class="card section-card run-form-card">
+          <div class="detail-header">
+            <div>
+              <h3>스케줄 기본정보</h3>
             </div>
-            <div class="summary-tile">
-              <span>최근검출건수 합계</span>
-              <strong id="runDetectionTotal">0</strong>
-            </div>
+          </div>
+          <div class="run-form-grid">
+            <label class="form-group">
+              <span>스케줄명</span>
+              <input type="text" id="scheduleNameInput" placeholder="예: 야간 개인정보 정기점검">
+            </label>
+            <label class="form-group">
+              <span>실행주기</span>
+              <select id="scheduleCycleSelect">
+                <option>매일</option>
+                <option>매주</option>
+                <option>매월</option>
+                <option>수동</option>
+              </select>
+            </label>
+            <label class="form-group">
+              <span>시작일시</span>
+              <input type="datetime-local" id="scheduleStartInput">
+            </label>
+            <label class="form-group run-form-wide">
+              <span>동작 설명</span>
+              <textarea id="vendorMessageInput" rows="4" placeholder="업체에 전달할 점검 목적과 일정 설명을 입력하세요."></textarea>
+            </label>
+          </div>
+          <div class="run-form-actions">
+            <button type="button" class="ghost-btn" id="backToTargetButton">목록으로</button>
+            <button type="button" class="primary-btn" id="saveScheduleButton">스케줄 저장</button>
           </div>
         </section>
 
         <section class="card section-card run-target-card">
-          <div class="toolbar-row">
-            <label class="search-field run-search-field">
-              <span class="visually-hidden">DB명 또는 라벨 검색</span>
-              <input type="text" id="runSearchInput" placeholder="DB명, 라벨 검색">
-            </label>
-            <button type="button" class="ghost-btn" id="toggleRunFilterButton">
-              <span class="btn-icon" aria-hidden="true">
-                <svg viewBox="0 0 16 16" focusable="false">
-                  <path d="M2.5 3.5h11l-4.2 4.5v3.3l-2.6 1.2V8z"></path>
-                </svg>
-              </span>
-              상세필터
-            </button>
-            <div class="filter-summary" id="runFilterSummary" hidden>
-              <span class="filter-badge" id="runFilterBadgeText">필터 적용됨</span>
-              <button type="button" class="text-btn" id="clearRunFiltersButton">초기화</button>
-            </div>
-            <div class="toolbar-actions inline-actions">
-              <button type="button" class="ghost-btn" id="bulkRunLabelButton" disabled>
-                <span class="btn-icon" aria-hidden="true">
-                  <svg viewBox="0 0 16 16" focusable="false">
-                    <path d="M11.8 2.3 13.7 4.2 5.1 12.8 2.5 13.5 3.2 10.9z"></path>
-                    <path d="M10.9 3.2 12.8 5.1"></path>
-                  </svg>
-                </span>
-                라벨 수정
-              </button>
-              <button type="button" class="ghost-btn" id="startRunButton" disabled>
-                <span class="btn-icon" aria-hidden="true">
-                  <svg viewBox="0 0 16 16" focusable="false">
-                    <path d="M6 4.2 11.5 8 6 11.8z"></path>
-                  </svg>
-                </span>
-                점검
-              </button>
-              <button type="button" class="primary-btn" id="exportRunButton" disabled>
-                <span class="btn-icon" aria-hidden="true">
-                  <svg viewBox="0 0 16 16" focusable="false">
-                    <path d="M8 2.5v7.2"></path>
-                    <path d="M5.4 7.8 8 10.5l2.6-2.7"></path>
-                    <path d="M3 12.5h10"></path>
-                  </svg>
-                </span>
-                내보내기
-              </button>
+          <div class="detail-header">
+            <div>
+              <h3>선택 DB</h3>
             </div>
           </div>
-
-          <div class="table-shell run-table-shell">
-            <table class="data-table run-table">
+          <div class="table-shell run-target-table-shell">
+            <table class="data-table run-target-table">
               <colgroup>
-                <col style="width:44px">
-                <col style="width:28%">
                 <col style="width:10%">
+                <col style="width:26%">
+                <col style="width:12%">
+                <col style="width:18%">
                 <col style="width:10%">
                 <col style="width:12%">
                 <col style="width:12%">
-                <col style="width:24%">
               </colgroup>
               <thead>
                 <tr>
-                  <th class="checkbox-cell">
-                    <input type="checkbox" id="selectAllRunTargets" aria-label="전체 선택">
-                  </th>
+                  <th>ID</th>
                   <th>DB명</th>
-                  <th>DB종류</th>
-                  <th>점검상태</th>
+                  <th class="center-cell">DB종류</th>
+                  <th>최근스케쥴명</th>
                   <th class="number-cell">최근검색테이블수</th>
-                  <th class="number-cell">최근검출건수</th>
+                  <th class="center-cell">최근점검상태</th>
                   <th>라벨</th>
                 </tr>
               </thead>
               <tbody id="runTargetTableBody"></tbody>
             </table>
-          </div>
-
-          <div class="run-list-footer">
-            <p class="run-caption" id="runCaption">선택 대상 요약</p>
+            <div class="empty-state" id="runTargetEmpty" hidden>선택된 DB가 없습니다.</div>
           </div>
         </section>
       </main>
-    </div>
-  </div>
-
-  <div class="filter-popover" id="runFilterModal" hidden>
-    <div class="filter-popover-card">
-      <div class="filter-popover-header">
-        <strong>상세필터</strong>
-      </div>
-      <div class="filter-popover-body">
-        <div class="filter-panel run-filter-panel">
-          <div class="filter-group">
-            <span>점검상태</span>
-            <div class="filter-select">
-              <button type="button" class="filter-select-trigger" id="runStatusFilterTrigger">전체</button>
-              <div class="filter-select-panel" id="runStatusFilterPanel" hidden>
-                <input type="text" id="runStatusFilterSearch" placeholder="점검상태 검색">
-                <div class="filter-select-options" id="runStatusFilterList"></div>
-              </div>
-            </div>
-          </div>
-          <div class="filter-group">
-            <span>DB종류</span>
-            <div class="filter-select">
-              <button type="button" class="filter-select-trigger" id="runDbTypeFilterTrigger">전체</button>
-              <div class="filter-select-panel" id="runDbTypeFilterPanel" hidden>
-                <input type="text" id="runDbTypeFilterSearch" placeholder="DB종류 검색">
-                <div class="filter-select-options" id="runDbTypeFilterList"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="filter-popover-footer">
-        <button type="button" class="ghost-btn filter-action-btn" id="cancelRunFilterButton">취소</button>
-        <button type="button" class="primary-btn filter-action-btn" id="applyRunFilterButton">적용</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="modal-backdrop" id="runLabelModal" hidden>
-    <div class="modal-card run-label-modal-card">
-      <div class="modal-header">
-        <div>
-          <h3>라벨 일괄 수정</h3>
-          <p class="modal-caption" id="runLabelSelectionCaption">선택 DB 0대</p>
-        </div>
-      </div>
-      <div class="modal-body run-label-modal-body">
-        <div class="run-label-summary">
-          <span>선택 DB 현재 라벨</span>
-          <div class="run-label-chip-wrap" id="runSelectedLabelSummary"></div>
-        </div>
-        <div class="run-label-editor-grid">
-          <section class="run-label-editor-panel">
-            <div class="run-label-editor-head">
-              <strong>추가할 라벨</strong>
-            </div>
-            <div class="run-token-input-row">
-              <input type="text" id="runAddLabelInput" placeholder="추가 라벨 입력 후 Enter">
-              <button type="button" class="ghost-btn" id="runAddLabelButton">추가</button>
-            </div>
-            <div class="run-editable-chip-list" id="runAddLabelTokens"></div>
-          </section>
-          <section class="run-label-editor-panel">
-            <div class="run-label-editor-head">
-              <strong>제거할 라벨</strong>
-            </div>
-            <div class="run-token-input-row">
-              <input type="text" id="runRemoveLabelInput" placeholder="제거 라벨 입력 후 Enter">
-              <button type="button" class="ghost-btn" id="runRemoveLabelButton">추가</button>
-            </div>
-            <div class="run-editable-chip-list" id="runRemoveLabelTokens"></div>
-          </section>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="ghost-btn" id="closeRunLabelModalButton">취소</button>
-        <button type="button" class="primary-btn" id="applyRunLabelModalButton" disabled>적용</button>
-      </div>
     </div>
   </div>
 

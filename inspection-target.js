@@ -40,6 +40,9 @@ const state = {
     addLabels: [],
     removeLabels: [],
   },
+  inspectionGuide: {
+    open: false,
+  },
 };
 
 document.addEventListener("DOMContentLoaded", init);
@@ -85,6 +88,10 @@ function cacheRefs() {
     "summaryRunning",
     "summaryCompleted",
     "summaryFailed",
+    "summaryFilterAll",
+    "summaryFilterCompleted",
+    "summaryFilterRunning",
+    "summaryFilterFailed",
     "targetSearchInput",
     "toggleFilterButton",
     "targetToolbarCaption",
@@ -120,11 +127,16 @@ function cacheRefs() {
     "labelSuggestionList",
     "closeLabelModalButton",
     "applyLabelModalButton",
+    "inspectionGuideModal",
+    "inspectionGuideCaption",
+    "closeInspectionGuideButton",
+    "confirmInspectionGuideButton",
     "sortIndicatorId",
     "sortIndicatorName",
     "sortIndicatorDbType",
     "sortIndicatorSearchCount",
     "sortIndicatorStatus",
+    "sortIndicatorScheduleName",
     "sortIndicatorTableCount",
     "sortIndicatorDetectionCount",
     "sortIndicatorStartedAt",
@@ -139,6 +151,18 @@ function cacheRefs() {
 }
 
 function bindEvents() {
+  [
+    refs.summaryFilterAll,
+    refs.summaryFilterCompleted,
+    refs.summaryFilterRunning,
+    refs.summaryFilterFailed,
+  ].forEach((button) => {
+    button.addEventListener("click", () => {
+      const nextStatus = button.dataset.summaryStatus ?? "";
+      applySummaryStatusFilter(nextStatus);
+    });
+  });
+
   refs.targetSearchInput.addEventListener("input", (event) => {
     state.filters.query = event.target.value.trim();
     state.pagination.targetPage = 1;
@@ -350,7 +374,24 @@ function bindEvents() {
       pushToast("점검할 DB를 선택하세요.", "danger");
       return;
     }
-    window.location.href = `./inspection-run.html?ids=${encodeURIComponent([...state.checkedTargetIds].join(","))}`;
+    state.inspectionGuide.open = true;
+    render();
+  });
+
+  refs.closeInspectionGuideButton.addEventListener("click", () => {
+    closeInspectionGuideModal();
+    render();
+  });
+
+  refs.confirmInspectionGuideButton.addEventListener("click", () => {
+    const selectedIds = [...state.checkedTargetIds];
+    if (!selectedIds.length) {
+      closeInspectionGuideModal();
+      render();
+      pushToast("점검할 DB를 선택하세요.", "danger");
+      return;
+    }
+    window.location.href = `./inspection-run.html?ids=${encodeURIComponent(selectedIds.join(","))}`;
   });
 
   refs.exportButton.addEventListener("click", () => {
@@ -387,6 +428,15 @@ function bindEvents() {
       const onOpenButton = event.target.closest("#bulkLabelButton");
       if (!insideModal && !onOpenButton) {
         closeBulkLabelModal();
+        render();
+      }
+    }
+
+    if (state.inspectionGuide.open) {
+      const insideGuideModal = event.target.closest("#inspectionGuideModal .modal-card");
+      const onGuideButton = event.target.closest("#startInspectionButton");
+      if (!insideGuideModal && !onGuideButton) {
+        closeInspectionGuideModal();
         render();
       }
     }
@@ -454,6 +504,7 @@ function render() {
   refs.targetFilterSummary.hidden = !isFiltered();
   refs.toggleFilterButton.classList.toggle("is-filtered", isFiltered());
   refs.bulkLabelModal.hidden = !state.bulkLabel.open;
+  refs.inspectionGuideModal.hidden = !state.inspectionGuide.open;
   renderFilterControls();
   if (state.filters.panelOpen) {
     positionFilterPopover();
@@ -463,6 +514,7 @@ function render() {
   renderTable();
   renderToolbarState();
   renderBulkLabelModal();
+  renderInspectionGuideModal();
 }
 
 function renderSummary() {
@@ -471,6 +523,17 @@ function renderSummary() {
   refs.summaryRunning.textContent = summary.running.toLocaleString("ko-KR");
   refs.summaryCompleted.textContent = summary.completed.toLocaleString("ko-KR");
   refs.summaryFailed.textContent = summary.failed.toLocaleString("ko-KR");
+  const activeStatus = getActiveSummaryStatus();
+  [
+    [refs.summaryFilterAll, ""],
+    [refs.summaryFilterCompleted, "COMPLETED"],
+    [refs.summaryFilterRunning, "RUNNING"],
+    [refs.summaryFilterFailed, "FAILED"],
+  ].forEach(([button, status]) => {
+    const isActive = activeStatus === status;
+    button.classList.toggle("is-active-filter", isActive);
+    button.setAttribute("aria-pressed", String(isActive));
+  });
 }
 
 function renderSortIndicators() {
@@ -480,6 +543,7 @@ function renderSortIndicators() {
     dbType: refs.sortIndicatorDbType,
     searchCount: refs.sortIndicatorSearchCount,
     status: refs.sortIndicatorStatus,
+    recentScheduleName: refs.sortIndicatorScheduleName,
     recentTableCount: refs.sortIndicatorTableCount,
     recentDetectionCount: refs.sortIndicatorDetectionCount,
     inspectionStartedAt: refs.sortIndicatorStartedAt,
@@ -534,6 +598,9 @@ function renderTable() {
     statusCell.className = "center-cell";
     statusCell.appendChild(createStatusChip(item.status));
 
+    const scheduleNameCell = document.createElement("td");
+    scheduleNameCell.textContent = item.recentScheduleName;
+
     const dbTypeCell = document.createElement("td");
     dbTypeCell.className = "center-cell";
     dbTypeCell.textContent = item.dbType;
@@ -572,6 +639,7 @@ function renderTable() {
       dbTypeCell,
       searchCountCell,
       statusCell,
+      scheduleNameCell,
       tableCountCell,
       detectionCountCell,
       startedAtCell,
@@ -592,7 +660,7 @@ function renderTable() {
     const row = document.createElement("tr");
     row.className = "selection-banner-row";
     const cell = document.createElement("td");
-    cell.colSpan = 11;
+    cell.colSpan = 12;
     if (checkedCountInFiltered < all.length) {
       cell.innerHTML = `페이지에서 ${items.length.toLocaleString(
         "ko-KR"
@@ -723,6 +791,14 @@ function renderBulkLabelModal() {
   refs.applyLabelModalButton.disabled = !state.bulkLabel.addLabels.length && !state.bulkLabel.removeLabels.length;
 }
 
+function renderInspectionGuideModal() {
+  refs.inspectionGuideModal.hidden = !state.inspectionGuide.open;
+  if (!state.inspectionGuide.open) {
+    return;
+  }
+  refs.inspectionGuideCaption.textContent = `선택 DB ${state.checkedTargetIds.size.toLocaleString("ko-KR")}대를 기준으로 스케줄 설정 화면으로 이동합니다.`;
+}
+
 function renderEditableLabelTokens(labels, mode) {
   if (!labels.length) {
     return `<span class="label-chip is-muted">${mode === "add" ? "추가 라벨 없음" : "제거 라벨 없음"}</span>`;
@@ -762,6 +838,10 @@ function closeBulkLabelModal() {
   state.bulkLabel.removeLabels = [];
 }
 
+function closeInspectionGuideModal() {
+  state.inspectionGuide.open = false;
+}
+
 function setTargetChecked(id, checked) {
   if (!id) {
     return;
@@ -797,6 +877,25 @@ function getTargetPageItems() {
   };
 }
 
+function applySummaryStatusFilter(status) {
+  const normalizedStatus = String(status ?? "").trim();
+  const activeStatus = getActiveSummaryStatus();
+  const nextStatuses = normalizedStatus && activeStatus === normalizedStatus ? [] : normalizedStatus ? [normalizedStatus] : [];
+  state.filters.statuses = [...nextStatuses];
+  state.filterDraft.statuses = [...nextStatuses];
+  state.filterUi.statusesSearch = "";
+  state.pagination.targetPage = 1;
+  state.checkedTargetIds.clear();
+  render();
+}
+
+function getActiveSummaryStatus() {
+  if (state.filters.statuses.length !== 1) {
+    return state.filters.statuses.length === 0 ? "" : "__mixed__";
+  }
+  return state.filters.statuses[0];
+}
+
 function getFilteredTargets() {
   const query = state.filters.query.toLowerCase();
   const labelKeyword = state.filters.labelKeyword.toLowerCase();
@@ -805,6 +904,7 @@ function getFilteredTargets() {
       !query ||
       item.name.toLowerCase().includes(query) ||
       item.dbType.toLowerCase().includes(query) ||
+      item.recentScheduleName.toLowerCase().includes(query) ||
       item.labels.some((label) => label.toLowerCase().includes(query));
     const matchesStatus = !state.filters.statuses.length || state.filters.statuses.includes(item.status);
     const matchesLabelKeyword =
@@ -862,6 +962,7 @@ function downloadExcel(rows) {
     "DB종류",
     "검색 수",
     "점검상태",
+    "최근스케쥴명",
     "최근검색테이블수",
     "최근검출건수",
     "점검시작일시",
@@ -874,6 +975,7 @@ function downloadExcel(rows) {
     item.dbType,
     item.searchCount,
     STATUS_META[item.status].label,
+    item.recentScheduleName,
     item.recentTableCount,
     item.recentDetectionCount,
     formatDateTime(item.inspectionStartedAt),
@@ -965,3 +1067,4 @@ function escapeHtml(value) {
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
 }
+

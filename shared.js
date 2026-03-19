@@ -194,6 +194,29 @@
 
   function initSidebar(options) {
     const { sidebarNav, sidebarToggle, roleButtons, getState, onRoleChange, onNavigate, onRender } = options;
+    const sidebarBrand = document.querySelector(".sidebar-brand");
+
+    if (sidebarBrand) {
+      sidebarBrand.setAttribute("role", "link");
+      sidebarBrand.tabIndex = 0;
+      sidebarBrand.setAttribute("aria-label", "D-Guard 홈으로 이동");
+      sidebarBrand.addEventListener("click", () => {
+        const currentPath = window.location.pathname.split("/").pop() || "index.html";
+        if (currentPath !== "index.html") {
+          window.location.href = "index.html";
+        }
+      });
+      sidebarBrand.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter" && event.key !== " ") {
+          return;
+        }
+        event.preventDefault();
+        const currentPath = window.location.pathname.split("/").pop() || "index.html";
+        if (currentPath !== "index.html") {
+          window.location.href = "index.html";
+        }
+      });
+    }
 
     sidebarToggle.addEventListener("click", () => {
       const state = getState();

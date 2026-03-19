@@ -58,25 +58,6 @@
       </header>
 
       <main class="detail-page">
-        <section class="card section-card detail-summary-strip">
-          <div class="summary-tile">
-            <span>그룹명</span>
-            <strong id="summaryGroupName">-</strong>
-          </div>
-          <div class="summary-tile">
-            <span>매핑 테이블</span>
-            <strong id="summaryTableCount">0</strong>
-          </div>
-          <div class="summary-tile">
-            <span>매핑 담당자</span>
-            <strong id="summaryOwnerCount">0</strong>
-          </div>
-          <div class="summary-tile">
-            <span>최근 점검 상태</span>
-            <strong id="summaryLatestStatus">-</strong>
-          </div>
-        </section>
-
         <section class="detail-overview">
           <section class="card section-card db-info-card">
             <div class="detail-header">
@@ -102,15 +83,7 @@
                 </div>
               </div>
               <div class="db-info-segment">
-                <div class="segment-header">
-                  <span class="segment-label">DB 인프라 담당자</span>
-                  <button type="button" class="icon-btn edit-icon-btn" data-edit-action="infra-open" aria-label="DB 인프라 담당자 수정" title="DB 인프라 담당자 수정">
-                    <svg viewBox="0 0 16 16" focusable="false">
-                      <path d="M11.8 2.3 13.7 4.2 5.1 12.8 2.5 13.5 3.2 10.9z"></path>
-                      <path d="M10.9 3.2 12.8 5.1"></path>
-                    </svg>
-                  </button>
-                </div>
+                <span class="segment-label">DB종류</span>
                 <div class="segment-body" id="detailInfraBody"></div>
               </div>
               <div class="db-info-segment is-wide">
@@ -233,7 +206,7 @@
               </colgroup>
               <thead>
                 <tr>
-                  <th>검출ID</th>
+                  <th>스케줄ID</th>
                   <th>스케줄명</th>
                   <th>점검자</th>
                   <th>검출상태</th>

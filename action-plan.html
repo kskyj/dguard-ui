@@ -57,6 +57,33 @@
 
       <main class="action-plan-workspace">
         <section class="card section-card action-plan-card">
+          <section class="summary-strip action-plan-summary-strip">
+            <div class="summary-tile">
+              <span>조치대상</span>
+              <button type="button" class="summary-tile-button" id="totalPlansFilterButton">
+                <strong id="totalPlansValue">0</strong>
+              </button>
+            </div>
+            <div class="summary-tile">
+              <span>조치 완료</span>
+              <button type="button" class="summary-tile-button" id="completedPlansFilterButton">
+                <strong id="completedPlansValue">0</strong>
+              </button>
+            </div>
+            <div class="summary-tile">
+              <span>등록대기</span>
+              <button type="button" class="summary-tile-button" id="pendingPlansFilterButton">
+                <strong id="pendingPlansValue">0</strong>
+              </button>
+            </div>
+            <div class="summary-tile">
+              <span>등록완료</span>
+              <button type="button" class="summary-tile-button" id="registeredPlansFilterButton">
+                <strong id="registeredPlansValue">0</strong>
+              </button>
+            </div>
+          </section>
+
           <div class="toolbar-row">
             <div class="toolbar-leading">
               <label class="search-field action-plan-search">

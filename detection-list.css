@@ -1,10 +1,14 @@
 .workspace {
   display: grid;
-  grid-template-columns: minmax(930px, 1.86fr) minmax(320px, 0.64fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 8px;
   min-height: calc(100vh - 72px);
   max-height: calc(100vh - 72px);
   align-items: stretch;
+}
+
+.workspace.is-detail-open {
+  grid-template-columns: minmax(930px, 1.86fr) minmax(320px, 0.64fr);
 }
 
 .workspace > * {
@@ -17,6 +21,10 @@
   gap: 8px;
   min-height: 0;
   min-width: 0;
+}
+
+.right-rail[hidden] {
+  display: none;
 }
 
 .detection-card,

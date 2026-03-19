@@ -5,16 +5,13 @@ const refs = {};
 
 const DEFAULT_MENU_KEY = "inspection-target";
 
-const initialDetections = service.getDetections();
-const initialDetection = initialDetections[0] ?? null;
-
 const state = {
   role: "admin",
   sidebarCollapsed: false,
   selectedMenuKey: DEFAULT_MENU_KEY,
   openSidebarGroupKey: null,
-  selectedDetectionId: initialDetection?.id ?? null,
-  selectedPiiId: initialDetection?.piiRecords[0]?.id ?? null,
+  selectedDetectionId: null,
+  selectedPiiId: null,
   checkedDetectionIds: new Set(),
   detectionFilters: {
     query: "",
@@ -44,11 +41,11 @@ const state = {
     piiPageSize: 7,
   },
   editorDraft: {
-    status: initialDetection?.status ?? null,
-    comment: initialDetection?.comment ?? "",
-    assignees: [...(initialDetection?.assignees ?? [])],
+    status: null,
+    comment: "",
+    assignees: [],
   },
-  editorDraftSourceId: initialDetection?.id ?? null,
+  editorDraftSourceId: null,
   assigneeSearch: "",
   filterUi: {
     openKey: null,
@@ -182,7 +179,10 @@ function cacheRefs() {
     refs[id] = document.getElementById(id);
   });
   refs.sidebarNav = document.querySelector(".sidebar-nav");
+  refs.sidebarBrand = document.querySelector(".sidebar-brand");
   refs.roleButtons = [...document.querySelectorAll(".role-btn")];
+  refs.workspace = document.querySelector(".workspace");
+  refs.rightRail = document.querySelector(".right-rail");
   refs.detectionHeroTarget = document.querySelector(".hero-target");
   const breadcrumbLinks = [...document.querySelectorAll(".breadcrumb-link")];
   refs.detectionBreadcrumbTarget = breadcrumbLinks[1] ?? null;
@@ -210,7 +210,28 @@ function applyInitialRouteState() {
   refs.piiSearchInput.value = state.piiFilters.query;
 }
 
+function navigateToHome() {
+  const currentPath = window.location.pathname.split("/").pop() || "index.html";
+  if (currentPath !== "index.html") {
+    window.location.href = "index.html";
+  }
+}
+
 function bindEvents() {
+  if (refs.sidebarBrand) {
+    refs.sidebarBrand.setAttribute("role", "link");
+    refs.sidebarBrand.tabIndex = 0;
+    refs.sidebarBrand.setAttribute("aria-label", "D-Guard 홈으로 이동");
+    refs.sidebarBrand.addEventListener("click", navigateToHome);
+    refs.sidebarBrand.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") {
+        return;
+      }
+      event.preventDefault();
+      navigateToHome();
+    });
+  }
+
   refs.sidebarToggle.addEventListener("click", () => {
     state.sidebarCollapsed = !state.sidebarCollapsed;
     render();
@@ -771,7 +792,10 @@ function populateSelect(element, values, allLabel, useStatusLabel = false) {
 }
 
 function render() {
+  const hasSelection = Boolean(state.selectedDetectionId);
   document.body.classList.toggle("sidebar-collapsed", state.sidebarCollapsed);
+  refs.workspace.classList.toggle("is-detail-open", hasSelection);
+  refs.rightRail.hidden = !hasSelection;
   refs.sidebarToggle.textContent = state.sidebarCollapsed ? ">" : "<";
   refs.sidebarToggle.setAttribute("aria-expanded", String(!state.sidebarCollapsed));
   refs.userMenuTrigger.setAttribute("aria-expanded", String(state.userMenuOpen));
@@ -998,7 +1022,7 @@ function syncSelectionState() {
     state.pagination.detectionPage = maxPage;
   }
   if (!filtered.some((item) => item.id === state.selectedDetectionId)) {
-    state.selectedDetectionId = filtered[0]?.id ?? null;
+    state.selectedDetectionId = null;
   }
   syncEditorDraft(previousId !== state.selectedDetectionId);
   syncPiiSelectionState();
@@ -1196,6 +1220,10 @@ function getFilteredPii() {
 }
 
 function syncPiiSelectionState(forceReset = false) {
+  if (!state.selectedDetectionId) {
+    state.selectedPiiId = null;
+    return;
+  }
   const filtered = getFilteredPii();
   const maxPage = Math.max(1, Math.ceil(filtered.length / state.pagination.piiPageSize));
   if (state.pagination.piiPage > maxPage) {

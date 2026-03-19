@@ -69,10 +69,6 @@ function cacheDetailRefs() {
     "logoutButton",
     "detailHeroTarget",
     "detailBreadcrumbName",
-    "summaryGroupName",
-    "summaryTableCount",
-    "summaryOwnerCount",
-    "summaryLatestStatus",
     "dbInfoGrid",
     "detailDbId",
     "detailRegisteredAt",
@@ -216,7 +212,6 @@ function bindDetailEvents() {
       pushDetailToast("선택된 DB 정보를 찾을 수 없습니다.", "danger");
       return;
     }
-    window.location.href = `./inspection-run.html?ids=${encodeURIComponent(detail.target.id)}`;
   });
 
   detailRefs.historyTableBody.addEventListener("click", (event) => {
@@ -281,19 +276,8 @@ function renderDetailPage() {
 
   syncEditState(detail);
 
-  const latestHistory = detail.inspectionHistory[0] ?? null;
-  const latestStatusMeta = latestHistory
-    ? detailService.HISTORY_STATUS_META[latestHistory.status]
-    : { label: "-", className: "is-waiting" };
-
   detailRefs.detailHeroTarget.textContent = `${detail.target.name} (${detail.target.host}:${detail.target.port}/${detail.target.instanceName})`;
   detailRefs.detailBreadcrumbName.textContent = detail.target.name;
-  detailRefs.summaryGroupName.textContent = detail.dbInfo.groupName;
-  detailRefs.summaryTableCount.textContent = detail.tableInfo.length.toLocaleString("ko-KR");
-  detailRefs.summaryOwnerCount.textContent = detail.summary.mappedOwnerCount.toLocaleString("ko-KR");
-  detailRefs.summaryLatestStatus.textContent = latestStatusMeta.label;
-  detailRefs.summaryLatestStatus.className = "";
-  detailRefs.summaryLatestStatus.classList.add(latestStatusMeta.className);
 
   renderDbInfo(detail);
   renderTableInfo(detail);
@@ -304,11 +288,6 @@ function renderDetailPage() {
 function renderEmptyDetailState() {
   detailRefs.detailHeroTarget.textContent = "DB 선택";
   detailRefs.detailBreadcrumbName.textContent = "DB 상세";
-  detailRefs.summaryGroupName.textContent = "-";
-  detailRefs.summaryTableCount.textContent = "0";
-  detailRefs.summaryOwnerCount.textContent = "0";
-  detailRefs.summaryLatestStatus.textContent = "-";
-  detailRefs.summaryLatestStatus.className = "";
   detailRefs.detailDbId.textContent = "-";
   detailRefs.detailRegisteredAt.textContent = "-";
   detailRefs.detailProxyName.textContent = "-";
@@ -335,25 +314,6 @@ function renderEmptyDetailState() {
 
 function renderDbInfo(detail) {
   const proxyStatusMeta = detailService.PROXY_STATUS_META[detail.dbInfo.proxy.status];
-  const editState = detailState.edit;
-
-  const infraView = `
-    <div class="chip-row">
-      <span class="label-chip">${escapeHtml(editState.saved.infraManager || "미지정")}</span>
-    </div>
-  `;
-  const infraEdit = `
-    <div class="infra-edit-panel">
-      <div class="infra-edit-grid">
-        <input type="text" data-infra-input="name" value="${escapeHtml(editState.draft.infraManager)}" placeholder="담당자 이름">
-        <input type="text" data-infra-input="contact" value="${escapeHtml(editState.draft.infraContact)}" placeholder="조직/연락처">
-      </div>
-      <div class="edit-action-row">
-        <button type="button" class="ghost-btn" data-edit-action="infra-cancel">취소</button>
-        <button type="button" class="primary-btn" data-edit-action="infra-save">저장</button>
-      </div>
-    </div>
-  `;
 
   detailRefs.detailDbId.textContent = detail.dbInfo.dbId;
   detailRefs.detailRegisteredAt.textContent = formatDateTime(detail.dbInfo.registeredAt);
@@ -366,7 +326,7 @@ function renderDbInfo(detail) {
   detailRefs.detailProxyAddress.textContent = proxyAddress;
   detailRefs.detailProxyStatus.textContent = proxyStatusMeta.label;
   detailRefs.detailProxyStatus.className = `proxy-pill ${proxyStatusMeta.className}`;
-  detailRefs.detailInfraBody.innerHTML = editState.infraOpen ? infraEdit : infraView;
+  detailRefs.detailInfraBody.innerHTML = `<span class="segment-value">${escapeHtml(detail.target.dbType)}</span>`;
 
   renderLabelSection(detail);
   renderMemoSection(detail);

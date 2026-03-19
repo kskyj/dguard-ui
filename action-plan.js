@@ -77,6 +77,14 @@ function cacheRefs() {
     "userSettingsButton",
     "logoutButton",
     "planSearchInput",
+    "totalPlansFilterButton",
+    "completedPlansFilterButton",
+    "pendingPlansFilterButton",
+    "registeredPlansFilterButton",
+    "totalPlansValue",
+    "completedPlansValue",
+    "pendingPlansValue",
+    "registeredPlansValue",
     "planToolbarCaption",
     "planFilterSummary",
     "planFilterBadge",
@@ -120,6 +128,19 @@ function bindEvents() {
     state.query = event.target.value.trim();
     state.pagination.page = 1;
     render();
+  });
+
+  refs.totalPlansFilterButton.addEventListener("click", () => {
+    applySummaryStatusFilter([]);
+  });
+  refs.completedPlansFilterButton.addEventListener("click", () => {
+    applySummaryStatusFilter(["COMPLETED"]);
+  });
+  refs.pendingPlansFilterButton.addEventListener("click", () => {
+    applySummaryStatusFilter(["PENDING"]);
+  });
+  refs.registeredPlansFilterButton.addEventListener("click", () => {
+    applySummaryStatusFilter(["REGISTERED"]);
   });
 
   refs.clearPlanFilters.addEventListener("click", () => {
@@ -311,16 +332,30 @@ function closeDetailModal() {
   state.detail.planId = null;
 }
 
+function applySummaryStatusFilter(statuses) {
+  state.filters.statuses = [...statuses];
+  state.filters.draftStatuses = [...statuses];
+  state.filters.panelOpen = false;
+  state.filterUi.openKey = null;
+  state.filterUi.statusSearch = "";
+  state.pagination.page = 1;
+  render();
+}
+
 function getCurrentActor() {
   return state.role === "admin" ? "관리자" : "김성진";
 }
 
-function getFilteredPlans() {
-  const plans = actionPlanService.getPlans({
+function getBasePlans() {
+  return actionPlanService.getPlans({
     role: state.role,
     actor: getCurrentActor(),
     query: state.query,
   });
+}
+
+function getFilteredPlans() {
+  const plans = getBasePlans();
   const filtered = plans.filter((plan) => {
     if (!state.filters.statuses.length) {
       return true;
@@ -347,10 +382,51 @@ function render() {
   sidebarController?.render();
   userMenuController?.render();
   refs.noteSendButton.hidden = state.role !== "admin";
+  renderSummaryStrip();
   renderTable();
   renderFilterSummary();
   renderStatusFilterControls();
   renderDetailModal();
+}
+
+function renderSummaryStrip() {
+  const plans = getBasePlans();
+  const counts = {
+    total: plans.length,
+    completed: plans.filter((plan) => plan.status === "COMPLETED").length,
+    pending: plans.filter((plan) => plan.status === "PENDING").length,
+    registered: plans.filter((plan) => plan.status === "REGISTERED").length,
+  };
+
+  refs.totalPlansValue.textContent = counts.total.toLocaleString("ko-KR");
+  refs.completedPlansValue.textContent = counts.completed.toLocaleString("ko-KR");
+  refs.pendingPlansValue.textContent = counts.pending.toLocaleString("ko-KR");
+  refs.registeredPlansValue.textContent = counts.registered.toLocaleString("ko-KR");
+
+  const activeKey = getActiveSummaryKey();
+  refs.totalPlansFilterButton.classList.toggle("is-active", activeKey === "total");
+  refs.completedPlansFilterButton.classList.toggle("is-active", activeKey === "completed");
+  refs.pendingPlansFilterButton.classList.toggle("is-active", activeKey === "pending");
+  refs.registeredPlansFilterButton.classList.toggle("is-active", activeKey === "registered");
+}
+
+function getActiveSummaryKey() {
+  if (!state.filters.statuses.length) {
+    return "total";
+  }
+  if (state.filters.statuses.length !== 1) {
+    return "";
+  }
+  if (state.filters.statuses[0] === "COMPLETED") {
+    return "completed";
+  }
+  if (state.filters.statuses[0] === "PENDING") {
+    return "pending";
+  }
+  if (state.filters.statuses[0] === "REGISTERED") {
+    return "registered";
+  }
+  return "";
 }
 
 function renderStatusFilterControls() {

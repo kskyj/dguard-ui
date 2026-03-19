@@ -118,6 +118,13 @@ body.sidebar-collapsed .app-shell {
   align-items: center;
   gap: 10px;
   min-width: 0;
+  cursor: pointer;
+}
+
+.sidebar-brand:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.92);
+  outline-offset: 4px;
+  border-radius: 12px;
 }
 
 .sidebar-logo,

@@ -11,6 +11,49 @@
   gap: 8px;
 }
 
+.action-plan-summary-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.action-plan-summary-strip .summary-tile {
+  display: grid;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px solid rgba(201, 208, 227, 0.8);
+  border-radius: 14px;
+  background: linear-gradient(180deg, #fff 0%, #f7f9ff 100%);
+}
+
+.action-plan-summary-strip .summary-tile span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.summary-tile-button {
+  display: inline-flex;
+  justify-content: flex-start;
+  align-items: center;
+  width: fit-content;
+  padding: 0;
+  color: var(--text);
+  border-radius: 10px;
+}
+
+.summary-tile-button strong {
+  font-size: 24px;
+  font-weight: 800;
+  color: inherit;
+}
+
+.summary-tile-button:hover strong,
+.summary-tile-button.is-active strong {
+  color: var(--accent);
+}
+
 .action-plan-card .toolbar-leading {
   display: flex;
   align-items: center;

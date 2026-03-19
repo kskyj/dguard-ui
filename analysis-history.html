@@ -19,7 +19,7 @@
             <span>DB Scan</span>
           </div>
         </div>
-        <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-expanded="true" aria-label="사이드바 접기">⟨</button>
+        <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-expanded="true" aria-label="사이드바 접기">&lt;</button>
       </div>
 
       <nav class="sidebar-nav" aria-label="주요 메뉴"></nav>
@@ -36,29 +36,19 @@
     <div class="page-shell">
       <header class="hero-card card">
         <div>
-          <h1>점검이력 <span class="hero-target">부동산플랫폼 정기 스캔 이력</span></h1>
+          <h1>점검이력</h1>
           <nav class="breadcrumb" aria-label="breadcrumb">
-            <a href="inspection-target.html" class="breadcrumb-link">점검대상</a>
+            <a href="./inspection-target.html" class="breadcrumb-link">점검대상</a>
             <span class="breadcrumb-separator">&gt;</span>
-            <a href="#" class="breadcrumb-link">부동산플랫폼</a>
-            <span class="breadcrumb-separator">&gt;</span>
-            <a href="#" class="breadcrumb-link is-current" aria-current="page">점검이력</a>
+            <span class="breadcrumb-link is-current" aria-current="page">점검이력</span>
           </nav>
         </div>
         <div class="user-menu" id="userMenu">
-          <button
-            type="button"
-            class="user-menu-trigger"
-            id="userMenuTrigger"
-            aria-expanded="false"
-            aria-haspopup="true"
-          >
-          김성진(5492438)
-          <svg class="user-menu-caret" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false"
-            style="vertical-align: middle;">
-            <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"
-              stroke-linejoin="round" />
-          </svg>
+          <button type="button" class="user-menu-trigger" id="userMenuTrigger" aria-expanded="false" aria-haspopup="true">
+            김성진(5492438)
+            <svg class="user-menu-caret" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+              <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
           </button>
           <div class="user-menu-panel" id="userMenuPanel" hidden>
             <button type="button" class="user-menu-item" id="userSettingsButton">사용자설정</button>
@@ -67,186 +57,233 @@
         </div>
       </header>
 
-      <main class="history-workspace">
-        <section class="card section-card summary-strip">
-          <div class="summary-tile">
-            <span>전체 분석</span>
-            <strong id="totalRunsValue">0</strong>
-          </div>
-          <div class="summary-tile">
-            <span>완료</span>
-            <strong id="completedRunsValue">0</strong>
-          </div>
-          <div class="summary-tile">
-            <span>검토 필요</span>
-            <strong id="reviewRunsValue">0</strong>
-          </div>
-          <div class="summary-tile">
-            <span>평균 검출건수</span>
-            <strong id="averageDetectionValue">0</strong>
-          </div>
-        </section>
+      <main class="schedule-history-page">
+        <section class="schedule-content-grid">
+          <section class="card section-card schedule-list-card">
+            <div class="status-summary-strip schedule-summary-strip" id="statusSummaryStrip">
+              <button type="button" class="summary-chip is-waiting" data-summary-status="WAITING">
+                <span>대기</span>
+                <strong id="summaryWaitingCount">0</strong>
+              </button>
+              <button type="button" class="summary-chip is-running" data-summary-status="RUNNING">
+                <span>점검중</span>
+                <strong id="summaryRunningCount">0</strong>
+              </button>
+              <button type="button" class="summary-chip is-completed" data-summary-status="COMPLETED">
+                <span>점검완료</span>
+                <strong id="summaryCompletedCount">0</strong>
+              </button>
+              <button type="button" class="summary-chip is-stopped" data-summary-status="STOPPED">
+                <span>중지</span>
+                <strong id="summaryStoppedCount">0</strong>
+              </button>
+              <button type="button" class="summary-chip is-failed" data-summary-status="FAILED">
+                <span>실패</span>
+                <strong id="summaryFailedCount">0</strong>
+              </button>
+            </div>
 
-        <section class="card section-card history-list-card">
-          <div class="toolbar-row">
-            <label class="search-field history-search-field">
-              <span class="visually-hidden">점검이력 검색</span>
-              <input type="text" id="analysisSearchInput" placeholder="분석명, 대상명, 범위 검색">
-            </label>
-            <button type="button" class="ghost-btn" id="toggleHistoryFilterButton">🔎 상세필터</button>
-            <div class="filter-summary" id="historyFilterSummary" hidden>
-              <span class="filter-badge">필터 적용됨</span>
-              <button type="button" class="text-btn" id="clearHistoryFilters">초기화</button>
+            <div class="toolbar-row">
+              <label class="search-field schedule-search-field">
+                <span class="visually-hidden">스케줄 검색</span>
+                <input type="text" id="scheduleSearchInput" placeholder="스케줄명, 점검룰, 점검자 검색">
+              </label>
+              <button type="button" class="ghost-btn" id="toggleScheduleFilterButton">
+                <span class="btn-icon" aria-hidden="true">
+                  <svg viewBox="0 0 16 16" focusable="false">
+                    <path d="M2.5 3.5h11l-4.2 4.5v3.3l-2.6 1.2V8z"></path>
+                  </svg>
+                </span>
+                상세필터
+              </button>
+              <p class="toolbar-caption" id="scheduleToolbarCaption"></p>
+              <div class="toolbar-actions inline-actions">
+                <button type="button" class="danger-btn" id="deleteSchedulesButton">
+                  <span class="btn-icon" aria-hidden="true">
+                    <svg viewBox="0 0 16 16" focusable="false">
+                      <path d="M3.5 4.5h9"></path>
+                      <path d="M6 2.8h4"></path>
+                      <path d="M5 4.5v8h6v-8"></path>
+                      <path d="M6.8 6.2v4.6"></path>
+                      <path d="M9.2 6.2v4.6"></path>
+                    </svg>
+                  </span>
+                  삭제
+                </button>
+                <button type="button" class="ghost-btn" id="restartSchedulesButton">
+                  <span class="btn-icon" aria-hidden="true">
+                    <svg viewBox="0 0 16 16" focusable="false">
+                      <path d="M4 4.5v3h3"></path>
+                      <path d="M4.5 7.2a4 4 0 1 0 1-3"></path>
+                    </svg>
+                  </span>
+                  재시작
+                </button>
+                <button type="button" class="ghost-btn" id="stopSchedulesButton">
+                  <span class="btn-icon" aria-hidden="true">
+                    <svg viewBox="0 0 16 16" focusable="false">
+                      <rect x="4.5" y="4.5" width="7" height="7"></rect>
+                    </svg>
+                  </span>
+                  중단
+                </button>
+                <button type="button" class="primary-btn" id="openBulkRegisterButton">
+                  <span class="btn-icon" aria-hidden="true">
+                    <svg viewBox="0 0 16 16" focusable="false">
+                      <path d="M6 4.2 11.5 8 6 11.8z"></path>
+                    </svg>
+                  </span>
+                  점검
+                </button>
+              </div>
             </div>
-            <div class="toolbar-actions inline-actions">
-              <button type="button" class="ghost-btn" id="compareReportButton">비교 보고서</button>
-              <button type="button" class="primary-btn" id="historyExportButton">📥 이력 내보내기</button>
-            </div>
-          </div>
 
-          <div class="table-shell">
-            <table class="data-table history-run-table">
-              <colgroup>
-                <col style="width:11%">
-                <col style="width:19%">
-                <col style="width:20%">
-                <col style="width:16%">
-                <col style="width:11%">
-                <col style="width:11%">
-                <col style="width:12%">
-              </colgroup>
-              <thead>
-                <tr>
-                  <th>
-                    <button type="button" class="sort-btn" data-sort-key="runName">
-                      분석차수
-                      <span class="sort-indicator" id="sortIndicatorRunName"></span>
-                    </button>
-                  </th>
-                  <th>
-                    <button type="button" class="sort-btn" data-sort-key="targetName">
-                      대상명
-                      <span class="sort-indicator" id="sortIndicatorTargetName"></span>
-                    </button>
-                  </th>
-                  <th>범위</th>
-                  <th>
-                    <button type="button" class="sort-btn" data-sort-key="endedAt">
-                      종료일시
-                      <span class="sort-indicator" id="sortIndicatorEndedAt"></span>
-                    </button>
-                  </th>
-                  <th class="number-cell">
-                    <button type="button" class="sort-btn" data-sort-key="detectionCount">
-                      검출건수
-                      <span class="sort-indicator" id="sortIndicatorDetectionCount"></span>
-                    </button>
-                  </th>
-                  <th>
-                    <button type="button" class="sort-btn" data-sort-key="status">
-                      상태
-                      <span class="sort-indicator" id="sortIndicatorStatus"></span>
-                    </button>
-                  </th>
-                  <th>
-                    <button type="button" class="sort-btn" data-sort-key="owner">
-                      담당자
-                      <span class="sort-indicator" id="sortIndicatorOwner"></span>
-                    </button>
-                  </th>
-                </tr>
-              </thead>
-              <tbody id="analysisTableBody"></tbody>
-            </table>
-            <div class="empty-state" id="analysisEmpty" hidden>조건에 맞는 점검이력이 없습니다.</div>
-          </div>
+            <div class="filter-summary filter-summary-row" id="scheduleFilterSummary" hidden>
+              <span class="filter-badge" id="scheduleFilterBadge">필터 적용됨</span>
+              <button type="button" class="text-btn" id="clearScheduleFiltersButton">초기화</button>
+            </div>
 
-          <div class="pagination-row">
-            <p class="pagination-caption" id="analysisPaginationCaption"></p>
-            <div class="pagination" id="analysisPagination"></div>
-          </div>
-        </section>
+            <div class="table-shell schedule-table-shell">
+              <table class="data-table schedule-table">
+                <colgroup>
+                  <col style="width:44px">
+                  <col style="width:11%">
+                  <col style="width:20%">
+                  <col style="width:18%">
+                  <col style="width:11%">
+                  <col style="width:10%">
+                  <col style="width:14%">
+                  <col style="width:14%">
+                  <col style="width:12%">
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th class="checkbox-cell">
+                      <input type="checkbox" id="selectAllSchedules" aria-label="전체 스케줄 선택">
+                    </th>
+                    <th class="center-cell">
+                      <button type="button" class="sort-btn" data-sort-key="id">
+                        스케줄ID
+                        <span class="sort-indicator" id="sortIndicatorId"></span>
+                      </button>
+                    </th>
+                    <th>
+                      <button type="button" class="sort-btn" data-sort-key="name">
+                        스케줄명
+                        <span class="sort-indicator" id="sortIndicatorName"></span>
+                      </button>
+                    </th>
+                    <th>점검룰</th>
+                    <th class="center-cell">
+                      <button type="button" class="sort-btn" data-sort-key="status">
+                        점검상태
+                        <span class="sort-indicator" id="sortIndicatorStatus"></span>
+                      </button>
+                    </th>
+                    <th class="center-cell">소요시간</th>
+                    <th class="center-cell">
+                      <button type="button" class="sort-btn" data-sort-key="lastEndedAt">
+                        최근종료일시
+                        <span class="sort-indicator" id="sortIndicatorLastEndedAt"></span>
+                      </button>
+                    </th>
+                    <th class="center-cell">
+                      <button type="button" class="sort-btn" data-sort-key="nextStartedAt">
+                        다음시작일시
+                        <span class="sort-indicator" id="sortIndicatorNextStartedAt"></span>
+                      </button>
+                    </th>
+                    <th>점검자</th>
+                  </tr>
+                </thead>
+                <tbody id="scheduleTableBody"></tbody>
+              </table>
+              <div class="empty-state" id="scheduleEmpty" hidden>조건에 맞는 스케줄이 없습니다.</div>
+            </div>
 
-        <section class="card section-card history-detail-card">
-          <div class="detail-header">
-            <div>
-              <h3 id="detailRunTitle">선택된 분석 없음</h3>
-              <p class="detail-subtitle" id="detailRunTarget">목록에서 점검이력을 선택하세요.</p>
+            <div class="pagination-row">
+              <label class="page-size-control" for="schedulePageSizeSelect">
+                <span>표시 개수</span>
+                <select id="schedulePageSizeSelect">
+                  <option value="5">5개</option>
+                  <option value="10">10개</option>
+                  <option value="20">20개</option>
+                </select>
+              </label>
+              <div class="pagination" id="schedulePagination"></div>
             </div>
-            <div class="detail-actions">
-              <button type="button" class="ghost-btn" id="openDetectionPageButton">검출목록 보기</button>
-            </div>
-          </div>
+          </section>
 
-          <div class="detail-grid history-detail-grid">
-            <div class="detail-field">
-              <span>분석 상태</span>
-              <strong id="detailStatus">-</strong>
+          <aside class="card section-card schedule-detail-card" hidden>
+            <div class="detail-header">
+              <div>
+                <h3>스케줄 상세</h3>
+                <p class="detail-subtitle" id="detailPanelSubtitle">목록에서 스케줄을 선택하세요.</p>
+              </div>
+              <button type="button" class="ghost-btn" id="moveScheduleEditButton">수정</button>
             </div>
-            <div class="detail-field">
-              <span>담당자</span>
-              <strong id="detailOwner">-</strong>
-            </div>
-            <div class="detail-field">
-              <span>수행 시간</span>
-              <strong id="detailDuration">-</strong>
-            </div>
-            <div class="detail-field">
-              <span>검출 유형 수</span>
-              <strong id="detailPiiTypes">-</strong>
-            </div>
-          </div>
 
-          <div class="detail-grid history-detail-grid">
-            <div class="detail-field full-span">
-              <span>분석 요약</span>
-              <strong id="detailSummary">-</strong>
+            <div class="detail-grid schedule-summary-grid schedule-detail-summary">
+              <div class="detail-field full-span">
+                <span>스케줄 ID</span>
+                <strong id="detailScheduleId"></strong>
+              </div>
+              <div class="detail-field full-span">
+                <span>스케줄명</span>
+                <strong id="detailScheduleName"></strong>
+              </div>
             </div>
-          </div>
 
-          <div class="context-block history-note-block">
-            <span>업체 전달 메모</span>
-            <ul id="detailNotes"></ul>
-          </div>
+            <section class="detail-target-section">
+              <div class="detail-target-header">
+                <strong>점검대상 목록</strong>
+                <span class="subtle-text" id="detailTargetCount"></span>
+              </div>
+              <ul class="detail-target-list" id="detailTargetList"></ul>
+            </section>
+          </aside>
         </section>
       </main>
     </div>
   </div>
 
-  <div class="filter-popover" id="historyFilterModal" hidden>
+  <div class="filter-popover" id="scheduleFilterModal" hidden>
     <div class="filter-popover-card">
       <div class="filter-popover-header">
         <strong>상세필터</strong>
       </div>
-
       <div class="filter-popover-body">
-        <div class="filter-panel history-filter-panel">
+        <div class="filter-panel popover-filter-panel schedule-filter-panel">
           <div class="filter-group">
-            <span>분석 상태</span>
-            <div class="filter-select" id="historyStatusFilterSelect">
-              <button type="button" class="filter-select-trigger" id="historyStatusFilterTrigger">전체</button>
-              <div class="filter-select-panel" id="historyStatusFilterPanel" hidden>
-                <input type="text" id="historyStatusFilterSearch" placeholder="분석 상태 검색">
-                <div class="filter-select-options" id="historyStatusFilterList"></div>
-              </div>
-            </div>
-          </div>
-          <div class="filter-group">
-            <span>담당자</span>
-            <div class="filter-select" id="historyOwnerFilterSelect">
-              <button type="button" class="filter-select-trigger" id="historyOwnerFilterTrigger">전체</button>
-              <div class="filter-select-panel" id="historyOwnerFilterPanel" hidden>
-                <input type="text" id="historyOwnerFilterSearch" placeholder="담당자 검색">
-                <div class="filter-select-options" id="historyOwnerFilterList"></div>
+            <span>점검상태</span>
+            <div class="filter-select" id="scheduleStatusFilterSelect">
+              <button type="button" class="filter-select-trigger" id="scheduleStatusFilterTrigger">전체</button>
+              <div class="filter-select-panel" id="scheduleStatusFilterPanel" hidden>
+                <input type="text" id="scheduleStatusFilterSearch" placeholder="점검상태 검색">
+                <div class="filter-select-options" id="scheduleStatusFilterList"></div>
               </div>
             </div>
           </div>
         </div>
       </div>
-
       <div class="filter-popover-footer">
-        <button type="button" class="ghost-btn filter-action-btn" id="cancelHistoryFilterButton">취소</button>
-        <button type="button" class="primary-btn filter-action-btn" id="applyHistoryFilterButton">적용</button>
+        <button type="button" class="ghost-btn filter-action-btn" id="cancelScheduleFilterButton">취소</button>
+        <button type="button" class="primary-btn filter-action-btn" id="applyScheduleFilterButton">적용</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="confirmActionModal" hidden>
+    <div class="modal-card compact-modal confirm-action-modal">
+      <div class="modal-header">
+        <div>
+          <h3 id="confirmActionTitle">확인</h3>
+          <p class="modal-caption" id="confirmActionMessage">선택한 작업을 진행하시겠습니까?</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="ghost-btn" id="cancelConfirmActionButton">취소</button>
+        <button type="button" class="primary-btn" id="confirmActionButton">확인</button>
       </div>
     </div>
   </div>

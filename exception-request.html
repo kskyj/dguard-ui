@@ -60,22 +60,22 @@
       <main class="exception-workspace">
         <section class="card section-card exception-card">
           <section class="summary-strip">
-            <div class="summary-tile">
+            <div class="summary-tile summary-tile-static is-active" id="summaryAllButton">
               <span>제외 대상</span>
               <strong id="totalRowsValue">0</strong>
             </div>
-            <div class="summary-tile">
+            <button type="button" class="summary-tile summary-tile-button" id="summaryPendingButton" data-summary-filter="pending">
               <span>제외 신청</span>
               <strong id="pendingRowsValue">0</strong>
-            </div>
-            <div class="summary-tile">
+            </button>
+            <button type="button" class="summary-tile summary-tile-button" id="summaryApprovedButton" data-summary-filter="approved">
               <span>제외 승인</span>
               <strong id="approvedRowsValue">0</strong>
-            </div>
-            <div class="summary-tile">
+            </button>
+            <button type="button" class="summary-tile summary-tile-button" id="summaryRejectedButton" data-summary-filter="rejected">
               <span>제외 거부</span>
               <strong id="rejectedRowsValue">0</strong>
-            </div>
+            </button>
           </section>
 
           <div class="tab-header">

@@ -12,6 +12,7 @@ const state = {
   openSidebarGroupKey: null,
   userMenuOpen: false,
   currentTab: "pending",
+  summaryFilter: "all",
   pendingQuery: "",
   processedQuery: "",
   processedFilters: {
@@ -91,6 +92,10 @@ function cacheRefs() {
     "pageTitle",
     "breadcrumbSection",
     "breadcrumbCurrent",
+    "summaryAllButton",
+    "summaryPendingButton",
+    "summaryApprovedButton",
+    "summaryRejectedButton",
     "totalRowsValue",
     "pendingRowsValue",
     "approvedRowsValue",
@@ -166,12 +171,27 @@ function cacheRefs() {
   refs.roleButtons = [...document.querySelectorAll(".role-btn")];
   refs.tabButtons = [...document.querySelectorAll(".tab-btn")];
   refs.sortButtons = [...document.querySelectorAll("[data-sort-key]")];
+  refs.summaryButtons = [...document.querySelectorAll(".summary-tile-button[data-summary-filter]")];
 }
 
 function bindEvents() {
+  refs.summaryButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      applySummaryFilter(button.dataset.summaryFilter ?? "all");
+    });
+  });
+
   refs.tabButtons.forEach((button) => {
     button.addEventListener("click", () => {
       state.currentTab = button.dataset.tab;
+      if (state.currentTab === "pending" && (state.summaryFilter === "approved" || state.summaryFilter === "rejected")) {
+        state.summaryFilter = "all";
+        state.processedFilters.statuses = [];
+        state.processedFilters.draftStatuses = [];
+      }
+      if (state.currentTab === "processed" && state.summaryFilter === "pending") {
+        state.summaryFilter = "all";
+      }
       state.checkedPendingIds.clear();
       state.pendingSelectionScope = "page";
       render();
@@ -281,6 +301,7 @@ function bindEvents() {
     state.processedFilters.statuses = [...state.processedFilters.draftStatuses];
     state.processedFilters.panelOpen = false;
     state.processedFilterUi.openKey = null;
+    state.summaryFilter = deriveSummaryFilterFromProcessedStatuses(state.processedFilters.statuses);
     state.pagination.processedPage = 1;
     render();
   });
@@ -366,6 +387,7 @@ function handleCancelRequests() {
 }
 
 function clearProcessedFilters() {
+  state.summaryFilter = "all";
   state.processedQuery = "";
   state.processedFilters.statuses = [];
   state.processedFilters.draftStatuses = [];
@@ -387,6 +409,7 @@ function clearPendingFilters() {
 }
 
 function resetViewState() {
+  state.summaryFilter = "all";
   state.pendingQuery = "";
   state.processedQuery = "";
   state.currentTab = "pending";
@@ -495,6 +518,10 @@ function renderSummary() {
   refs.rejectedRowsValue.textContent = stats.rejected.toLocaleString("ko-KR");
   refs.pendingTabCount.textContent = stats.pending.toLocaleString("ko-KR");
   refs.processedTabCount.textContent = (stats.approved + stats.rejected).toLocaleString("ko-KR");
+  refs.summaryAllButton.classList.toggle("is-active", state.summaryFilter === "all");
+  refs.summaryPendingButton.classList.toggle("is-active", state.summaryFilter === "pending");
+  refs.summaryApprovedButton.classList.toggle("is-active", state.summaryFilter === "approved");
+  refs.summaryRejectedButton.classList.toggle("is-active", state.summaryFilter === "rejected");
 }
 
 function renderTabs() {
@@ -606,7 +633,10 @@ function renderProcessedToolbar() {
   const processedFiltersText = buildProcessedFilterSummary();
   refs.processedFilterSummary.hidden = processedFiltersText.length === 0;
   refs.processedFilterText.textContent = processedFiltersText;
-  refs.toggleProcessedFilterButton.classList.toggle("is-filtered", state.processedFilters.statuses.length > 0);
+  refs.toggleProcessedFilterButton.classList.toggle(
+    "is-filtered",
+    state.processedFilters.statuses.length > 0 || state.summaryFilter === "approved" || state.summaryFilter === "rejected"
+  );
   refs.processedPageSizeSelect.value = String(state.pagination.processedPageSize);
 }
 
@@ -825,6 +855,43 @@ function buildProcessedFilterSummary() {
     parts.push(`검출상태: ${labels.join(", ")}`);
   }
   return parts.join(" · ");
+}
+
+function applySummaryFilter(nextFilter) {
+  state.summaryFilter = nextFilter ?? "all";
+  if (state.summaryFilter === "all") {
+    state.processedFilters.statuses = [];
+    state.processedFilters.draftStatuses = [];
+  } else if (state.summaryFilter === "pending") {
+    state.processedFilters.statuses = [];
+    state.processedFilters.draftStatuses = [];
+    state.currentTab = "pending";
+  } else if (state.summaryFilter === "approved") {
+    state.processedFilters.statuses = ["EXCLUDED"];
+    state.processedFilters.draftStatuses = ["EXCLUDED"];
+    state.currentTab = "processed";
+  } else if (state.summaryFilter === "rejected") {
+    state.processedFilters.statuses = ["EXCLUSION_REJECTED"];
+    state.processedFilters.draftStatuses = ["EXCLUSION_REJECTED"];
+    state.currentTab = "processed";
+  }
+  state.processedFilterUi.openKey = null;
+  state.processedFilterUi.statusesSearch = "";
+  state.pagination.pendingPage = 1;
+  state.pagination.processedPage = 1;
+  state.checkedPendingIds.clear();
+  state.pendingSelectionScope = "page";
+  render();
+}
+
+function deriveSummaryFilterFromProcessedStatuses(statuses) {
+  if (statuses.length === 1 && statuses[0] === "EXCLUDED") {
+    return "approved";
+  }
+  if (statuses.length === 1 && statuses[0] === "EXCLUSION_REJECTED") {
+    return "rejected";
+  }
+  return "all";
 }
 
 function createTextCell(value) {
