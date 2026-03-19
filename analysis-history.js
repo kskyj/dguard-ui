@@ -496,6 +496,10 @@ function renderTable() {
     statusCell.className = "center-cell";
     statusCell.appendChild(createStatusChip(item.status));
 
+    const targetCountCell = document.createElement("td");
+    targetCountCell.className = "center-cell";
+    targetCountCell.textContent = getScheduleTargets(item).length.toLocaleString("ko-KR");
+
     const durationCell = document.createElement("td");
     durationCell.className = "center-cell";
     durationCell.textContent = formatDuration(item.durationMinutes);
@@ -517,6 +521,7 @@ function renderTable() {
       nameCell,
       ruleCell,
       statusCell,
+      targetCountCell,
       durationCell,
       endedAtCell,
       nextStartedAtCell,

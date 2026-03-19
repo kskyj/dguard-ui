@@ -3,7 +3,7 @@ const { STATUS_META, STATUS_ORDER, ASSIGNEES } = service;
 
 const refs = {};
 
-const DEFAULT_MENU_KEY = "inspection-target";
+const DEFAULT_MENU_KEY = "detection-list";
 
 const state = {
   role: "admin",
@@ -66,6 +66,7 @@ const state = {
   historyModalOpen: false,
   userMenuOpen: false,
   routeContext: {
+    dbId: "",
     targetName: "",
     detectType: "",
   },
@@ -75,6 +76,7 @@ document.addEventListener("DOMContentLoaded", init);
 
 function init() {
   cacheRefs();
+  ensureDetectionTableColumns();
   applyInitialRouteState();
   bindEvents();
   populateStaticControls();
@@ -121,6 +123,7 @@ function cacheRefs() {
     "detectionPagination",
     "detectionPageSizeSelect",
     "detectionSortIndicatorPath",
+    "detectionSortIndicatorDbName",
     "detectionSortIndicatorDetectType",
     "detectionSortIndicatorCount",
     "detectionSortIndicatorAssignees",
@@ -184,17 +187,59 @@ function cacheRefs() {
   refs.workspace = document.querySelector(".workspace");
   refs.rightRail = document.querySelector(".right-rail");
   refs.detectionHeroTarget = document.querySelector(".hero-target");
+  refs.detectionTitle = document.querySelector(".hero-card h1");
   const breadcrumbLinks = [...document.querySelectorAll(".breadcrumb-link")];
+  refs.detectionBreadcrumbHome = breadcrumbLinks[0] ?? null;
   refs.detectionBreadcrumbTarget = breadcrumbLinks[1] ?? null;
   refs.detectionBreadcrumbCurrent = breadcrumbLinks[2] ?? null;
 }
 
+function ensureDetectionTableColumns() {
+  const table = document.querySelector(".detection-card .data-table");
+  const colgroup = table?.querySelector("colgroup");
+  const headerRow = table?.querySelector("thead tr");
+  const detectIdHeader = headerRow?.querySelector(".detect-id-cell");
+
+  if (!table || !colgroup || !headerRow || !detectIdHeader) {
+    return;
+  }
+
+  if (!document.getElementById("detectionSortIndicatorDbName")) {
+    const colWidths = ["40px", "56px", "14%", "25%", "14%", "9%", "14%", "12%"];
+    const cols = [...colgroup.querySelectorAll("col")];
+    if (cols.length === 7) {
+      colgroup.innerHTML = "";
+      colWidths.forEach((width) => {
+        const col = document.createElement("col");
+        col.style.width = width;
+        colgroup.appendChild(col);
+      });
+    }
+
+    const dbHeader = document.createElement("th");
+    dbHeader.innerHTML = `
+      <button type="button" class="sort-btn" data-detection-sort-key="dbName">
+        DB명
+        <span class="sort-indicator" id="detectionSortIndicatorDbName"></span>
+      </button>
+    `;
+    detectIdHeader.insertAdjacentElement("afterend", dbHeader);
+  }
+
+  refs.detectionSortIndicatorDbName = document.getElementById("detectionSortIndicatorDbName");
+}
+
 function applyInitialRouteState() {
   const params = new URLSearchParams(window.location.search);
+  state.routeContext.dbId = (params.get("dbId") ?? "").trim();
   state.routeContext.targetName = (params.get("target") ?? "").trim();
   state.routeContext.detectType = (params.get("detectType") ?? "").trim();
   state.detectionFilters.query = (params.get("detectionQuery") ?? "").trim();
   state.piiFilters.query = (params.get("piiQuery") ?? "").trim();
+
+  if (!state.routeContext.targetName && state.routeContext.dbId) {
+    state.routeContext.targetName = service.getDbNameById(state.routeContext.dbId);
+  }
 
   if (state.routeContext.detectType && getDetectTypes().includes(state.routeContext.detectType)) {
     state.detectionFilters.detectTypes = [state.routeContext.detectType];
@@ -253,16 +298,15 @@ function bindEvents() {
     }
     state.selectedMenuKey = item.dataset.menuKey;
     state.openSidebarGroupKey = item.dataset.parentGroupKey ?? null;
-    if (state.selectedMenuKey === "analysis-history") {
-      window.location.href = "analysis-history.html";
-      return;
-    }
-    if (state.selectedMenuKey === "exception-request") {
-      window.location.href = "exception-request.html";
-      return;
+    const href = item.dataset.href;
+    if (href && href !== "#") {
+      const currentPath = window.location.pathname.split("/").pop() || "index.html";
+      if (currentPath !== href || (href === "detection-list.html" && window.location.search)) {
+        window.location.href = href;
+        return;
+      }
     }
     if (state.selectedMenuKey === "inspection-target") {
-      window.location.href = "inspection-target.html";
       return;
     }
     render();
@@ -824,17 +868,31 @@ function render() {
 }
 
 function renderRouteContext() {
-  if (state.routeContext.targetName) {
-    refs.detectionHeroTarget.textContent = state.routeContext.targetName;
-    if (refs.detectionBreadcrumbTarget) {
-      refs.detectionBreadcrumbTarget.textContent = state.routeContext.targetName;
-    }
+  if (refs.detectionTitle) {
+    refs.detectionTitle.innerHTML = `검출목록<span class="hero-target">${escapeHtml(state.routeContext.targetName)}</span>`;
+    refs.detectionHeroTarget = refs.detectionTitle.querySelector(".hero-target");
+  }
+
+  document.title = `${state.routeContext.targetName} 검출목록 | D-Guard`;
+
+  if (refs.detectionBreadcrumbHome) {
+    refs.detectionBreadcrumbHome.textContent = "검출목록";
+    refs.detectionBreadcrumbHome.href = "./detection-list.html";
+  }
+
+  if (refs.detectionBreadcrumbTarget) {
+    refs.detectionBreadcrumbTarget.textContent = state.routeContext.targetName;
+    refs.detectionBreadcrumbTarget.href = state.routeContext.dbId
+      ? `./detection-list.html?dbId=${encodeURIComponent(state.routeContext.dbId)}`
+      : "./detection-list.html";
   }
 
   if (refs.detectionBreadcrumbCurrent && (state.routeContext.targetName || state.routeContext.detectType)) {
     refs.detectionBreadcrumbCurrent.textContent = state.routeContext.detectType
       ? `${state.routeContext.detectType} 필터 결과`
-      : "검출목록";
+      : state.routeContext.dbId
+        ? "DB 검출목록"
+        : "전체 검출목록";
   }
 }
 
@@ -843,7 +901,13 @@ function getDetectTypes() {
 }
 
 function getFilteredDetections() {
-  return service.getFilteredDetections(state.detectionFilters, state.detectionSort);
+  return service.getFilteredDetections(
+    {
+      ...state.detectionFilters,
+      dbId: state.routeContext.dbId,
+    },
+    state.detectionSort
+  );
 }
 
 function getDetectionPageItems() {
@@ -893,6 +957,9 @@ function renderDetectionTable() {
     detectIdCell.className = "number-cell detect-id-cell";
     detectIdCell.textContent = item.detectId.toLocaleString("ko-KR");
 
+    const dbNameCell = document.createElement("td");
+    dbNameCell.textContent = item.dbName;
+
     const pathCell = document.createElement("td");
     pathCell.innerHTML = `<span class="path-text">${item.path}</span>`;
 
@@ -910,7 +977,7 @@ function renderDetectionTable() {
     const statusCell = document.createElement("td");
     statusCell.appendChild(createStatusChip(item.status));
 
-    row.append(checkboxCell, detectIdCell, pathCell, typeCell, countCell, assigneeCell, statusCell);
+    row.append(checkboxCell, detectIdCell, dbNameCell, pathCell, typeCell, countCell, assigneeCell, statusCell);
     row.addEventListener("click", () => {
       state.selectedDetectionId = item.id;
       syncEditorDraft();
@@ -930,7 +997,7 @@ function renderDetectionTable() {
     const row = document.createElement("tr");
     row.className = "selection-banner-row";
     const cell = document.createElement("td");
-    cell.colSpan = 7;
+    cell.colSpan = 8;
     cell.innerHTML = `페이지에서 ${items.length}개가 선택되었습니다. <button type="button" class="text-btn selection-banner-link" id="selectAllFilteredDetections">목록에서 총 ${all.length}개 데이터 선택</button>`;
     row.appendChild(cell);
     refs.detectionSelectionBannerBody.appendChild(row);
@@ -939,6 +1006,7 @@ function renderDetectionTable() {
   refs.recheckButton.disabled = state.checkedDetectionIds.size === 0;
   refs.deleteButton.disabled = state.checkedDetectionIds.size === 0;
   refs.actionPlanButton.disabled = state.checkedDetectionIds.size === 0;
+  refs.detectionSortIndicatorDbName.textContent = state.detectionSort.key === "dbName" ? (state.detectionSort.dir === "asc" ? "▲" : "▼") : "";
   refs.detectionSortIndicatorPath.textContent = state.detectionSort.key === "path" ? (state.detectionSort.dir === "asc" ? "▲" : "▼") : "";
   refs.detectionSortIndicatorDetectType.textContent = state.detectionSort.key === "detectType" ? (state.detectionSort.dir === "asc" ? "▲" : "▼") : "";
   refs.detectionSortIndicatorCount.textContent = state.detectionSort.key === "count" ? (state.detectionSort.dir === "asc" ? "▲" : "▼") : "";

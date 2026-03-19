@@ -2,52 +2,58 @@
   "use strict";
 
   const DEFAULT_MENU_KEY = "inspection-target";
+  const DEFAULT_MENU_KEYS = {
+    admin: "inspection-target",
+    user: "detection-list",
+  };
+
   const SIDEBAR_MENUS = {
     admin: [
-      { key: "dashboard", label: "대시보드", icon: "▥", href: "#" },
-      { key: "inspection-target", label: "점검대상", icon: "◎", href: "inspection-target.html" },
+      { key: "dashboard", label: "대시보드", icon: "◫", href: "#" },
+      { key: "inspection-target", label: "점검대상", icon: "▣", href: "inspection-target.html" },
+      { key: "detection-list", label: "검출목록", icon: "◎", href: "detection-list.html" },
       { key: "analysis-history", label: "점검이력", icon: "◴", href: "analysis-history.html" },
-      { key: "exception-request", label: "제외신청관리", icon: "⊖", href: "exception-request.html" },
-      { key: "action-plan", label: "조치계획관리", icon: "✎", href: "action-plan.html" },
+      { key: "exception-request", label: "제외신청관리", icon: "◌", href: "exception-request.html" },
+      { key: "action-plan", label: "조치계획관리", icon: "◈", href: "action-plan.html" },
       { key: "board", label: "게시판", icon: "☰", href: "#" },
       {
         key: "policy-management",
         label: "정책관리",
-        icon: "⚙",
+        icon: "⊞",
         children: [
-          { key: "policy-profile", label: "검출정책", icon: "◌", href: "#" },
-          { key: "policy-exception-filter", label: "예외필터", icon: "◇", href: "#" },
+          { key: "policy-profile", label: "검출정책", icon: "•", href: "#" },
+          { key: "policy-exception-filter", label: "예외필터", icon: "•", href: "#" },
         ],
       },
       {
         key: "target-management",
         label: "대상관리",
-        icon: "▤",
+        icon: "⊞",
         children: [
-          { key: "target-server-db", label: "서버/DB", icon: "▣", href: "#" },
-          { key: "target-account", label: "접속계정", icon: "◍", href: "#" },
-          { key: "target-group", label: "그룹", icon: "◑", href: "#" },
-          { key: "target-image-server", label: "이미지서버", icon: "◫", href: "#" },
-          { key: "target-server-token", label: "서버토큰", icon: "◇", href: "#" },
+          { key: "target-server-db", label: "서버/DB", icon: "•", href: "#" },
+          { key: "target-account", label: "접속계정", icon: "•", href: "#" },
+          { key: "target-group", label: "그룹", icon: "•", href: "#" },
+          { key: "target-image-server", label: "이미지서버", icon: "•", href: "#" },
+          { key: "target-server-token", label: "서버토큰", icon: "•", href: "#" },
         ],
       },
       {
         key: "security-management",
         label: "보안관리",
-        icon: "※",
+        icon: "⊞",
         children: [
-          { key: "security-user", label: "사용자", icon: "◉", href: "#" },
-          { key: "security-user-group", label: "사용자 그룹", icon: "◍", href: "#" },
-          { key: "security-access-right", label: "접근 권한", icon: "≣", href: "#" },
-          { key: "security-log", label: "로그", icon: "⋯", href: "#" },
+          { key: "security-user", label: "사용자", icon: "•", href: "#" },
+          { key: "security-user-group", label: "사용자그룹", icon: "•", href: "#" },
+          { key: "security-access-right", label: "접근 권한", icon: "•", href: "#" },
+          { key: "security-log", label: "로그", icon: "•", href: "#" },
         ],
       },
     ],
     user: [
-      { key: "inspection-target", label: "점검대상", icon: "◎", href: "inspection-target.html" },
+      { key: "detection-list", label: "검출목록", icon: "◎", href: "detection-list.html" },
       { key: "analysis-history", label: "점검이력", icon: "◴", href: "analysis-history.html" },
-      { key: "exception-request", label: "제외신청관리", icon: "⊖", href: "exception-request.html" },
-      { key: "action-plan", label: "조치계획관리", icon: "✎", href: "action-plan.html" },
+      { key: "exception-request", label: "제외신청관리", icon: "◌", href: "exception-request.html" },
+      { key: "action-plan", label: "조치계획관리", icon: "◈", href: "action-plan.html" },
       { key: "board", label: "게시판", icon: "☰", href: "#" },
     ],
   };
@@ -59,7 +65,8 @@
   function getDefaultMenuKey(role = "admin") {
     const menu = getSidebarMenu(role);
     const availableKeys = menu.flatMap((item) => [item.key, ...(item.children?.map((child) => child.key) ?? [])]);
-    return availableKeys.includes(DEFAULT_MENU_KEY) ? DEFAULT_MENU_KEY : availableKeys[0] ?? null;
+    const defaultKey = DEFAULT_MENU_KEYS[role] ?? DEFAULT_MENU_KEY;
+    return availableKeys.includes(defaultKey) ? defaultKey : availableKeys[0] ?? null;
   }
 
   function findMenuItemByKey(role, key) {
@@ -375,6 +382,7 @@
 
   window.DGuardShared = {
     DEFAULT_MENU_KEY,
+    DEFAULT_MENU_KEYS,
     SIDEBAR_MENUS,
     getSidebarMenu,
     getDefaultMenuKey,

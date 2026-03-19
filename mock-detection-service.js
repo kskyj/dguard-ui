@@ -45,6 +45,15 @@ const INITIAL_HISTORY_TIMESTAMPS = [
   "2026-03-05T17:45:00+09:00",
 ];
 
+const DB_META_BY_PATH_ROOT = {
+  CUSTOMER: { dbId: "db-040", dbName: "고객통합 DB" },
+  PAYMENT: { dbId: "db-041", dbName: "결제리포트 DB" },
+  HR: { dbId: "db-042", dbName: "HR 인사 DB" },
+  CLAIM: { dbId: "db-043", dbName: "보험청구 DB" },
+  SUPPORT: { dbId: "db-044", dbName: "채널관리 DB" },
+  ANALYTICS: { dbId: "db-045", dbName: "정산허브 DB" },
+};
+
 const detectionData = [
   {
     id: "det-1",
@@ -552,9 +561,17 @@ const detectionData = [
 ];
 
 detectionData.forEach((item, index) => {
+  const dbMeta = getDbMetaFromPath(item.path);
+  item.dbId = item.dbId ?? dbMeta.dbId;
+  item.dbName = item.dbName ?? dbMeta.dbName;
   item.detectId = item.detectId ?? 1001 + index;
   initializeDetectionHistory(item, index);
 });
+
+function getDbMetaFromPath(path) {
+  const root = String(path ?? "").split("/").filter(Boolean)[0] ?? "";
+  return DB_META_BY_PATH_ROOT[root] ?? { dbId: "db-999", dbName: "미지정 DB" };
+}
 
 function getInitialHistoryTimestamp(index) {
   return INITIAL_HISTORY_TIMESTAMPS[index] ?? INITIAL_HISTORY_TIMESTAMPS[INITIAL_HISTORY_TIMESTAMPS.length - 1];
@@ -646,6 +663,10 @@ function getDetectTypes() {
   return [...new Set(detectionData.map((item) => item.detectType))];
 }
 
+function getDbNameById(dbId) {
+  return detectionData.find((item) => item.dbId === dbId)?.dbName ?? "";
+}
+
 function isStatusAllowedForRole(status, role) {
   if (role === "admin") {
     return true;
@@ -671,16 +692,23 @@ function getFilteredDetections(filters, sort) {
     if (item.count <= 0) {
       return false;
     }
-    const matchesQuery = !query || item.path.toLowerCase().includes(query);
+    const matchesDb = !filters.dbId || item.dbId === filters.dbId;
+    const matchesQuery =
+      !query ||
+      item.path.toLowerCase().includes(query) ||
+      item.dbName.toLowerCase().includes(query);
     const matchesType = !filters.detectTypes.length || filters.detectTypes.includes(item.detectType);
     const matchesAssignee = !filters.assignees.length || filters.assignees.every((assignee) => item.assignees.includes(assignee));
     const matchesStatus = !filters.statuses.length || filters.statuses.includes(item.status);
-    return matchesQuery && matchesType && matchesAssignee && matchesStatus;
+    return matchesDb && matchesQuery && matchesType && matchesAssignee && matchesStatus;
   });
   const dir = sort.dir === "asc" ? 1 : -1;
   items.sort((a, b) => {
     if (sort.key === "count") {
       return (a.count - b.count) * dir;
+    }
+    if (sort.key === "dbName") {
+      return a.dbName.localeCompare(b.dbName, "ko") * dir;
     }
     if (sort.key === "assignees") {
       return a.assignees.join(", ").localeCompare(b.assignees.join(", "), "ko") * dir;
@@ -881,6 +909,7 @@ window.MockDetectionService = {
   getDetections,
   getAssignees,
   getDetectTypes,
+  getDbNameById,
   isStatusAllowedForRole,
   findDetectionById,
   getPiiRecords,
