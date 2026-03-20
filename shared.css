@@ -632,6 +632,7 @@ body.sidebar-collapsed .sidebar .role-switch {
 }
 
 .role-switch {
+  justify-content: center;
   padding: 4px;
   background: rgba(255, 255, 255, 0.12);
   border: 1px solid rgba(255, 255, 255, 0.16);

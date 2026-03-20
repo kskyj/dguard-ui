@@ -6,6 +6,7 @@
     admin: "inspection-target",
     user: "detection-list",
   };
+  const ROLE_STORAGE_KEY = "dguard.currentRole";
 
   const SIDEBAR_MENUS = {
     admin: [
@@ -62,11 +63,27 @@
     return SIDEBAR_MENUS[role] ?? SIDEBAR_MENUS.user;
   }
 
+  function getPersistedRole() {
+    const savedRole = window.sessionStorage.getItem(ROLE_STORAGE_KEY);
+    return savedRole && SIDEBAR_MENUS[savedRole] ? savedRole : null;
+  }
+
+  function persistRole(role) {
+    if (SIDEBAR_MENUS[role]) {
+      window.sessionStorage.setItem(ROLE_STORAGE_KEY, role);
+    }
+  }
+
   function getDefaultMenuKey(role = "admin") {
     const menu = getSidebarMenu(role);
     const availableKeys = menu.flatMap((item) => [item.key, ...(item.children?.map((child) => child.key) ?? [])]);
     const defaultKey = DEFAULT_MENU_KEYS[role] ?? DEFAULT_MENU_KEY;
     return availableKeys.includes(defaultKey) ? defaultKey : availableKeys[0] ?? null;
+  }
+
+  function isMenuKeyAvailable(role, key) {
+    const menu = getSidebarMenu(role);
+    return menu.some((item) => item.key === key || item.children?.some((child) => child.key === key));
   }
 
   function findMenuItemByKey(role, key) {
@@ -202,6 +219,18 @@
   function initSidebar(options) {
     const { sidebarNav, sidebarToggle, roleButtons, getState, onRoleChange, onNavigate, onRender } = options;
     const sidebarBrand = document.querySelector(".sidebar-brand");
+    const persistedRole = getPersistedRole();
+    const initialState = getState();
+
+    if (persistedRole && initialState.role !== persistedRole) {
+      initialState.role = persistedRole;
+      if (!isMenuKeyAvailable(persistedRole, initialState.selectedMenuKey)) {
+        initialState.selectedMenuKey = getDefaultMenuKey(persistedRole);
+      }
+      initialState.openSidebarGroupKey = null;
+    } else {
+      persistRole(initialState.role);
+    }
 
     if (sidebarBrand) {
       sidebarBrand.setAttribute("role", "link");
@@ -275,6 +304,7 @@
         state.role = nextRole;
         state.selectedMenuKey = getDefaultMenuKey(nextRole);
         state.openSidebarGroupKey = null;
+        persistRole(nextRole);
         onRoleChange?.(nextRole);
         onRender?.();
       });
@@ -383,6 +413,7 @@
   window.DGuardShared = {
     DEFAULT_MENU_KEY,
     DEFAULT_MENU_KEYS,
+    ROLE_STORAGE_KEY,
     SIDEBAR_MENUS,
     getSidebarMenu,
     getDefaultMenuKey,

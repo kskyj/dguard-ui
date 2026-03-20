@@ -2,6 +2,7 @@
   "use strict";
 
   const targetService = window.MockInspectionTargetService;
+  const detailStore = new Map();
 
   const HISTORY_STATUS_META = {
     SUCCESS: { label: "성공", className: "is-success" },
@@ -57,6 +58,30 @@
     ],
   ];
 
+  const GLOBAL_CHANGE_TRACKING_RULE = {
+    column: "UPDATED_AT",
+    method: "DATE",
+    criterion: "YYYY-MM-DD HH:mm:ss",
+  };
+
+  const SCHEMA_CHANGE_TRACKING_RULES = {
+    ORDER: {
+      column: "LAST_MODIFIED_AT",
+      method: "DATE",
+      criterion: "YYYY-MM-DD HH:mm:ss",
+    },
+    BATCH: {
+      column: "QUEUE_UPDATED_AT",
+      method: "DATE",
+      criterion: "YYYY-MM-DD HH:mm:ss.SSS",
+    },
+    AUDIT: {
+      column: "LOG_ID",
+      method: "SEQUENCE",
+      criterion: 200000,
+    },
+  };
+
   const TABLE_TEMPLATES = [
     {
       schema: "CUSTOMER",
@@ -74,6 +99,11 @@
       description: "고객 변경 이력",
       scopeLabel: "업데이트된 ROW만 검출",
       changeKey: "CHANGE_SEQ",
+      changeTrackingRule: {
+        column: "CHANGE_SEQ",
+        method: "SEQUENCE",
+        criterion: 120000,
+      },
       assignees: ["이아름"],
       rowsOnly: true,
       note: "배치 적재 후 점검",
@@ -114,6 +144,11 @@
       description: "접근 로그",
       scopeLabel: "업데이트된 ROW만 검출",
       changeKey: "LOG_ID",
+      changeTrackingRule: {
+        column: "LOG_ID",
+        method: "SEQUENCE",
+        criterion: 300000,
+      },
       assignees: ["김성진", "최윤서"],
       rowsOnly: true,
       note: "PII 접근 로그 모니터링",
@@ -125,7 +160,55 @@
     if (!target) {
       return null;
     }
-    return buildDetail(target);
+    if (!detailStore.has(target.id)) {
+      detailStore.set(target.id, buildDetail(target));
+    }
+    return detailStore.get(target.id);
+  }
+
+  function saveTableInfo(id, draft) {
+    const detail = getDetailById(id);
+    if (!detail) {
+      return null;
+    }
+
+    const normalized = normalizeTableInfoDraft(draft);
+    const rowType = resolveRowType(normalized.schema, normalized.tableName);
+    const savedRow = buildSavedTableRow(normalized, rowType);
+    if (normalized.originalId && normalized.originalId !== savedRow.id) {
+      const previousIndex = detail.tableInfo.findIndex((item) => item.id === normalized.originalId);
+      if (previousIndex >= 0) {
+        detail.tableInfo.splice(previousIndex, 1);
+      }
+    }
+    upsertTableInfoRow(detail.tableInfo, savedRow);
+
+    if (rowType === "GLOBAL_POLICY") {
+      syncInheritedRows(detail.tableInfo, (row) => row.rowType === "TABLE" && row.changeTracking.sourceType === "GLOBAL", savedRow.changeTracking);
+    }
+
+    if (rowType === "SCHEMA_POLICY") {
+      syncInheritedRows(
+        detail.tableInfo,
+        (row) =>
+          row.rowType === "TABLE" &&
+          row.schema === savedRow.schema &&
+          row.rowsOnly &&
+          row.changeTracking.sourceType !== "TABLE",
+        {
+          ...savedRow.changeTracking,
+          sourceType: "SCHEMA",
+          sourceLabel: `${savedRow.schema} 스키마 기본`,
+        }
+      );
+    }
+
+    if (rowType === "TABLE" && !savedRow.rowsOnly) {
+      savedRow.changeTracking = buildDisabledChangeTracking();
+    }
+
+    refreshSummary(detail);
+    return savedRow;
   }
 
   function buildDetail(target) {
@@ -135,15 +218,12 @@
     const proxyStatusKeys = Object.keys(PROXY_STATUS_META);
     const proxyStatus = proxyStatusKeys[seed % proxyStatusKeys.length];
     const history = createHistory(seed, target);
-    const tableInfo = createTableInfo(seed);
-    const mappedOwners = [...new Set(tableInfo.flatMap((item) => item.assignees))];
     const proxyName = `DG-AGENT-${String((seed % 17) + 1).padStart(2, "0")}`;
-
-    return {
+    const detail = {
       target,
       summary: {
-        mappedOwnerCount: mappedOwners.length,
-        rowsOnlyEnabledCount: tableInfo.filter((item) => item.rowsOnly).length,
+        mappedOwnerCount: 0,
+        rowsOnlyEnabledCount: 0,
         latestStartedAt: history[0]?.startedAt ?? target.inspectionStartedAt,
       },
       dbInfo: {
@@ -168,20 +248,255 @@
             : "주요 민감정보 컬럼은 업무시간 외 재점검 대상으로 지정되어 있습니다.",
         ],
       },
-      tableInfo,
+      tableInfo: createTableInfo(seed),
       inspectionHistory: history,
     };
+    refreshSummary(detail);
+    return detail;
   }
 
   function createTableInfo(seed) {
-    return TABLE_TEMPLATES.map((template, index) => {
-      const updatedAt = new Date(Date.UTC(2026, 2, 14, 1, 30) - (seed * 17 + index * 9) * 3600000).toISOString();
-      return {
-        ...template,
-        updatedAt,
-        assignees: template.assignees.slice(0, ((seed + index) % template.assignees.length) + 1),
-      };
+    return [
+      ...createDefaultRuleRows(seed),
+      ...TABLE_TEMPLATES.map((template, index) => {
+        const updatedAt = new Date(Date.UTC(2026, 2, 14, 1, 30) - (seed * 17 + index * 9) * 3600000).toISOString();
+        const changeTracking = resolveChangeTracking(template);
+        const assignees = template.assignees.slice(0, ((seed + index) % template.assignees.length) + 1);
+        return {
+          id: buildRowId("TABLE", template.schema, template.tableName),
+          rowType: "TABLE",
+          ...template,
+          updatedAt,
+          assignees,
+          changeTracking,
+        };
+      }),
+    ];
+  }
+
+  function createDefaultRuleRows(seed) {
+    const baseTime = new Date(Date.UTC(2026, 2, 15, 2, 0) - seed * 5400000);
+    const globalRuleRow = buildDefaultRuleRow({
+      schema: "전체",
+      tableName: "전체",
+      description: "해당 DB 전체 기본 설정",
+      rule: GLOBAL_CHANGE_TRACKING_RULE,
+      sourceLabel: "해당 DB 전체 기본",
+      note: "스키마/개별 테이블 설정이 없을 때 적용",
+      updatedAt: new Date(baseTime).toISOString(),
     });
+    const schemaRuleRows = Object.entries(SCHEMA_CHANGE_TRACKING_RULES).map(([schema, rule], index) =>
+      buildDefaultRuleRow({
+        schema,
+        tableName: "전체",
+        description: `${schema} 스키마 기본 설정`,
+        rule,
+        sourceLabel: `${schema} 스키마 기본`,
+        note: "개별 테이블 설정이 없을 때 적용",
+        updatedAt: new Date(baseTime.getTime() - (index + 1) * 3600000).toISOString(),
+      })
+    );
+
+    return [globalRuleRow, ...schemaRuleRows];
+  }
+
+  function buildDefaultRuleRow({ schema, tableName, description, rule, sourceLabel, note, updatedAt }) {
+    return {
+      id: buildRowId(schema === "전체" ? "GLOBAL_POLICY" : "SCHEMA_POLICY", schema, tableName),
+      rowType: schema === "전체" ? "GLOBAL_POLICY" : "SCHEMA_POLICY",
+      schema,
+      tableName,
+      description,
+      scopeLabel: "업데이트된 ROW만 검출",
+      rowsOnly: true,
+      assignees: [],
+      updatedAt,
+      note,
+      changeTracking: buildChangeTrackingLabels(rule, sourceLabel),
+      isPolicyRow: true,
+    };
+  }
+
+  function buildChangeTrackingLabels(rule, sourceLabel) {
+    const sourceType = sourceLabel === "개별 테이블 설정"
+      ? "TABLE"
+      : sourceLabel.includes("스키마 기본")
+        ? "SCHEMA"
+        : "GLOBAL";
+    return {
+      columnLabel: rule.column,
+      methodLabel: rule.method === "DATE" ? "날짜" : "시퀀스",
+      criterionLabel:
+        rule.method === "DATE"
+          ? rule.criterion
+          : `${Number(rule.criterion).toLocaleString("ko-KR")}건`,
+      sourceLabel,
+      sourceType,
+    };
+  }
+
+  function resolveChangeTracking(template) {
+    if (!template.rowsOnly) {
+      return buildDisabledChangeTracking();
+    }
+
+    const schemaRule = SCHEMA_CHANGE_TRACKING_RULES[template.schema] ?? null;
+    const tableRule = template.changeTrackingRule ?? null;
+    const effectiveRule = tableRule ?? schemaRule ?? GLOBAL_CHANGE_TRACKING_RULE;
+    const sourceLabel = tableRule
+      ? "개별 테이블 설정"
+      : schemaRule
+        ? `${template.schema} 스키마 기본`
+        : "해당 DB 전체 기본";
+
+    return buildChangeTrackingLabels(effectiveRule, sourceLabel);
+  }
+
+  function buildDisabledChangeTracking() {
+    return {
+      columnLabel: "-",
+      methodLabel: "-",
+      criterionLabel: "-",
+      sourceLabel: "변경감지 미적용",
+      sourceType: "DISABLED",
+    };
+  }
+
+  function resolveRowType(schema, tableName) {
+    if (schema === "전체" && tableName === "전체") {
+      return "GLOBAL_POLICY";
+    }
+    if (tableName === "전체") {
+      return "SCHEMA_POLICY";
+    }
+    return "TABLE";
+  }
+
+  function buildRowId(rowType, schema, tableName) {
+    return `${rowType}:${schema}:${tableName}`.replaceAll(/\s+/g, "");
+  }
+
+  function getRowTypeFromId(id) {
+    return String(id ?? "").split(":")[0] || "";
+  }
+
+  function normalizeTableInfoDraft(draft) {
+    const schema = normalizeText(draft.schema) || "전체";
+    const tableName = normalizeText(draft.tableName) || "전체";
+    const rowsOnly = draft.rowsOnly !== false;
+    const assignees = unique(
+      String(draft.assigneesText ?? "")
+        .split(",")
+        .map((value) => normalizeText(value))
+        .filter(Boolean)
+    );
+
+    return {
+      id: normalizeText(draft.id),
+      originalId: normalizeText(draft.originalId),
+      schema,
+      tableName,
+      description: normalizeText(draft.description) || (tableName === "전체" ? `${schema} 기본 설정` : "-"),
+      rowsOnly,
+      changeColumn: rowsOnly ? normalizeText(draft.changeColumn) || "UPDATED_AT" : "",
+      changeMethod: rowsOnly && draft.changeMethod === "SEQUENCE" ? "SEQUENCE" : "DATE",
+      criterion: rowsOnly
+        ? normalizeText(draft.criterion) || (draft.changeMethod === "SEQUENCE" ? "50000" : "YYYY-MM-DD HH:mm:ss")
+        : "",
+      assignees,
+      note: normalizeText(draft.note),
+    };
+  }
+
+  function buildSavedTableRow(draft, rowType) {
+    const updatedAt = new Date().toISOString();
+    const sourceLabel = rowType === "GLOBAL_POLICY"
+      ? "해당 DB 전체 기본"
+      : rowType === "SCHEMA_POLICY"
+        ? `${draft.schema} 스키마 기본`
+        : draft.rowsOnly
+          ? "개별 테이블 설정"
+          : "변경감지 미적용";
+
+    const description = draft.description || (
+      rowType === "GLOBAL_POLICY"
+        ? "해당 DB 전체 기본 설정"
+        : rowType === "SCHEMA_POLICY"
+          ? `${draft.schema} 스키마 기본 설정`
+          : "-"
+    );
+
+    return {
+      id:
+        draft.id && getRowTypeFromId(draft.id) === rowType
+          ? draft.id
+          : buildRowId(rowType, draft.schema, draft.tableName),
+      rowType,
+      schema: draft.schema,
+      tableName: draft.tableName,
+      description,
+      scopeLabel: draft.rowsOnly ? "업데이트된 ROW만 검출" : "전체 스캔",
+      rowsOnly: draft.rowsOnly,
+      assignees: rowType === "TABLE" ? draft.assignees : [],
+      updatedAt,
+      note: draft.note || (
+        rowType === "GLOBAL_POLICY"
+          ? "스키마/개별 테이블 설정이 없을 때 적용"
+          : rowType === "SCHEMA_POLICY"
+            ? "개별 테이블 설정이 없을 때 적용"
+            : ""
+      ),
+      changeTracking: draft.rowsOnly
+        ? buildChangeTrackingLabels(
+            {
+              column: draft.changeColumn,
+              method: draft.changeMethod,
+              criterion: draft.changeMethod === "DATE" ? draft.criterion : Number.parseInt(draft.criterion, 10) || 0,
+            },
+            sourceLabel
+          )
+        : buildDisabledChangeTracking(),
+    };
+  }
+
+  function upsertTableInfoRow(rows, nextRow) {
+    const existingIndex = rows.findIndex(
+      (row) =>
+        row.id === nextRow.id ||
+        (row.rowType === nextRow.rowType && row.schema === nextRow.schema && row.tableName === nextRow.tableName)
+    );
+    if (existingIndex >= 0) {
+      rows.splice(existingIndex, 1, nextRow);
+    } else {
+      rows.push(nextRow);
+    }
+    rows.sort((left, right) => {
+      const priority = { GLOBAL_POLICY: 0, SCHEMA_POLICY: 1, TABLE: 2 };
+      return (
+        (priority[left.rowType] ?? 9) - (priority[right.rowType] ?? 9) ||
+        left.schema.localeCompare(right.schema, "ko") ||
+        left.tableName.localeCompare(right.tableName, "ko")
+      );
+    });
+  }
+
+  function syncInheritedRows(rows, predicate, changeTracking) {
+    rows.forEach((row) => {
+      if (!predicate(row) || !row.rowsOnly) {
+        return;
+      }
+      row.changeTracking = {
+        ...changeTracking,
+      };
+      row.updatedAt = new Date().toISOString();
+    });
+  }
+
+  function refreshSummary(detail) {
+    const actualRows = detail.tableInfo.filter((item) => item.rowType === "TABLE");
+    const mappedOwners = [...new Set(actualRows.flatMap((item) => item.assignees))];
+    detail.summary.mappedOwnerCount = mappedOwners.length;
+    detail.summary.rowsOnlyEnabledCount = actualRows.filter((item) => item.rowsOnly).length;
   }
 
   function createHistory(seed, target) {
@@ -198,6 +513,7 @@
 
       return {
         id: `${target.id}-history-${index + 1}`,
+        scheduleId: `SCH-${String(1000 + (seed - 1) * 10 + index + 1).padStart(4, "0")}`,
         detectId: `DET-${String(seed).padStart(4, "0")}-${String(index + 1).padStart(2, "0")}`,
         scheduleName: SCHEDULE_NAMES[index % SCHEDULE_NAMES.length],
         inspector: INSPECTORS[(seed + index) % INSPECTORS.length],
@@ -221,6 +537,10 @@
     return [...new Set(values.filter(Boolean))];
   }
 
+  function normalizeText(value) {
+    return String(value ?? "").trim();
+  }
+
   function formatDateTime(value) {
     const date = new Date(value);
     const pad = (number) => String(number).padStart(2, "0");
@@ -231,5 +551,6 @@
     HISTORY_STATUS_META,
     PROXY_STATUS_META,
     getDetailById,
+    saveTableInfo,
   };
 })();

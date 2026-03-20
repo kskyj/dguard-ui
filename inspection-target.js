@@ -583,7 +583,7 @@ function renderTable() {
     } aria-label="${escapeHtml(item.name)} 선택">`;
 
     const idCell = document.createElement("td");
-    idCell.className = "center-cell";
+    idCell.className = "id-cell";
     idCell.textContent = item.id.toUpperCase();
 
     const nameCell = document.createElement("td");
@@ -1067,4 +1067,3 @@ function escapeHtml(value) {
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
 }
-

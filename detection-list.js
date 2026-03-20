@@ -1,6 +1,7 @@
 ﻿const service = window.MockDetectionService;
 const { STATUS_META, STATUS_ORDER, ASSIGNEES } = service;
 
+const ROLE_STORAGE_KEY = "dguard.currentRole";
 const refs = {};
 
 const DEFAULT_MENU_KEY = "detection-list";
@@ -77,11 +78,23 @@ document.addEventListener("DOMContentLoaded", init);
 function init() {
   cacheRefs();
   ensureDetectionTableColumns();
+  applyPersistedRole();
+  refs.detectionSearchInput.placeholder = "검출경로, DB명, 스케줄ID 검색";
   applyInitialRouteState();
   bindEvents();
   populateStaticControls();
   syncSelectionState();
   render();
+}
+
+function applyPersistedRole() {
+  const savedRole = window.sessionStorage.getItem(ROLE_STORAGE_KEY);
+  if (savedRole === "admin" || savedRole === "user") {
+    state.role = savedRole;
+    state.selectedMenuKey = getDefaultMenuKey(savedRole);
+    return;
+  }
+  window.sessionStorage.setItem(ROLE_STORAGE_KEY, state.role);
 }
 
 function cacheRefs() {
@@ -204,16 +217,23 @@ function ensureDetectionTableColumns() {
     return;
   }
 
-  if (!document.getElementById("detectionSortIndicatorDbName")) {
-    const colWidths = ["40px", "56px", "14%", "25%", "14%", "9%", "14%", "12%"];
+  if (!document.getElementById("detectionScheduleIdHeader") || !document.getElementById("detectionSortIndicatorDbName")) {
+    const colWidths = ["40px", "56px", "14%", "14%", "24%", "12%", "8%", "14%", "12%"];
     const cols = [...colgroup.querySelectorAll("col")];
-    if (cols.length === 7) {
+    if (cols.length !== colWidths.length) {
       colgroup.innerHTML = "";
       colWidths.forEach((width) => {
         const col = document.createElement("col");
         col.style.width = width;
         colgroup.appendChild(col);
       });
+    }
+
+    if (!document.getElementById("detectionScheduleIdHeader")) {
+      const scheduleHeader = document.createElement("th");
+      scheduleHeader.id = "detectionScheduleIdHeader";
+      scheduleHeader.textContent = "스케줄ID";
+      detectIdHeader.insertAdjacentElement("afterend", scheduleHeader);
     }
 
     const dbHeader = document.createElement("th");
@@ -223,7 +243,10 @@ function ensureDetectionTableColumns() {
         <span class="sort-indicator" id="detectionSortIndicatorDbName"></span>
       </button>
     `;
-    detectIdHeader.insertAdjacentElement("afterend", dbHeader);
+    const scheduleHeader = document.getElementById("detectionScheduleIdHeader");
+    if (!document.getElementById("detectionSortIndicatorDbName")) {
+      scheduleHeader.insertAdjacentElement("afterend", dbHeader);
+    }
   }
 
   refs.detectionSortIndicatorDbName = document.getElementById("detectionSortIndicatorDbName");
@@ -317,6 +340,7 @@ function bindEvents() {
       state.role = button.dataset.role;
       state.selectedMenuKey = getDefaultMenuKey(state.role);
       state.openSidebarGroupKey = null;
+      window.sessionStorage.setItem(ROLE_STORAGE_KEY, state.role);
       state.userMenuOpen = false;
       refs.assigneePickerPanel.hidden = true;
       refs.assigneePickerTrigger.setAttribute("aria-expanded", "false");
@@ -957,6 +981,9 @@ function renderDetectionTable() {
     detectIdCell.className = "number-cell detect-id-cell";
     detectIdCell.textContent = item.detectId.toLocaleString("ko-KR");
 
+    const scheduleIdCell = document.createElement("td");
+    scheduleIdCell.textContent = item.scheduleId || "-";
+
     const dbNameCell = document.createElement("td");
     dbNameCell.textContent = item.dbName;
 
@@ -977,7 +1004,7 @@ function renderDetectionTable() {
     const statusCell = document.createElement("td");
     statusCell.appendChild(createStatusChip(item.status));
 
-    row.append(checkboxCell, detectIdCell, dbNameCell, pathCell, typeCell, countCell, assigneeCell, statusCell);
+    row.append(checkboxCell, detectIdCell, scheduleIdCell, dbNameCell, pathCell, typeCell, countCell, assigneeCell, statusCell);
     row.addEventListener("click", () => {
       state.selectedDetectionId = item.id;
       syncEditorDraft();
@@ -997,7 +1024,7 @@ function renderDetectionTable() {
     const row = document.createElement("tr");
     row.className = "selection-banner-row";
     const cell = document.createElement("td");
-    cell.colSpan = 8;
+    cell.colSpan = 9;
     cell.innerHTML = `페이지에서 ${items.length}개가 선택되었습니다. <button type="button" class="text-btn selection-banner-link" id="selectAllFilteredDetections">목록에서 총 ${all.length}개 데이터 선택</button>`;
     row.appendChild(cell);
     refs.detectionSelectionBannerBody.appendChild(row);

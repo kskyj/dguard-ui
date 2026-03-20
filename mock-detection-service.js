@@ -54,6 +54,17 @@ const DB_META_BY_PATH_ROOT = {
   ANALYTICS: { dbId: "db-045", dbName: "정산허브 DB" },
 };
 
+const SCHEDULE_META_BY_DETECTION_ID = {
+  "det-1": { scheduleId: "SCH-1001", scheduleName: "주간 고객정보 점검" },
+  "det-2": { scheduleId: "SCH-1001", scheduleName: "주간 고객정보 점검" },
+  "det-3": { scheduleId: "SCH-1002", scheduleName: "결제 민감정보 정기점검" },
+  "det-4": { scheduleId: "SCH-1001", scheduleName: "주간 고객정보 점검" },
+  "det-5": { scheduleId: "SCH-1004", scheduleName: "인사 개인정보 긴급점검" },
+  "det-6": { scheduleId: "SCH-1012", scheduleName: "보험청구 정기점검" },
+  "det-7": { scheduleId: "SCH-1006", scheduleName: "채널관리 야간 점검" },
+  "det-8": { scheduleId: "SCH-1010", scheduleName: "정산허브 예약 점검" },
+};
+
 const detectionData = [
   {
     id: "det-1",
@@ -562,8 +573,11 @@ const detectionData = [
 
 detectionData.forEach((item, index) => {
   const dbMeta = getDbMetaFromPath(item.path);
+  const scheduleMeta = SCHEDULE_META_BY_DETECTION_ID[item.id] ?? { scheduleId: "", scheduleName: "" };
   item.dbId = item.dbId ?? dbMeta.dbId;
   item.dbName = item.dbName ?? dbMeta.dbName;
+  item.scheduleId = item.scheduleId ?? scheduleMeta.scheduleId;
+  item.scheduleName = item.scheduleName ?? scheduleMeta.scheduleName;
   item.detectId = item.detectId ?? 1001 + index;
   initializeDetectionHistory(item, index);
 });
@@ -695,6 +709,8 @@ function getFilteredDetections(filters, sort) {
     const matchesDb = !filters.dbId || item.dbId === filters.dbId;
     const matchesQuery =
       !query ||
+      item.scheduleId.toLowerCase().includes(query) ||
+      item.scheduleName.toLowerCase().includes(query) ||
       item.path.toLowerCase().includes(query) ||
       item.dbName.toLowerCase().includes(query);
     const matchesType = !filters.detectTypes.length || filters.detectTypes.includes(item.detectType);

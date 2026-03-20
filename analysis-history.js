@@ -85,6 +85,15 @@ const DETAIL_TARGETS_BY_SCHEDULE_ID = {
   ],
 };
 
+const DETECTION_NAV_BY_SCHEDULE_ID = {
+  "SCH-1001": { recentCount: 3 },
+  "SCH-1002": { recentCount: 1 },
+  "SCH-1004": { recentCount: 1 },
+  "SCH-1006": { recentCount: 1 },
+  "SCH-1010": { recentCount: 1 },
+  "SCH-1012": { recentCount: 1 },
+};
+
 const state = {
   role: "admin",
   sidebarCollapsed: false,
@@ -294,6 +303,15 @@ function bindEvents() {
   });
 
   refs.scheduleTableBody.addEventListener("click", (event) => {
+    const detectionButton = event.target.closest("[data-detection-nav]");
+    if (detectionButton) {
+      const schedule = historyService.findScheduleById(detectionButton.dataset.scheduleId);
+      if (schedule) {
+        navigateToDetectionList(schedule);
+      }
+      return;
+    }
+
     const row = event.target.closest("tr[data-schedule-id]");
     if (!row || event.target.closest("input, button, a, label")) {
       return;
@@ -500,6 +518,17 @@ function renderTable() {
     targetCountCell.className = "center-cell";
     targetCountCell.textContent = getScheduleTargets(item).length.toLocaleString("ko-KR");
 
+    const recentDetectionCountCell = document.createElement("td");
+    recentDetectionCountCell.className = "center-cell";
+    const recentDetectionButton = document.createElement("button");
+    recentDetectionButton.type = "button";
+    recentDetectionButton.className = "text-btn schedule-detection-link";
+    recentDetectionButton.dataset.detectionNav = "true";
+    recentDetectionButton.dataset.scheduleId = item.id;
+    recentDetectionButton.textContent = getRecentDetectionCount(item).toLocaleString("ko-KR");
+    recentDetectionButton.disabled = !getDetectionNavigation(item);
+    recentDetectionCountCell.appendChild(recentDetectionButton);
+
     const durationCell = document.createElement("td");
     durationCell.className = "center-cell";
     durationCell.textContent = formatDuration(item.durationMinutes);
@@ -522,6 +551,7 @@ function renderTable() {
       ruleCell,
       statusCell,
       targetCountCell,
+      recentDetectionCountCell,
       durationCell,
       endedAtCell,
       nextStartedAtCell,
@@ -704,6 +734,26 @@ function syncSelectionState() {
 
 function getScheduleTargets(schedule) {
   return DETAIL_TARGETS_BY_SCHEDULE_ID[schedule.id] ?? [{ type: "DB", path: schedule.targetName || schedule.id }];
+}
+
+function getDetectionNavigation(schedule) {
+  return DETECTION_NAV_BY_SCHEDULE_ID[schedule.id] ?? null;
+}
+
+function getRecentDetectionCount(schedule) {
+  return getDetectionNavigation(schedule)?.recentCount ?? 0;
+}
+
+function navigateToDetectionList(schedule) {
+  const navigation = getDetectionNavigation(schedule);
+  if (!navigation) {
+    return;
+  }
+  const params = new URLSearchParams({
+    target: schedule.name,
+    detectionQuery: schedule.id,
+  });
+  window.location.href = `./detection-list.html?${params.toString()}`;
 }
 
 function setScheduleChecked(id, checked) {

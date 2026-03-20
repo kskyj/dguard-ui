@@ -29,6 +29,23 @@ const detailState = {
       memoText: "",
     },
   },
+  tableForm: {
+    open: false,
+    mode: "create",
+    editingId: null,
+  },
+  tableFilters: {
+    query: "",
+    applied: {
+      scope: "ALL",
+      method: "ALL",
+    },
+    draft: {
+      scope: "ALL",
+      method: "ALL",
+    },
+    filterOpen: false,
+  },
 };
 
 document.addEventListener("DOMContentLoaded", initDetailPage);
@@ -90,9 +107,35 @@ function cacheDetailRefs() {
     "memoEditInput",
     "saveMemoButton",
     "cancelMemoButton",
-    "tableInfoSummary",
+    "openTableInfoCreateButton",
+    "tableInfoSearchInput",
+    "toggleTableInfoFilterButton",
+    "tableInfoToolbarSummary",
+    "tableInfoFilterSummary",
+    "tableInfoFilterBadge",
+    "clearTableInfoFiltersButton",
+    "tableInfoFilterPopover",
+    "tableInfoScopeFilterList",
+    "tableInfoMethodFilterList",
+    "cancelTableInfoFilterButton",
+    "applyTableInfoFilterButton",
     "tableInfoBody",
     "tableInfoEmpty",
+    "tableInfoModal",
+    "tableInfoModalTitle",
+    "tableInfoModalCaption",
+    "cancelTableInfoModalButton",
+    "saveTableInfoButton",
+    "tableInfoSchemaInput",
+    "tableInfoTableNameInput",
+    "tableInfoDescriptionInput",
+    "tableInfoScopeSelect",
+    "tableInfoChangeColumnInput",
+    "tableInfoMethodSelect",
+    "tableInfoCriterionLabel",
+    "tableInfoCriterionInput",
+    "tableInfoAssigneesInput",
+    "tableInfoNoteInput",
     "historyTableBody",
     "historyEmpty",
     "startInspectionButton",
@@ -110,6 +153,8 @@ function cacheDetailRefs() {
   });
   detailRefs.sidebarNav = document.querySelector(".sidebar-nav");
   detailRefs.roleButtons = [...document.querySelectorAll(".role-btn")];
+  detailRefs.dbInfoCard = document.querySelector(".db-info-card");
+  detailRefs.tableInfoCard = document.querySelector(".table-info-card");
 }
 
 function bindDetailEvents() {
@@ -206,6 +251,87 @@ function bindDetailEvents() {
     renderDetailPage();
   });
 
+  detailRefs.openTableInfoCreateButton.addEventListener("click", () => {
+    openTableInfoModal("create");
+  });
+
+  detailRefs.tableInfoSearchInput.addEventListener("input", (event) => {
+    detailState.tableFilters.query = event.target.value;
+    renderDetailPage();
+  });
+
+  detailRefs.toggleTableInfoFilterButton.addEventListener("click", () => {
+    detailState.tableFilters.filterOpen = !detailState.tableFilters.filterOpen;
+    syncTableInfoFilterDraft();
+    renderTableInfo(getCurrentDetail());
+    if (detailState.tableFilters.filterOpen) {
+      positionTableInfoFilterPopover();
+    }
+  });
+
+  detailRefs.tableInfoScopeFilterList.addEventListener("click", (event) => {
+    const option = event.target.closest("[data-filter-group='scope']");
+    if (!option) {
+      return;
+    }
+    detailState.tableFilters.draft.scope = option.dataset.filterValue;
+    renderTableInfoFilterControls();
+  });
+
+  detailRefs.tableInfoMethodFilterList.addEventListener("click", (event) => {
+    const option = event.target.closest("[data-filter-group='method']");
+    if (!option) {
+      return;
+    }
+    detailState.tableFilters.draft.method = option.dataset.filterValue;
+    renderTableInfoFilterControls();
+  });
+
+  detailRefs.applyTableInfoFilterButton.addEventListener("click", () => {
+    detailState.tableFilters.applied = { ...detailState.tableFilters.draft };
+    detailState.tableFilters.filterOpen = false;
+    renderDetailPage();
+  });
+
+  detailRefs.cancelTableInfoFilterButton.addEventListener("click", () => {
+    detailState.tableFilters.filterOpen = false;
+    syncTableInfoFilterDraft();
+    renderTableInfo(getCurrentDetail());
+  });
+
+  detailRefs.clearTableInfoFiltersButton.addEventListener("click", () => {
+    detailState.tableFilters.query = "";
+    detailState.tableFilters.applied = { scope: "ALL", method: "ALL" };
+    detailState.tableFilters.draft = { scope: "ALL", method: "ALL" };
+    detailRefs.tableInfoSearchInput.value = "";
+    renderDetailPage();
+  });
+
+  detailRefs.tableInfoBody.addEventListener("click", (event) => {
+    const editButton = event.target.closest("[data-table-edit]");
+    if (!editButton) {
+      return;
+    }
+    const detail = getCurrentDetail();
+    const tableInfo = detail?.tableInfo.find((item) => item.id === editButton.dataset.tableEdit);
+    if (!tableInfo) {
+      pushDetailToast("수정할 테이블 정보를 찾을 수 없습니다.", "danger");
+      return;
+    }
+    openTableInfoModal("edit", tableInfo);
+  });
+
+  detailRefs.tableInfoScopeSelect.addEventListener("change", syncTableInfoFormState);
+  detailRefs.tableInfoMethodSelect.addEventListener("change", syncTableInfoFormState);
+  detailRefs.cancelTableInfoModalButton.addEventListener("click", closeTableInfoModal);
+  detailRefs.saveTableInfoButton.addEventListener("click", saveTableInfoDraft);
+
+  detailRefs.tableInfoModal.addEventListener("click", (event) => {
+    if (event.target === detailRefs.tableInfoModal) {
+      closeTableInfoModal();
+    }
+  });
+
   detailRefs.startInspectionButton.addEventListener("click", () => {
     const detail = getCurrentDetail();
     if (!detail) {
@@ -255,11 +381,38 @@ function bindDetailEvents() {
 
   document.addEventListener("click", (event) => {
     detailUserMenuController?.handleDocumentClick(event);
+    if (
+      detailState.tableFilters.filterOpen &&
+      !detailRefs.tableInfoFilterPopover.contains(event.target) &&
+      !detailRefs.toggleTableInfoFilterButton.contains(event.target)
+    ) {
+      detailState.tableFilters.filterOpen = false;
+      syncTableInfoFilterDraft();
+      renderTableInfo(getCurrentDetail());
+      return;
+    }
   });
 
   document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && detailState.tableForm.open) {
+      closeTableInfoModal();
+      return;
+    }
+    if (event.key === "Escape" && detailState.tableFilters.filterOpen) {
+      detailState.tableFilters.filterOpen = false;
+      syncTableInfoFilterDraft();
+      renderTableInfo(getCurrentDetail());
+      return;
+    }
     if (event.key === "Escape" && !detailRefs.failureReasonModal.hidden) {
       closeFailureReasonModal();
+    }
+  });
+
+  window.addEventListener("resize", () => {
+    syncTableInfoCardHeight();
+    if (detailState.tableFilters.filterOpen) {
+      positionTableInfoFilterPopover();
     }
   });
 }
@@ -283,6 +436,7 @@ function renderDetailPage() {
   renderTableInfo(detail);
   renderHistory(detail);
   renderFailureReasonModal(detail);
+  syncTableInfoCardHeight();
 }
 
 function renderEmptyDetailState() {
@@ -290,18 +444,20 @@ function renderEmptyDetailState() {
   detailRefs.detailBreadcrumbName.textContent = "DB 상세";
   detailRefs.detailDbId.textContent = "-";
   detailRefs.detailRegisteredAt.textContent = "-";
-  detailRefs.detailProxyName.textContent = "-";
   detailRefs.detailProxyAddress.textContent = "-";
   detailRefs.detailProxyStatus.textContent = "-";
   detailRefs.detailProxyStatus.className = "proxy-pill";
+  detailRefs.detailProxyStatus.hidden = true;
   detailRefs.detailInfraBody.innerHTML = "";
   detailRefs.detailLabelList.innerHTML = "";
   detailRefs.detailMemoList.textContent = "";
-  detailRefs.tableInfoSummary.innerHTML = "";
+  detailRefs.tableInfoToolbarSummary.innerHTML = buildTableInfoToolbarSummaryHtml(0, 0);
   detailRefs.tableInfoBody.innerHTML = "";
   detailRefs.historyTableBody.innerHTML = "";
   detailRefs.tableInfoEmpty.hidden = false;
   detailRefs.historyEmpty.hidden = false;
+  detailRefs.tableInfoFilterSummary.hidden = true;
+  detailRefs.tableInfoFilterPopover.hidden = true;
   detailRefs.startInspectionButton.disabled = true;
   detailRefs.labelEditPanel.hidden = true;
   detailRefs.labelEditPanel.style.display = "none";
@@ -309,7 +465,24 @@ function renderEmptyDetailState() {
   detailRefs.memoEditPanel.style.display = "none";
   detailRefs.detailLabelList.hidden = false;
   detailRefs.detailMemoList.hidden = false;
+  closeTableInfoModal();
   closeFailureReasonModal();
+  syncTableInfoCardHeight();
+}
+
+function syncTableInfoCardHeight() {
+  if (!detailRefs.dbInfoCard || !detailRefs.tableInfoCard) {
+    return;
+  }
+
+  detailRefs.tableInfoCard.style.height = "";
+
+  const dbInfoHeight = Math.ceil(detailRefs.dbInfoCard.getBoundingClientRect().height);
+  if (dbInfoHeight <= 0) {
+    return;
+  }
+
+  detailRefs.tableInfoCard.style.height = `${dbInfoHeight}px`;
 }
 
 function renderDbInfo(detail) {
@@ -324,8 +497,14 @@ function renderDbInfo(detail) {
       ? `${detail.dbInfo.proxy.ip}/${detail.dbInfo.proxy.version}`
       : detail.dbInfo.proxy.ip;
   detailRefs.detailProxyAddress.textContent = proxyAddress;
-  detailRefs.detailProxyStatus.textContent = proxyStatusMeta.label;
-  detailRefs.detailProxyStatus.className = `proxy-pill ${proxyStatusMeta.className}`;
+  detailRefs.detailProxyStatus.hidden = detail.dbInfo.proxy.status === "DEGRADED";
+  if (detailRefs.detailProxyStatus.hidden) {
+    detailRefs.detailProxyStatus.textContent = "";
+    detailRefs.detailProxyStatus.className = "proxy-pill";
+  } else {
+    detailRefs.detailProxyStatus.textContent = proxyStatusMeta.label;
+    detailRefs.detailProxyStatus.className = `proxy-pill ${proxyStatusMeta.className}`;
+  }
   detailRefs.detailInfraBody.innerHTML = `<span class="segment-value">${escapeHtml(detail.target.dbType)}</span>`;
 
   renderLabelSection(detail);
@@ -333,16 +512,23 @@ function renderDbInfo(detail) {
 }
 
 function renderTableInfo(detail) {
-  detailRefs.tableInfoEmpty.hidden = detail.tableInfo.length > 0;
-  detailRefs.tableInfoSummary.innerHTML = [
-    `업데이트된 ROW만 검출 설정 ${detail.summary.rowsOnlyEnabledCount}개`,
-    `전체 테이블 ${detail.tableInfo.length}개`,
-    `매핑 담당자 ${detail.summary.mappedOwnerCount}명`,
-  ]
-    .map((text) => `<span class="info-badge">${escapeHtml(text)}</span>`)
-    .join("");
+  const filteredTableInfo = getFilteredTableInfo(detail.tableInfo);
+  const totalCount = detail.tableInfo.length;
+  const visibleCount = filteredTableInfo.length;
+  detailRefs.tableInfoSearchInput.value = detailState.tableFilters.query;
+  detailRefs.tableInfoToolbarSummary.innerHTML = buildTableInfoToolbarSummaryHtml(totalCount, visibleCount);
+  detailRefs.tableInfoEmpty.hidden = visibleCount > 0;
+  detailRefs.toggleTableInfoFilterButton.classList.toggle("is-filtered", isTableInfoFiltered());
+  detailRefs.tableInfoFilterPopover.hidden = !detailState.tableFilters.filterOpen;
+  detailRefs.tableInfoFilterSummary.hidden = !isTableInfoFiltered();
+  detailRefs.tableInfoFilterBadge.textContent = buildTableInfoFilterSummaryText();
+  renderTableInfoFilterControls();
 
-  detailRefs.tableInfoBody.innerHTML = detail.tableInfo
+  if (detailState.tableFilters.filterOpen) {
+    positionTableInfoFilterPopover();
+  }
+
+  detailRefs.tableInfoBody.innerHTML = filteredTableInfo
     .map((item) => {
       return `
         <tr>
@@ -351,19 +537,219 @@ function renderTableInfo(detail) {
             <strong>${escapeHtml(item.tableName)}</strong>
             <div class="muted-note">${escapeHtml(item.description)}</div>
           </td>
-          <td><span class="setting-pill ${item.rowsOnly ? "is-enabled" : "is-disabled"}">${escapeHtml(item.scopeLabel)}</span></td>
-          <td>${escapeHtml(item.changeKey)}</td>
           <td>
-            <div class="assignee-stack">
-              ${item.assignees.map((assignee) => `<span class="assignee-chip">${escapeHtml(assignee)}</span>`).join("")}
+            <div class="tracking-stack">
+              <strong>${escapeHtml(item.changeTracking.columnLabel)}</strong>
             </div>
+          </td>
+          <td>
+            <div class="tracking-stack">
+              <span>${escapeHtml(item.changeTracking.methodLabel)}</span>
+            </div>
+          </td>
+          <td>
+            <div class="tracking-stack">
+              <strong>${escapeHtml(item.changeTracking.criterionLabel)}</strong>
+              <div class="muted-note">${escapeHtml(item.changeTracking.sourceLabel)}</div>
+            </div>
+          </td>
+          <td>
+            ${item.assignees.length
+              ? `
+                <div class="assignee-stack">
+                  ${item.assignees.map((assignee) => `<span class="assignee-chip">${escapeHtml(assignee)}</span>`).join("")}
+                </div>
+              `
+              : '<span class="muted-note">-</span>'}
           </td>
           <td class="center-cell">${escapeHtml(formatDateTime(item.updatedAt))}</td>
           <td>${escapeHtml(item.note)}</td>
+          <td class="center-cell">
+            <button type="button" class="icon-btn edit-icon-btn table-row-edit-btn" aria-label="테이블 정보 수정" title="테이블 정보 수정" data-table-edit="${escapeHtml(item.id)}">
+              <svg viewBox="0 0 16 16" focusable="false">
+                <path d="M11.8 2.3 13.7 4.2 5.1 12.8 2.5 13.5 3.2 10.9z"></path>
+                <path d="M10.9 3.2 12.8 5.1"></path>
+              </svg>
+            </button>
+          </td>
         </tr>
       `;
     })
     .join("");
+}
+
+function getFilteredTableInfo(rows) {
+  const query = detailState.tableFilters.query.trim().toLowerCase();
+  const { scope, method } = detailState.tableFilters.applied;
+
+  return rows.filter((item) => {
+    const matchesQuery =
+      !query ||
+      item.tableName.toLowerCase().includes(query) ||
+      item.changeTracking.columnLabel.toLowerCase().includes(query) ||
+      item.assignees.some((assignee) => assignee.toLowerCase().includes(query));
+    const matchesScope = scope === "ALL" || getTableInfoScopeFilterValue(item) === scope;
+    const matchesMethod = method === "ALL" || getTableInfoMethodFilterValue(item) === method;
+    return matchesQuery && matchesScope && matchesMethod;
+  });
+}
+
+function getTableInfoScopeFilterValue(item) {
+  return item.rowsOnly ? "ROWS_ONLY" : "FULL_SCAN";
+}
+
+function getTableInfoMethodFilterValue(item) {
+  const methodLabel = item.changeTracking.methodLabel;
+  if (methodLabel === "-") {
+    return "DISABLED";
+  }
+  return methodLabel === "시퀀스" ? "SEQUENCE" : "DATE";
+}
+
+function isTableInfoFiltered() {
+  return Boolean(
+    detailState.tableFilters.query.trim() ||
+    detailState.tableFilters.applied.scope !== "ALL" ||
+    detailState.tableFilters.applied.method !== "ALL"
+  );
+}
+
+function buildTableInfoFilterSummaryText() {
+  const parts = [];
+  const query = detailState.tableFilters.query.trim();
+  if (query) {
+    parts.push(`검색 "${query}"`);
+  }
+  if (detailState.tableFilters.applied.scope !== "ALL") {
+    parts.push(`검출범위 "${detailState.tableFilters.applied.scope === "ROWS_ONLY" ? "업데이트된 ROW만 검출" : "전체 스캔"}"`);
+  }
+  if (detailState.tableFilters.applied.method !== "ALL") {
+    const methodLabelMap = {
+      DATE: "날짜",
+      SEQUENCE: "시퀀스",
+      DISABLED: "미적용",
+    };
+    parts.push(`변경감지방식 "${methodLabelMap[detailState.tableFilters.applied.method]}"`);
+  }
+  return parts.join(" · ");
+}
+
+function buildTableInfoToolbarSummaryHtml(totalCount, visibleCount) {
+  const start = visibleCount > 0 ? 1 : 0;
+  const end = visibleCount;
+  return `<span class="toolbar-caption-strong">전체 ${totalCount}건</span> <span class="toolbar-caption-highlight">${start} - ${end} 표시됨</span>`;
+}
+
+function syncTableInfoFilterDraft() {
+  if (!detailRefs.tableInfoScopeFilterList || !detailRefs.tableInfoMethodFilterList) {
+    return;
+  }
+  detailState.tableFilters.draft = { ...detailState.tableFilters.applied };
+}
+
+function renderTableInfoFilterControls() {
+  renderTableInfoFilterOptions(
+    detailRefs.tableInfoScopeFilterList,
+    detailState.tableFilters.draft.scope
+  );
+  renderTableInfoFilterOptions(
+    detailRefs.tableInfoMethodFilterList,
+    detailState.tableFilters.draft.method
+  );
+}
+
+function renderTableInfoFilterOptions(container, selectedValue) {
+  [...container.querySelectorAll(".table-info-filter-option")].forEach((button) => {
+    button.classList.toggle("is-selected", button.dataset.filterValue === selectedValue);
+    button.setAttribute("aria-pressed", String(button.dataset.filterValue === selectedValue));
+  });
+}
+
+function positionTableInfoFilterPopover() {
+  const rect = detailRefs.toggleTableInfoFilterButton.getBoundingClientRect();
+  detailRefs.tableInfoFilterPopover.style.top = `${rect.bottom + 8}px`;
+  detailRefs.tableInfoFilterPopover.style.left = `${Math.max(12, Math.min(rect.left, window.innerWidth - detailRefs.tableInfoFilterPopover.offsetWidth - 12))}px`;
+}
+
+function openTableInfoModal(mode, row = null) {
+  detailState.tableForm.open = true;
+  detailState.tableForm.mode = mode;
+  detailState.tableForm.editingId = row?.id ?? null;
+
+  detailRefs.tableInfoModalTitle.textContent = mode === "create" ? "테이블 정보 등록" : "테이블 정보 수정";
+  detailRefs.tableInfoModalCaption.textContent = mode === "create"
+    ? "스키마와 테이블명을 모두 전체로 두면 해당 DB 전체 기본 설정으로 저장됩니다."
+    : "현재 행 기준으로 테이블 정보와 변경감지 설정을 수정합니다.";
+
+  detailRefs.tableInfoSchemaInput.value = row?.schema ?? "";
+  detailRefs.tableInfoTableNameInput.value = row?.tableName ?? "";
+  detailRefs.tableInfoDescriptionInput.value = row?.description ?? "";
+  detailRefs.tableInfoScopeSelect.value = row?.rowsOnly === false ? "FULL_SCAN" : "ROWS_ONLY";
+  detailRefs.tableInfoChangeColumnInput.value = row?.changeTracking?.columnLabel && row.changeTracking.columnLabel !== "-" ? row.changeTracking.columnLabel : "";
+  detailRefs.tableInfoMethodSelect.value = row?.changeTracking?.methodLabel === "시퀀스" ? "SEQUENCE" : "DATE";
+  detailRefs.tableInfoCriterionInput.value = normalizeCriterionInput(row?.changeTracking?.criterionLabel, detailRefs.tableInfoMethodSelect.value);
+  detailRefs.tableInfoAssigneesInput.value = row?.assignees?.join(", ") ?? "";
+  detailRefs.tableInfoNoteInput.value = row?.note ?? "";
+
+  syncTableInfoFormState();
+  detailRefs.tableInfoModal.hidden = false;
+}
+
+function closeTableInfoModal() {
+  detailState.tableForm.open = false;
+  detailState.tableForm.mode = "create";
+  detailState.tableForm.editingId = null;
+  detailRefs.tableInfoModal.hidden = true;
+}
+
+function syncTableInfoFormState() {
+  const rowsOnly = detailRefs.tableInfoScopeSelect.value === "ROWS_ONLY";
+  const isSequence = detailRefs.tableInfoMethodSelect.value === "SEQUENCE";
+  detailRefs.tableInfoCriterionLabel.textContent = isSequence ? "기준 (조회 건수)" : "기준 (날짜 포맷)";
+  detailRefs.tableInfoCriterionInput.placeholder = isSequence ? "예: 50000" : "예: YYYY-MM-DD HH:mm:ss";
+  detailRefs.tableInfoChangeColumnInput.disabled = !rowsOnly;
+  detailRefs.tableInfoMethodSelect.disabled = !rowsOnly;
+  detailRefs.tableInfoCriterionInput.disabled = !rowsOnly;
+}
+
+function normalizeCriterionInput(value, method) {
+  if (!value || value === "-") {
+    return "";
+  }
+  return method === "SEQUENCE" ? String(value).replace(/건$/, "").replaceAll(",", "").trim() : value;
+}
+
+function saveTableInfoDraft() {
+  const detail = getCurrentDetail();
+  if (!detail) {
+    pushDetailToast("저장할 DB 정보를 찾을 수 없습니다.", "danger");
+    return;
+  }
+
+  const draft = {
+    id: detailState.tableForm.editingId,
+    originalId: detailState.tableForm.editingId,
+    schema: detailRefs.tableInfoSchemaInput.value,
+    tableName: detailRefs.tableInfoTableNameInput.value,
+    description: detailRefs.tableInfoDescriptionInput.value,
+    rowsOnly: detailRefs.tableInfoScopeSelect.value === "ROWS_ONLY",
+    changeColumn: detailRefs.tableInfoChangeColumnInput.value,
+    changeMethod: detailRefs.tableInfoMethodSelect.value,
+    criterion: detailRefs.tableInfoCriterionInput.value,
+    assigneesText: detailRefs.tableInfoAssigneesInput.value,
+    note: detailRefs.tableInfoNoteInput.value,
+  };
+
+  const saved = detailService.saveTableInfo(detail.target.id, draft);
+  if (!saved) {
+    pushDetailToast("테이블 정보를 저장하지 못했습니다.", "danger");
+    return;
+  }
+
+  const savedMode = detailState.tableForm.mode;
+  closeTableInfoModal();
+  renderDetailPage();
+  pushDetailToast(savedMode === "create" ? "테이블 정보가 등록되었습니다." : "테이블 정보가 수정되었습니다.", "success");
 }
 
 function renderHistory(detail) {
@@ -377,13 +763,6 @@ function renderHistory(detail) {
         ? `
           <button type="button" class="history-count-btn" data-history-action="all-detections" data-history-id="${escapeHtml(record.id)}">
             ${record.totalCount.toLocaleString("ko-KR")}
-          </button>
-        `
-        : `<span class="numeric-text">0</span>`;
-      const residentAction = record.residentCount > 0
-        ? `
-          <button type="button" class="history-count-btn" data-history-action="resident-detections" data-history-id="${escapeHtml(record.id)}">
-            ${record.residentCount.toLocaleString("ko-KR")}
           </button>
         `
         : `<span class="numeric-text">0</span>`;
@@ -401,7 +780,7 @@ function renderHistory(detail) {
 
       return `
         <tr>
-          <td>${escapeHtml(record.detectId)}</td>
+          <td>${escapeHtml(record.scheduleId)}</td>
           <td>${escapeHtml(record.scheduleName)}</td>
           <td>${escapeHtml(record.inspector)}</td>
           <td>
@@ -416,10 +795,6 @@ function renderHistory(detail) {
           <td class="number-cell history-duration">${escapeHtml(formatDuration(record.durationMinutes))}</td>
           <td class="number-cell numeric-text">${record.searchVolume.toLocaleString("ko-KR")}</td>
           <td class="number-cell">${totalAction}</td>
-          <td class="number-cell">${residentAction}</td>
-          <td class="number-cell numeric-text">${record.driverLicenseCount.toLocaleString("ko-KR")}</td>
-          <td class="number-cell numeric-text">${record.passportCount.toLocaleString("ko-KR")}</td>
-          <td class="number-cell numeric-text">${record.cardCount.toLocaleString("ko-KR")}</td>
         </tr>
       `;
     })
