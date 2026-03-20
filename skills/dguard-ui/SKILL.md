@@ -38,15 +38,21 @@ If you are starting a new page, read [references/page-input-checklist.md](C:\Use
 
 - Use the standard shell layout: left sidebar, top header, card-based main content.
 - Use the D-Guard color system and dense enterprise-style spacing.
-- Reproduce the existing header treatment closely: compact white header card, bold page title, highlighted target pill, breadcrumb below, and right-aligned user menu pill.
+- Reproduce the existing header treatment closely: compact white header card, bold page title, optional highlighted target pill, breadcrumb below, and right-aligned user menu pill.
 - Use the standard top action bar pattern: search, detail filter, filter state, actions.
+- For detail-page inner tables such as the `inspection-target-detail.html` table-info section, reuse the same pattern in a compact form: text-input filter, detail-filter popover, applied-filter summary row, and a visible count badge such as `설정 N개`.
 - When search text is entered, reflect it in a filter state summary row placed under the text input filter and above the table. Use the pattern `검색 "키워드"  초기화` (e.g., `검색 "mssql"  초기화`). Detail filters should remain distinguishable alongside the search term.
-- For detail filters and multi-condition searches, the filter summary must show concrete criteria (e.g., `상태 2개 · 라벨 "ff"`), not just a generic "필터 적용됨".
-- For list/table pages with a toolbar summary, keep the order as `텍스트 입력 필터`, `상세필터`, `전체 N건 X - Y 표시됨 Z건 선택됨`, `상태 1개 · 라벨 "ff"`, `초기화`, use `·` between filter criteria, and apply rounded chip styling. Emphasize `전체 N건` and `초기화` with the highlight color.
-- Keep table-top action buttons aligned with the current baseline: `14px` text, `32px` height, unified minimum widths, monochrome SVG icons plus labels.
+- For detail filters and multi-condition searches, the filter summary must show concrete criteria (e.g., `상태 2개 선택 "ff"`), not just a generic `필터 적용됨`.
+- For list/table pages with a toolbar summary, keep the order as `텍스트 입력 필터`, `상세필터`, `전체 N건 X - Y 표시 중 Z건 선택됨`, `상태 1개 선택 "ff"`, `초기화`, use `·` between filter criteria, and apply rounded chip styling. Emphasize `전체 N건` and `초기화` with the highlight color.
+- Keep table-top action buttons aligned with the `inspection-target.html` baseline: shared button sizing, `32px` height, `11px` text, unified minimum widths, monochrome SVG icons plus labels.
 - In sample or mock pages, preserve the established action-button style using monochrome icons plus text, not colorful emoji.
-- For list/table pages when the page benefits from it, include an inline list summary in the top action bar. The current baseline pattern is `전체 N건 X - Y 표시됨 Z건 선택됨`.
+- For list/table pages when the page benefits from it, include an inline list summary in the top action bar. The current baseline pattern is `전체 N건 X - Y 표시 중 Z건 선택됨`.
+- When a page has top summary tiles such as 전체, 완료, 진행중, 오류, treat them as clickable filter shortcuts. Clicking a tile should apply the corresponding status filter, preserve other active search or keyword filters, and show a clear active state on the selected tile. Clicking the active tile again should clear that tile-driven status filter.
+- When a page has top summary tiles immediately above a list table, prefer the `inspection-target.html` arrangement: place the tile strip inside the same list card as the toolbar and table, keep it visually attached to the table section, and use only tight vertical spacing.
+- Match each summary tile's border, gradient tint, and strong-value color to the corresponding row-status chip color family so waiting/running/completed/stopped states read consistently.
 - Use table interactions consistently: row selection, checkbox selection separation, sorting, pagination, empty states.
+- When a detail-page table is settings-oriented, prefer an internal scrollable table shell with no pagination, while keeping counts and filters above the table.
+- For row-level edit actions inside settings tables, prefer a monochrome icon-only edit button with an empty or narrow trailing header cell instead of a text `관리` label.
 - For list/table pages with bulk selection, support Gmail-style bulk-selection guidance when the current page is fully checked: show a banner row under the header and allow escalation from current-page selection to all filtered rows.
 - When pagination is placed directly under a table shell, leave clear vertical spacing between the table border and the pagination row so the controls do not appear stuck to the table edge.
 - Keep table text density aligned with the current D-Guard sample instead of shrinking it. For the `detection-list.html` baseline, use `13px` headers and `14px` body text in the main detection table, and `12px` headers with `13px` body text in the lower PII table.
@@ -105,13 +111,18 @@ Use [references/page-input-checklist.md](C:\Users\kbuser_win10\.codex\skills\dgu
 - Shared files contain only reusable rules; page-only layout or business-specific visuals stay in page files.
 - Typography, spacing, button heights, and search widths follow the D-Guard density standard.
 - Header styling, target highlighting, breadcrumb treatment, and user menu styling match the established D-Guard sample.
+- Omit the highlighted target pill when the page does not need extra target-specific context.
 - Toolbar actions preserve the expected monochrome icon-plus-label treatment.
 - Action icons are vertically centered with the label text.
+- Toolbar action font sizing matches the `inspection-target.html` baseline and is not enlarged ad hoc.
 - Table font sizes are consistent with the D-Guard baseline and are not unintentionally reduced.
 - Top action bar summaries correctly show total rows, visible range, and checked count when that pattern is used.
+- Detail-page table sections that use a compact toolbar correctly show their count badge, text-input filter, detail-filter popover, and applied-filter summary row.
+- Summary tiles stay visually attached to the list section rather than floating in a detached summary card when the page follows the `inspection-target.html` pattern.
 - Gmail-style select-all guidance appears correctly when the current page is fully checked and can expand selection to all filtered rows.
 - Lower-left pagination captions are removed when they are redundant with the top summary.
 - Pagination rows have enough top spacing to read as a separate control area from the table border.
 - Search, detail filter, sorting, pagination, and dropdowns work as intended.
+- Clickable summary tiles correctly apply and clear their linked status filters without breaking other active filters.
 - Role-based states and button visibility are correct.
 - Browser verification is complete with no visible layout breakage.
