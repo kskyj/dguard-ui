@@ -1,0 +1,868 @@
+<html xmlns:o="urn:schemas-microsoft-com:office:office"
+      xmlns:x="urn:schemas-microsoft-com:office:excel"
+      xmlns="http://www.w3.org/TR/REC-html40">
+    <head>
+        <title>KB Jira Data Center</title>
+        <style type="text/css">
+         table {
+             mso-displayed-decimal-separator:"\.";
+             mso-displayed-thousand-separator:"\,";
+         }
+         body
+         {
+             margin: 0px;
+             font-size: 12px;
+             font-family: Arial, sans-serif;
+             color:black;
+         }
+
+        </style>
+        <META HTTP-EQUIV="Content-Type" Content="application/vnd.ms-excel; charset=UTF-8">
+        <!-- JRA-7598 - ensure fields (e.g. description) occupy only one cell - even fields containing newlines. -->
+        <!--
+             Vertical align all cells to the top, in order to align all issue rows of issuetable to the top,
+             since Excel does not use or save the css files it is hardcoded here.
+           -->
+        <style>
+         @page
+         {
+             mso-page-orientation:landscape;
+             margin:.25in .25in .5in .25in;
+             mso-header-margin:.5in;
+             mso-footer-margin:.25in;
+             mso-footer-data:"&R&P of &N";
+             mso-horizontal-page-align:center;
+             mso-vertical-page-align:center;
+         }
+
+         td.issuekey,
+         td.issuetype,
+         td.status {
+             mso-style-parent: "";
+             mso-number-format: \@;
+             text-align: left;
+         }
+         br
+         {
+             mso-data-placement:same-cell;
+         }
+
+         td
+         {
+             vertical-align: top;
+         }
+        </style>
+
+        <!--[if gte mso 9]><xml>
+            <x:ExcelWorkbook>
+            <x:ExcelWorksheets>
+            <x:ExcelWorksheet>
+            <x:Name>general_report</x:Name>
+            <x:WorksheetOptions>
+            <x:Print>
+            <x:ValidPrinterInfo/>
+            </x:Print>
+            </x:WorksheetOptions>
+            </x:ExcelWorksheet>
+            </x:ExcelWorksheets>
+            </x:ExcelWorkbook>
+            </xml><![endif]-->
+    </head>
+    <body>
+
+        <table border="1">
+            <tr bgcolor="#62574A" height="30">
+                <td colspan="6">
+                    <img src="http://jira.kbonecloud.com/images/jira-software.png" width="57" height="30" border="0" alt="KB Jira Data Center">
+                </td>
+            </tr>
+            <tr>
+                <td colspan="6">
+                    <a href="http://jira.kbonecloud.com/issues/?jql=project+%3D+B0XNF01+AND+issuetype+in+%28To-Do%2C+%22%EA%B2%B0%ED%95%A8%2F%EB%B2%84%EA%B7%B8%22%2C+%EB%B9%84%EA%B0%9C%EB%B0%9C%ED%83%9C%EC%8A%A4%ED%81%AC%2C+%EC%9C%A0%EC%A0%80%EC%8A%A4%ED%86%A0%EB%A6%AC%2C+%22%EC%9D%B4%EC%8A%88%2F%EB%A6%AC%EC%8A%A4%ED%81%AC%22%2C+%ED%83%9C%EC%8A%A4%ED%81%AC%29+AND+component+%3D+DB%EB%B3%80%EA%B2%BD%EB%8D%B0%EC%9D%B4%ED%84%B0" data-testid="filterNameHref">KB Jira Data Center</a>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="6">
+                    <strong>2026-03-26 6:37 오후</strong>에서 <strong>22</strong> 이슈를 표시.
+                </td>
+            </tr>
+        </table>
+
+        
+
+
+                            <issuetable-web-component data-content="issues">
+                <table id="issuetable"  border="1" cellpadding="3" cellspacing="1" width="100%">
+                        <thead>
+        <tr class="rowHeader">
+            
+                                                            <th class="colHeaderLink headerrow-issuetype" data-id="issuetype">
+                            이슈 유형
+                                                    </th>
+                                                
+                                                            <th class="colHeaderLink headerrow-issuekey" data-id="issuekey">
+                            키
+                                                    </th>
+                                                
+                                                            <th class="colHeaderLink headerrow-priority" data-id="priority">
+                            우선순위
+                                                    </th>
+                                                
+                                                            <th class="colHeaderLink headerrow-status" data-id="status">
+                            상태
+                                                    </th>
+                                                
+                                                            <th class="colHeaderLink headerrow-summary" data-id="summary">
+                            요약
+                                                    </th>
+                                                
+                                                            <th class="colHeaderLink headerrow-description" data-id="description">
+                            설명
+                                                    </th>
+                                                                    </tr>
+    </thead>
+    <tbody>
+                    
+
+                <tr id="issuerow380628" rel="380628" data-issuekey="B0XNF01-1101" class="issuerow">
+                                            <td class="issuetype">    유저스토리
+</td>
+                                            <td class="issuekey">
+
+    <a class="issue-link" data-issue-key="B0XNF01-1101" href="http://jira.kbonecloud.com/browse/B0XNF01-1101">B0XNF01-1101</a>
+</td>
+                                            <td class="priority">           최상위
+    </td>
+                                            <td class="status">
+                <span class=" jira-issue-status-lozenge aui-lozenge jira-issue-status-lozenge-blue-gray jira-issue-status-lozenge-new aui-lozenge-subtle jira-issue-status-lozenge-max-width-medium" data-tooltip="&lt;span class=&quot;jira-issue-status-tooltip-title&quot;&gt;등록&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;jira-issue-status-tooltip-desc&quot;&gt;요구사항 등록 완료 및 담당자가 업무를 시작하기 위한 준비 단계&lt;/span&gt;">등록</span>    </td>
+                                            <td class="summary"><p>
+                점검이력 UI/UX 변경
+    </p>
+</td>
+                                            <td class="description">      - 점검이력은 표형태로 제공한다.<br/>
+ - 등록, 대기중, 완료된 모든 스케줄이 보이고, 표는 체크박스, 스케줄ID, 스케줄명, 점검룰, 점검상태, 소요시간, 최근종료일시, 다음시작일시, 점검자 헤더를 가진다<br/>
+ - 표 위에는 Text 검색이 있으며 Text검색은 스케줄명, 점검룰, 등록자가 검색되고 옆에 상세필터가 있고, 상세필터 버튼을 누르면 점검상태 검색 제공<br/>
+ - 점검상태는 대기, 점검중, 완료, 실패, 중지 가 있다.<br/>
+ - 스케줄을 체크 하고 오른쪽 상단에 `중지` 버튼을 누르면 선택된 스케줄이 중지 된다(중지 할것인지 확인한다)<br/>
+ - 스케줄을 체크 하고 오른쪽 상단에 `재시작` 버튼을 누르면 선택된 스케줄이 재시작 된다(재시작 할것인지 확인한다)<br/>
+ - 스케줄을 체크 하고 오른쪽 상단에 `삭제` 버튼을 누르면 선택된 스케줄이 삭제 된다(삭제 할것인지 확인한다)<br/>
+ - 삭제는 스케줄 취소를 의미하며, 등록된 예약 점검 작업이 있다면 전부 삭제하며, 취소 상태는 관리하지 않는다<br/>
+ - 스케줄은 재사용하며, 점검상태, 종료일시, 다음시작일시는 업데이트 된다.<br/>
+ - 스케줄을 선택하면 스케줄의 기본정보와, 점검대상 목록이 보이고, 수정버튼을 클릭하면 스케줄 수정 페이지로 이동한다.<br/>
+ - 표의 상단 오른쪽에 `스케줄 등록` 버튼을 제공하여 스케줄을 신규로 등록 하는 페이지로 이동한다.<br/>
+ - 표의 상단에는 스케줄ID 기준 `대기, 점검중, 점검완료, 중지,실패` 를 나타내며, 선택시 필터링이 된다
+  </td>
+                    </tr>
+
+
+                <tr id="issuerow380104" rel="380104" data-issuekey="B0XNF01-1088" class="issuerow">
+                                            <td class="issuetype">    유저스토리
+</td>
+                                            <td class="issuekey">
+
+    <a class="issue-link" data-issue-key="B0XNF01-1088" href="http://jira.kbonecloud.com/browse/B0XNF01-1088">B0XNF01-1088</a>
+</td>
+                                            <td class="priority">           중간
+    </td>
+                                            <td class="status">
+                <span class=" jira-issue-status-lozenge aui-lozenge jira-issue-status-lozenge-blue-gray jira-issue-status-lozenge-new aui-lozenge-subtle jira-issue-status-lozenge-max-width-medium" data-tooltip="&lt;span class=&quot;jira-issue-status-tooltip-title&quot;&gt;등록&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;jira-issue-status-tooltip-desc&quot;&gt;요구사항 등록 완료 및 담당자가 업무를 시작하기 위한 준비 단계&lt;/span&gt;">등록</span>    </td>
+                                            <td class="summary"><p>
+                조치계획 UI/UX
+    </p>
+</td>
+                                            <td class="description">      - 최소 검출단위(컬럼+룰) 의 상태를 기준으로 신청 및 관리를 진행<br/>
+ - 사용자가 조치대상이 되는 검출단위를 체크하고 검출목록 위의 조치계획작성 버튼 클릭<br/>
+ - 조치계획작성 버튼을 클릭하면 조치대상목록에 선택된 검출단위목록, 검출원인, 조치방법, 조치완료일, 주의사항 이 보인다<br/>
+ - 검출원인을 작성한다<br/>
+ - 조치방법 을 작성한다<br/>
+ - 조치완료일 을 지정한다<br/>
+ - 주의사항은 : 조치계획서를 작성하고, 출력하여 담당팀장 결재 후 업로드 하여야 합니다. 문구를 표시<br/>
+ - `저장` 버튼을 클릭한다.<br/>
+ - `저장` 버튼 클릭시 조치계획 관리 페이지로 이동한다.<br/>
+ - 조치계획 관리 페이지에는 조치계획서 목록이 있다.<br/>
+ - 조치계획서 목록 테이블<br/>
+ -- 조치계획서ID|상태|작성일시|작성자|DB명|조치대상수|조치완료일|조치방법|이행점검결과 개수<br/>
+ -- 상태 설명<br/>
+ --- 등록 대기 : 조치계획서 등록 대기 상태<br/>
+ --- 등록 완료 : 조치계획서 업로드 완료<br/>
+ --- 조치 완료 : 이행점검 후 검출결과가 0 인 경우<br/>
+ -- 조치계획서 를 선택하면 모달 팝업으로 조치대상(검출경로|건수|이행점검일시|이행점검 결과 수), 조치방법, 조치완료일, 조치계획서 업로드 가 보이고, 하단에 조치계획서 다운로드, 하단 오른쪽에 이행점검 버튼이 있다<br/>
+ - 조치계획서 다운로드 하면 word 파일로 다운로드 되며 word안에 제공가능한 정보가 채워진채로 다운로드 된다.<br/>
+ -- 조치계획서 word 내용<br/>
+ --- 부서명<br/>
+ --- 업무명<br/>
+ --- 작성자 <br/>
+ --- 조치대상<br/>
+ --- 검출원인<br/>
+ --- 조치방법<br/>
+ --- 조치완료일<br/>
+ -- 제공가능한 정보<br/>
+ --- 부서명<br/>
+ --- 작성자<br/>
+ --- 조치대상<br/>
+ --- 검출원인<br/>
+ --- 조치방법<br/>
+ --- 조치완료일<br/>
+ - 업로드는 여러파일 업로드 가능하며 pdf 파일만 업로드로 제한한다.<br/>
+ - 이행점검 버튼을 클릭하면 조치대상을 전부 이행점검하며,  이행점검일시와 이행점검 결과 수가 업데이트된다<br/>
+ - 전체 검출경로가 이행점검 결과 수가 모두 0이 되면 상태가 조치완료 로 변경된다<br/>
+ - 일반사용자는 본인이작성한 조치계획서만 보인다.<br/>
+ - 관리자는 모든사용자의 조치계획서가 보인다<br/>
+ - 관리자 화면의 조치계획서 오른쪽 상단에 `쪽지발송` 을 클릭하면 조치예정일이 지났는데 이행점검 결과 수가 0&gt; 인애들에게 쪽지가 발송된다.<br/>
+- 표의 상단에는  `조치대상, 조치완료, 등록대기, 등록완료` 를 나타내며 클릭시 필터링이 된다<br/>
+<br/>
+ 
+  </td>
+                    </tr>
+
+
+                <tr id="issuerow379988" rel="379988" data-issuekey="B0XNF01-1081" class="issuerow">
+                                            <td class="issuetype">    유저스토리
+</td>
+                                            <td class="issuekey">
+
+    <a class="issue-link" data-issue-key="B0XNF01-1081" href="http://jira.kbonecloud.com/browse/B0XNF01-1081">B0XNF01-1081</a>
+</td>
+                                            <td class="priority">           최상위
+    </td>
+                                            <td class="status">
+                <span class=" jira-issue-status-lozenge aui-lozenge jira-issue-status-lozenge-blue-gray jira-issue-status-lozenge-new aui-lozenge-subtle jira-issue-status-lozenge-max-width-medium" data-tooltip="&lt;span class=&quot;jira-issue-status-tooltip-title&quot;&gt;등록&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;jira-issue-status-tooltip-desc&quot;&gt;요구사항 등록 완료 및 담당자가 업무를 시작하기 위한 준비 단계&lt;/span&gt;">등록</span>    </td>
+                                            <td class="summary"><p>
+                왼쪽 사이드바 메뉴 구성 변경
+    </p>
+</td>
+                                            <td class="description">      최초 로그인시 점검대상 으로 이동<br/>
+<br/>
+관리자<br/>
+ * 대시보드<br/>
+ * 점검대상 -&gt; 로그인시 기본값<br/>
+ * 점검이력<br/>
+ * 제외신청관리<br/>
+ * 조치계획관리<br/>
+ * 게시판<br/>
+ * 정책관리<br/>
+ ** + 프로파일<br/>
+ ** + 예외필터<br/>
+ * 대상관리<br/>
+ ** +서버/DB<br/>
+ ** 접속계정<br/>
+ ** 그룹<br/>
+ ** 이미지서버<br/>
+ ** 서버토큰<br/>
+ * 보안관리<br/>
+ ** + 사용자<br/>
+ ** + 사용자 그룹 <br/>
+ ** + 접근 권한<br/>
+ ** + 로그<br/>
+<br/>
+일반사용자<br/>
+ * 점검대상<br/>
+ * 점검이력<br/>
+ * 제외신청관리<br/>
+ * 조치계획관리<br/>
+ * 게시판
+  </td>
+                    </tr>
+
+
+                <tr id="issuerow379964" rel="379964" data-issuekey="B0XNF01-1074" class="issuerow">
+                                            <td class="issuetype">    유저스토리
+</td>
+                                            <td class="issuekey">
+
+    <a class="issue-link" data-issue-key="B0XNF01-1074" href="http://jira.kbonecloud.com/browse/B0XNF01-1074">B0XNF01-1074</a>
+</td>
+                                            <td class="priority">           중간
+    </td>
+                                            <td class="status">
+                <span class=" jira-issue-status-lozenge aui-lozenge jira-issue-status-lozenge-blue-gray jira-issue-status-lozenge-new aui-lozenge-subtle jira-issue-status-lozenge-max-width-medium" data-tooltip="&lt;span class=&quot;jira-issue-status-tooltip-title&quot;&gt;등록&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;jira-issue-status-tooltip-desc&quot;&gt;요구사항 등록 완료 및 담당자가 업무를 시작하기 위한 준비 단계&lt;/span&gt;">등록</span>    </td>
+                                            <td class="summary"><p>
+                예외필터는 멀티로 선택 및 예외이름 영어로 변경되는 것 수정
+    </p>
+</td>
+                                            <td class="description">      - 점검할때 예외 필터는 단일 선택 -&gt; 멀티 선택 변경<br/>
+ - 예외필터 설정시 한글로 되있는 것이 설정하면 영어로 변경하는 것을 선택한 한글 그대로 사용할것<br/>
+ -- 지정된 정보로 시작하는 대상은 검출하지 않음 &gt; Exclude location by prefix 
+  </td>
+                    </tr>
+
+
+                <tr id="issuerow379963" rel="379963" data-issuekey="B0XNF01-1073" class="issuerow">
+                                            <td class="issuetype">    유저스토리
+</td>
+                                            <td class="issuekey">
+
+    <a class="issue-link" data-issue-key="B0XNF01-1073" href="http://jira.kbonecloud.com/browse/B0XNF01-1073">B0XNF01-1073</a>
+</td>
+                                            <td class="priority">           중간
+    </td>
+                                            <td class="status">
+                <span class=" jira-issue-status-lozenge aui-lozenge jira-issue-status-lozenge-blue-gray jira-issue-status-lozenge-new aui-lozenge-subtle jira-issue-status-lozenge-max-width-medium" data-tooltip="&lt;span class=&quot;jira-issue-status-tooltip-title&quot;&gt;등록&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;jira-issue-status-tooltip-desc&quot;&gt;요구사항 등록 완료 및 담당자가 업무를 시작하기 위한 준비 단계&lt;/span&gt;">등록</span>    </td>
+                                            <td class="summary"><p>
+                REST API
+    </p>
+</td>
+                                            <td class="description">      * [GET] 제외신청 전체 개수<br/>
+ * [GET] QnA게시판 답변요청 개수<br/>
+ * [POST] 점검수행
+  </td>
+                    </tr>
+
+
+                <tr id="issuerow379961" rel="379961" data-issuekey="B0XNF01-1072" class="issuerow">
+                                            <td class="issuetype">    유저스토리
+</td>
+                                            <td class="issuekey">
+
+    <a class="issue-link" data-issue-key="B0XNF01-1072" href="http://jira.kbonecloud.com/browse/B0XNF01-1072">B0XNF01-1072</a>
+</td>
+                                            <td class="priority">           중간
+    </td>
+                                            <td class="status">
+                <span class=" jira-issue-status-lozenge aui-lozenge jira-issue-status-lozenge-blue-gray jira-issue-status-lozenge-new aui-lozenge-subtle jira-issue-status-lozenge-max-width-medium" data-tooltip="&lt;span class=&quot;jira-issue-status-tooltip-title&quot;&gt;등록&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;jira-issue-status-tooltip-desc&quot;&gt;요구사항 등록 완료 및 담당자가 업무를 시작하기 위한 준비 단계&lt;/span&gt;">등록</span>    </td>
+                                            <td class="summary"><p>
+                workB 연동 및 쪽지 전송
+    </p>
+</td>
+                                            <td class="description">      * worKB 연동 RESTAPI 임<br/>
+ * 점검수행 쪽지<br/>
+ ** 조건 : 점검시 인프라담당자, 테이블담당자 쪽지를 보낼지 선택을 한다(기본값 False)<br/>
+ ** 수신자 : DB정보에 등록된 인프라 담당자, 테이블에 등록된 담당자<br/>
+ ** 제목<br/>
+ *** DB개인정보 검색 사전 안내<br/>
+ ** 내용 :<br/>
+ *** <br/>
+{code:java}<br/>
+수신 : 테이블 업무 담당자님<br/>
+참조 : DBA담당자님<br/>
+------------------------<br/>
+DB개인정보 검색 사전 안내 입니다.<br/>
+- 검색대상 : DSMFCA의 BFO업무 41개 테이블<br/>
+- 점검시간 : 8/27(수) 오전 1:00 ~<br/>
+- 수행내용 : 솔루션을 통해, 테이블 별로 PMS000 계정으로 조회(SELECT) 수행<br/>
+- 검색계정 : PMS000 {code}<br/>
+ <br/>
+<br/>
+ * 조치계획관리 조치 독촉 쪽지<br/>
+ ** 조건 : 평일 오전 9시, 조치계획 관리에 조치일자 이후의 검출결과가 남아 있을 경우<br/>
+ ** 수신자 : 조치담당자<br/>
+ ** 제목<br/>
+ *** DB 검출된 개인정보 결과 조치확인 요청<br/>
+ ** 내용 :<br/>
+ *** <br/>
+{code:java}<br/>
+개인정보 검색 결과 확인된 조치대상 건에 대해 제출하신 조치계획서상의 조치예정일이 경과하였으나, 현재까지 조치완료가 확인되지 않았습니다.<br/>
+<br/>
+대상 건에 대한 조치 진행상황을 확인하시어,조치를 완료해 주시기 바랍니다.<br/>
+<br/>
+조치가 완료된 경우에는 조치계획 관리 내 이행점검을 수행하면 결과확인이 가능합니다.<br/>
+<br/>
+조치 지연 사유가 있는 경우에는 사유 및 변경 예정일을 업데이트 해주시기 바랍니다.<br/>
+<br/>
+감사합니다.<br/>
+<br/>
+조치계획서 이동 : URL{code}<br/>
+ 
+  </td>
+                    </tr>
+
+
+                <tr id="issuerow379960" rel="379960" data-issuekey="B0XNF01-1071" class="issuerow">
+                                            <td class="issuetype">    유저스토리
+</td>
+                                            <td class="issuekey">
+
+    <a class="issue-link" data-issue-key="B0XNF01-1071" href="http://jira.kbonecloud.com/browse/B0XNF01-1071">B0XNF01-1071</a>
+</td>
+                                            <td class="priority">           중간
+    </td>
+                                            <td class="status">
+                <span class=" jira-issue-status-lozenge aui-lozenge jira-issue-status-lozenge-blue-gray jira-issue-status-lozenge-new aui-lozenge-subtle jira-issue-status-lozenge-max-width-medium" data-tooltip="&lt;span class=&quot;jira-issue-status-tooltip-title&quot;&gt;등록&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;jira-issue-status-tooltip-desc&quot;&gt;요구사항 등록 완료 및 담당자가 업무를 시작하기 위한 준비 단계&lt;/span&gt;">등록</span>    </td>
+                                            <td class="summary"><p>
+                SSO 연동 및 로그인 제어
+    </p>
+</td>
+                                            <td class="description">      * 국민은행 SSO 연동하여 로그인 기능 제공<br/>
+ * 관리자는 ID/PW 로 로그인 할수 있어야함<br/>
+ * 다른 사용자로 ID/PW 로 로그인 할 수 있어야함
+  </td>
+                    </tr>
+
+
+                <tr id="issuerow379959" rel="379959" data-issuekey="B0XNF01-1070" class="issuerow">
+                                            <td class="issuetype">    유저스토리
+</td>
+                                            <td class="issuekey">
+
+    <a class="issue-link" data-issue-key="B0XNF01-1070" href="http://jira.kbonecloud.com/browse/B0XNF01-1070">B0XNF01-1070</a>
+</td>
+                                            <td class="priority">           중간
+    </td>
+                                            <td class="status">
+                <span class=" jira-issue-status-lozenge aui-lozenge jira-issue-status-lozenge-blue-gray jira-issue-status-lozenge-new aui-lozenge-subtle jira-issue-status-lozenge-max-width-medium" data-tooltip="&lt;span class=&quot;jira-issue-status-tooltip-title&quot;&gt;등록&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;jira-issue-status-tooltip-desc&quot;&gt;요구사항 등록 완료 및 담당자가 업무를 시작하기 위한 준비 단계&lt;/span&gt;">등록</span>    </td>
+                                            <td class="summary"><p>
+                게시판 개선
+    </p>
+</td>
+                                            <td class="description">      * 공지사항 과 QnA 를 1개의 페이지에서 같이 보이도록함<br/>
+ ** 페이지명칭 변경 : 공지&amp;QnA<br/>
+ * 게시판 기능<br/>
+ ** 첨부파일 여러개 첨부가 되야함<br/>
+ ** 첨부시 100MB 용량제한 변경필요<br/>
+ * QnA는 전체공개가 아니고 1:1 문의 형태로 작성자와 관리자만 보임<br/>
+ * 공지사항은 관리자만 추가가능함<br/>
+ * 공지사항<br/>
+ ** 번호|제목|작성자|작성일|조회수<br/>
+ ** 상태는 `공지사항`<br/>
+ * QnA<br/>
+ ** 번호|상태|제목|작성자|작성일|조회수<br/>
+ ** 답변은 댓글로 여러개 달수 있음<br/>
+ ** 사용자가 질문하면 상태가 `답변요청`<br/>
+ ** 관리자가 댓글을 달면 상태가 `답변완료`
+  </td>
+                    </tr>
+
+
+                <tr id="issuerow379801" rel="379801" data-issuekey="B0XNF01-1063" class="issuerow">
+                                            <td class="issuetype">    유저스토리
+</td>
+                                            <td class="issuekey">
+
+    <a class="issue-link" data-issue-key="B0XNF01-1063" href="http://jira.kbonecloud.com/browse/B0XNF01-1063">B0XNF01-1063</a>
+</td>
+                                            <td class="priority">           최상위
+    </td>
+                                            <td class="status">
+                <span class=" jira-issue-status-lozenge aui-lozenge jira-issue-status-lozenge-blue-gray jira-issue-status-lozenge-new aui-lozenge-subtle jira-issue-status-lozenge-max-width-medium" data-tooltip="&lt;span class=&quot;jira-issue-status-tooltip-title&quot;&gt;등록&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;jira-issue-status-tooltip-desc&quot;&gt;요구사항 등록 완료 및 담당자가 업무를 시작하기 위한 준비 단계&lt;/span&gt;">등록</span>    </td>
+                                            <td class="summary"><p>
+                대상일괄 (DB, 테이블, 컬럼) 등록은 CSV(tab) 형식으로 복사 붙여넣기로 지원한다
+    </p>
+</td>
+                                            <td class="description">      현재 : json 으로 데이터 가공하기 어려움<br/>
+ * CSV 형태로 지원하며, DRM때문에 엑셀에서 tab으로 구분된 표를 복사 붙여넣기하면 적용되어야함<br/>
+ * Sample csv 제공
+  </td>
+                    </tr>
+
+
+                <tr id="issuerow379698" rel="379698" data-issuekey="B0XNF01-1062" class="issuerow">
+                                            <td class="issuetype">    유저스토리
+</td>
+                                            <td class="issuekey">
+
+    <a class="issue-link" data-issue-key="B0XNF01-1062" href="http://jira.kbonecloud.com/browse/B0XNF01-1062">B0XNF01-1062</a>
+</td>
+                                            <td class="priority">           중간
+    </td>
+                                            <td class="status">
+                <span class=" jira-issue-status-lozenge aui-lozenge jira-issue-status-lozenge-blue-gray jira-issue-status-lozenge-new aui-lozenge-subtle jira-issue-status-lozenge-max-width-medium" data-tooltip="&lt;span class=&quot;jira-issue-status-tooltip-title&quot;&gt;등록&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;jira-issue-status-tooltip-desc&quot;&gt;요구사항 등록 완료 및 담당자가 업무를 시작하기 위한 준비 단계&lt;/span&gt;">등록</span>    </td>
+                                            <td class="summary"><p>
+                점검대상 상세 UI/UX 변경
+    </p>
+</td>
+                                            <td class="description">      현재<br/>
+ * 검색관리 &gt; 점검 &gt; 보기 &gt; 검출정보 보기 &gt; 확인  절차로 5번 클릭이 필요<br/>
+<br/>
+ <br/>
+<br/>
+개선안<br/>
+ * 점검대상 에서 DB를 클릭하면 해당 DB의 정보 페이지로 이동한다(모달아님)<br/>
+ * 해당 정보페이지는 3가지 카테고리 정보를 제공한다.<br/>
+ ** DB정보:  DB관련 모든 정보(DB ID, 그룹명, Proxy(에이전트)정보, DB등록일시, DB 인프라 담당자, Label<br/>
+ ** 테이블정보 : 각 테이블 별 업데이트된 ROW만 검출하는 설정, 테이블별 매핑된 담당자 표<br/>
+ ** 검출목록 테이블<br/>
+ *** 검출ID|스케줄명|점검자|검출상태(i)|검출룰|시작일시|종료일시|점검소요시간|검색수|검색량|검출건수<br/>
+ *** (i) 클릭시 실패사유 보기<br/>
+ *** 전체검출건수 클릭 시 검출목록 이동<br/>
+ * 오른쪽 상단 `점검` 버튼 추가하여 해당 클릭시 해당 DB가 선택된대로 검출대상 선택 화면으로 이동한다
+  </td>
+                    </tr>
+
+
+                <tr id="issuerow379695" rel="379695" data-issuekey="B0XNF01-1061" class="issuerow">
+                                            <td class="issuetype">    유저스토리
+</td>
+                                            <td class="issuekey">
+
+    <a class="issue-link" data-issue-key="B0XNF01-1061" href="http://jira.kbonecloud.com/browse/B0XNF01-1061">B0XNF01-1061</a>
+</td>
+                                            <td class="priority">           중간
+    </td>
+                                            <td class="status">
+                <span class=" jira-issue-status-lozenge aui-lozenge jira-issue-status-lozenge-blue-gray jira-issue-status-lozenge-new aui-lozenge-subtle jira-issue-status-lozenge-max-width-medium" data-tooltip="&lt;span class=&quot;jira-issue-status-tooltip-title&quot;&gt;등록&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;jira-issue-status-tooltip-desc&quot;&gt;요구사항 등록 완료 및 담당자가 업무를 시작하기 위한 준비 단계&lt;/span&gt;">등록</span>    </td>
+                                            <td class="summary"><p>
+                점검대상 UI/UX 변경
+    </p>
+</td>
+                                            <td class="description">      * 점검대상은 표형태로 제공한다.<br/>
+ * 등록된 모든 DB가 보이고, 체크박스,DB명, 최근스케줄명,최근점검상태, 최근검색테이블수,최근검출건수,점검시작일시,점검소요시간, 라벨 을 제공한다<br/>
+ * 라벨은 DB당 여러개를 지정할 수 있다.<br/>
+ ** DB 등록시 DB종류에 따라 Oracle, DB2, sybase 등은 기본으로 추가된다.<br/>
+ * 표 위에는 Text 검색이 있으며 Text검색은 DB명, Label 키워드 가 검색되고 옆에 상세필터가 있고, 상세필터 버튼을 누르면 점검상태, label 검색 제공<br/>
+ * DB를 체크 하고 오른쪽 상단에 수정버튼을 클릭하면 Label 일괄 수정기능을 한다<br/>
+ * DB를 체크 하고 오른쪽 상단에 점검을 클릭하면 선택된 DB만 대상으로 점검페이지로 이동한다.(다른 DB는 추가 할 수 없음)<br/>
+ * DB를 체크 하고 오른쪽 상단에 내보내기를 클릭하면 선택된 DB의 현재 표대로 Excel파일로 내보내기가 된다.<br/>
+ * DB는 링크가 있으며 선택시 해당DB의 대상정보 페이지로 이동한다<br/>
+ * 최근검출건수는 링크가 있으며 클릭시 해당DB의 검출목록으로 이동한다<br/>
+ * 표의 상단에는 DB기준 전체DB, 점건완료, 점검중, 점검오류 를 나타내며 선택시 필터링이 된다
+  </td>
+                    </tr>
+
+
+                <tr id="issuerow379711" rel="379711" data-issuekey="B0XNF01-1060" class="issuerow">
+                                            <td class="issuetype">    유저스토리
+</td>
+                                            <td class="issuekey">
+
+    <a class="issue-link" data-issue-key="B0XNF01-1060" href="http://jira.kbonecloud.com/browse/B0XNF01-1060">B0XNF01-1060</a>
+</td>
+                                            <td class="priority">           최상위
+    </td>
+                                            <td class="status">
+                <span class=" jira-issue-status-lozenge aui-lozenge jira-issue-status-lozenge-blue-gray jira-issue-status-lozenge-new aui-lozenge-subtle jira-issue-status-lozenge-max-width-medium" data-tooltip="&lt;span class=&quot;jira-issue-status-tooltip-title&quot;&gt;등록&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;jira-issue-status-tooltip-desc&quot;&gt;요구사항 등록 완료 및 담당자가 업무를 시작하기 위한 준비 단계&lt;/span&gt;">등록</span>    </td>
+                                            <td class="summary"><p>
+                검출 목록 UI/UX 변경
+    </p>
+</td>
+                                            <td class="description">      {code:java}<br/>
+검출목록은 컬럼의 검출된 결과 목록이 있고, 선택하면 실제검출된 개인정보 및 검출정보를 볼수 있고, 검출 상태, 의견, 담당자를 설정하는 기능을 제공합니다.<br/>
+검출목록 구역, 검출결과상태, 검출상세정보 구역 으로 나눠집니다.<br/>
+<br/>
+#검출목록 구역<br/>
+- 검출목록의 단위는 `컬럼` + `검출타입` <br/>
+   * /TABLE_A/COLUMN_A | 주민등록번호<br/>
+   * /TABLE_A/COLUMN_A | 여권번호<br/>
+- 검출목록의 표의 전체 헤더<br/>
+  * 전체체크박스|검출ID|스케줄ID|DB명|검출경로|검출타입|건수|담당자|상태<br/>
+  * ㅁ | 1002 | SC-111 | 부동산통합| /TABLE_A/COLUMN_A | 주민등록번호 | 40 | 김성진 | 조치필요<br/>
+  * ㅁ | /TABLE_A/COLUMN_A | 여권번호 | 20 | 김성진, 장민교 | 미확인<br/>
+- 담당자는 3명이상일 경우 2명까지만 보이고 ... 으로 보여야함<br/>
+- 검출목록 표에서 검출대상을 선택하면 ROW 의 배경색 변경하는 형태로 선택되어 있는지 알수 있어야함<br/>
+- TEXT입력해서 검출경로를 검색하는 필터 제공하고 옆에 상세버튼 클릭시(검출타입, 담당자, 이슈상태 를 설정해서 필터사용)<br/>
+- 필터가 되었으면 현재 필터된 상태인지 인지해야함<br/>
+- 검출목록이 많아질 경우를 대비해서 페이징 처리해야함<br/>
+- 표 상단에 삭제버튼을 제공하여 체크박스 선택한것들에 대해서 검출목록에서 삭제해야함. 삭제는 진짜로 삭제할것인지 확인필요, 선택된것이 1개라도 없는경우 버튼 비활성, 삭제버튼은 관리자만 보여야함<br/>
+- 표 상단에 수정버튼을 제공하여 체크박스 선택한것들에 대해서 개인정보상태변경(상태, 의견, 담당자 각각 체크해서 변경할것을 선택)모달이 나와 일괄수정 기능 제공, 선택된것이 1개라도 없는경우 버튼 비활성, 수정시 상태는 관리자와 일반사용자가 선택가능한 항목이 달라야함<br/>
+- 내보내기 버튼을 제공하여 상세목록엑셀보고서 생성, 선택된것이 1개라도 없으면 현재 검색된 기준으로 내보내기<br/>
+- 개수는 오른쪽 정렬# 개인정보 구역<br/>
+- 검출목록에서 ROW 1개를 선택하면 개인정보 목록에 검출타입에 따라 검출된 개인정보가 목록으로 보여짐<br/>
+- 해당 목록은 `DB명 + 검출경로 + 검출타입` 기준으로 항상 마지막 결과를 제공함<br/>
+<br/>
+# 검출결과상태 구역<br/>
+- 상태는 미확인, 조치필요, 제외, 제외신청, 제외거부 5개 제공<br/>
+- 관리자는 상태 5개 전부 변경이 가능하며, 일반사용자는 보이는것은 다보이나 변경은 미확인, 조치필요, 제외신청 3개만 가능함 <br/>
+- 상태는 2줄버튼으로 표시하고, 첫째줄 미확인|조치필요|제외  , 둘째줄 제외 신청|제외 거부<br/>
+- 상태아래 TextArea 로 의견 입력할수 있게 500자이하<br/>
+- 의견아래 담당자 지정(검색가능한 드롭다운)<br/>
+- 하단에 [저장] 버튼<br/>
+<br/>
+#검출상세정보<br/>
+- 개인정보목록의 표의 전체헤더<br/>
+ * 개인정보|개수<br/>
+- TEXT입력하면 개인정보 또는 Unique 정보가 일치하는 항목이 나오는 검색 기능 제공<br/>
+- 필터가 되었으면 현재 필터된 상태인지 인지해야함<br/>
+- 표는 헤더 누르면 오름차순/내림차순<br/>
+- 개인정보목록이 많아질 경우를 대비해서 페이징 처리해야함<br/>
+- 각 개인정보 별로 검출된개인정보+주변정보 보임(데이터는 많지 않음 최대 2줄)<br/>
+- Unique 기반으로 검출목록을 조회할수 있는 Query 제공하며, Query는 길어서 보여주지 않고, 조회Query 버튼 클릭시 클립보드로 복사하며 클립보드로 복사되었는지 인지되어야함<br/>
+- 개인정보를 선택하면, Unique 정보, 조회 SQL, 주변정보 를 보여줌<br/>
+- 이행점검버튼을 제공하여 해당 검출 이행점검<br/>
+ {code}
+  </td>
+                    </tr>
+
+
+                <tr id="issuerow379710" rel="379710" data-issuekey="B0XNF01-1059" class="issuerow">
+                                            <td class="issuetype">    유저스토리
+</td>
+                                            <td class="issuekey">
+
+    <a class="issue-link" data-issue-key="B0XNF01-1059" href="http://jira.kbonecloud.com/browse/B0XNF01-1059">B0XNF01-1059</a>
+</td>
+                                            <td class="priority">           최상위
+    </td>
+                                            <td class="status">
+                <span class=" jira-issue-status-lozenge aui-lozenge jira-issue-status-lozenge-blue-gray jira-issue-status-lozenge-new aui-lozenge-subtle jira-issue-status-lozenge-max-width-medium" data-tooltip="&lt;span class=&quot;jira-issue-status-tooltip-title&quot;&gt;등록&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;jira-issue-status-tooltip-desc&quot;&gt;요구사항 등록 완료 및 담당자가 업무를 시작하기 위한 준비 단계&lt;/span&gt;">등록</span>    </td>
+                                            <td class="summary"><p>
+                검출 결과 상태 관리 
+    </p>
+</td>
+                                            <td class="description">      * 5개의 결과 상태 관리<br/>
+ ** 미확인 : 최초 검출 상태<br/>
+ ** 조치필요 : 사용자가 인지하여 조치가 필요하다고 하는 상태<br/>
+ ** 제외 : 제외된 상태<br/>
+ ** 제외신청 : 사용자가 제외신청한 상태<br/>
+ ** 제외거부 : 관리자가 제외거부한 상태<br/>
+ * 권한별 상태 변경<br/>
+ ** 관리자: 5개 전부 변경가능<br/>
+ ** 사용자: 미확인, 조치필요, 제외신청 3개만 가능
+  </td>
+                    </tr>
+
+
+                <tr id="issuerow379708" rel="379708" data-issuekey="B0XNF01-1058" class="issuerow">
+                                            <td class="issuetype">    유저스토리
+</td>
+                                            <td class="issuekey">
+
+    <a class="issue-link" data-issue-key="B0XNF01-1058" href="http://jira.kbonecloud.com/browse/B0XNF01-1058">B0XNF01-1058</a>
+</td>
+                                            <td class="priority">           중간
+    </td>
+                                            <td class="status">
+                <span class=" jira-issue-status-lozenge aui-lozenge jira-issue-status-lozenge-blue-gray jira-issue-status-lozenge-new aui-lozenge-subtle jira-issue-status-lozenge-max-width-medium" data-tooltip="&lt;span class=&quot;jira-issue-status-tooltip-title&quot;&gt;등록&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;jira-issue-status-tooltip-desc&quot;&gt;요구사항 등록 완료 및 담당자가 업무를 시작하기 위한 준비 단계&lt;/span&gt;">등록</span>    </td>
+                                            <td class="summary"><p>
+                제외신청관리 UI/UX
+    </p>
+</td>
+                                            <td class="description">      - 제외는 오탐일 경우에 신청한다.<br/>
+ - 최소 검출단위(컬럼+룰) 의 상태를 기준으로 신청 및 관리를 진행<br/>
+ - 사용자가 검출단위를 상태를 `제외신청` 으로 변경 하면 관리자가 승인하면 상태가 `제외`로 변경된다.<br/>
+ - 제외신청은 개별, 일괄 신청한다<br/>
+ - 제외신청관리 페이지는 제외신청 목록 Tab, 제외처리 결과 Tab 으로 구성된다.<br/>
+ - 제외신청한 건은 별도 제외신청관리 &gt; 제외신청목록 Tab 페이지로 이동한다<br/>
+ - 제외신청목록 테이블<br/>
+ -- 체크박스|신청자|신청일시|의견|DB명|검출ID|검출경로<br/>
+ -- 각 표의 헤더별로 sorting 기능<br/>
+ -- Paging 및 Page개수 설정<br/>
+ - 제외신청목록 테이블 위에 신청자 이름 기준 검색필터링<br/>
+ - 제외신청 목록을 체크하고 오른쪽 상단에 `제외승인`, `제외거부` 버튼을 선택한다. 선택하면 처리의견 적는 모달창이 나오고 의견을 적는다. 의견을 적으면 검출경로의 의견에 Append된다.<br/>
+ - 제외신청 목록을 체크하고 오른쪽 상단에 `제외승인` 하면 상태가 `제외` 로 변경됨<br/>
+ - 제외신청 목록을 체크하고 오른쪽 상단에 `제외거부` 하면 상태가 `제외거부`로 변경됨<br/>
+ - 처리된 내역은 제외처리결과 Tab 으로 이동한다.<br/>
+ - 제외처리결과 테이블<br/>
+ -- 검출상태|처리일시|처리자|처리의견|신청자|의견|DB명|검출ID|검출경로<br/>
+ -- 각 표의 헤더별로 sorting 기능<br/>
+ -- Paging 및 Page개수 설정<br/>
+<br/>
+ 
+  </td>
+                    </tr>
+
+
+                <tr id="issuerow379707" rel="379707" data-issuekey="B0XNF01-1057" class="issuerow">
+                                            <td class="issuetype">    유저스토리
+</td>
+                                            <td class="issuekey">
+
+    <a class="issue-link" data-issue-key="B0XNF01-1057" href="http://jira.kbonecloud.com/browse/B0XNF01-1057">B0XNF01-1057</a>
+</td>
+                                            <td class="priority">           중간
+    </td>
+                                            <td class="status">
+                <span class=" jira-issue-status-lozenge aui-lozenge jira-issue-status-lozenge-blue-gray jira-issue-status-lozenge-new aui-lozenge-subtle jira-issue-status-lozenge-max-width-medium" data-tooltip="&lt;span class=&quot;jira-issue-status-tooltip-title&quot;&gt;등록&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;jira-issue-status-tooltip-desc&quot;&gt;요구사항 등록 완료 및 담당자가 업무를 시작하기 위한 준비 단계&lt;/span&gt;">등록</span>    </td>
+                                            <td class="summary"><p>
+                예외필터 추가후 재점검 안하더라도 결과에 반영
+    </p>
+</td>
+                                            <td class="description">      * 예외 필터 추가후 점검 결과를 재점검 없이 바로 반영
+  </td>
+                    </tr>
+
+
+                <tr id="issuerow379701" rel="379701" data-issuekey="B0XNF01-1056" class="issuerow">
+                                            <td class="issuetype">    결함/버그
+</td>
+                                            <td class="issuekey">
+
+    <a class="issue-link" data-issue-key="B0XNF01-1056" href="http://jira.kbonecloud.com/browse/B0XNF01-1056">B0XNF01-1056</a>
+</td>
+                                            <td class="priority">           최상위
+    </td>
+                                            <td class="status">
+                <span class=" jira-issue-status-lozenge aui-lozenge jira-issue-status-lozenge-yellow jira-issue-status-lozenge-indeterminate aui-lozenge-subtle jira-issue-status-lozenge-max-width-medium" data-tooltip="&lt;span class=&quot;jira-issue-status-tooltip-title&quot;&gt;검토&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;jira-issue-status-tooltip-desc&quot;&gt;예외처리 신청내역 검토 및 적용 의사결정&lt;/span&gt;">검토</span>    </td>
+                                            <td class="summary"><p>
+                Oracle 점검시 소문자테이블 점검 안되는 문제
+    </p>
+</td>
+                                            <td class="description">      * oracle 에서 소문자 테이블 db_test 일때 ` ` 를 안넣어서 발생하는 문제 있음
+  </td>
+                    </tr>
+
+
+                <tr id="issuerow379700" rel="379700" data-issuekey="B0XNF01-1055" class="issuerow">
+                                            <td class="issuetype">    유저스토리
+</td>
+                                            <td class="issuekey">
+
+    <a class="issue-link" data-issue-key="B0XNF01-1055" href="http://jira.kbonecloud.com/browse/B0XNF01-1055">B0XNF01-1055</a>
+</td>
+                                            <td class="priority">           최상위
+    </td>
+                                            <td class="status">
+                <span class=" jira-issue-status-lozenge aui-lozenge jira-issue-status-lozenge-blue-gray jira-issue-status-lozenge-new aui-lozenge-subtle jira-issue-status-lozenge-max-width-medium" data-tooltip="&lt;span class=&quot;jira-issue-status-tooltip-title&quot;&gt;등록&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;jira-issue-status-tooltip-desc&quot;&gt;요구사항 등록 완료 및 담당자가 업무를 시작하기 위한 준비 단계&lt;/span&gt;">등록</span>    </td>
+                                            <td class="summary"><p>
+                재검색 시 미처리/정탐/오탐 등 상태 유지 및 갱신
+    </p>
+</td>
+                                            <td class="description">      - 정탐/오탐 분류 하고 재검색 시 검출 내용이 동일하면, 동일 검출 경로(검출룰 포함) 에 대해서 기존에 표시했던 상태 유지<br/>
+- 정탐/오탐 분류 하고 재검색 시 검출 내용이 다르면, 동일 검출 경로(검출룰 포함)에 대해서 미처리 상태로 갱신
+  </td>
+                    </tr>
+
+
+                <tr id="issuerow379589" rel="379589" data-issuekey="B0XNF01-1054" class="issuerow">
+                                            <td class="issuetype">    유저스토리
+</td>
+                                            <td class="issuekey">
+
+    <a class="issue-link" data-issue-key="B0XNF01-1054" href="http://jira.kbonecloud.com/browse/B0XNF01-1054">B0XNF01-1054</a>
+</td>
+                                            <td class="priority">           최상위
+    </td>
+                                            <td class="status">
+                <span class=" jira-issue-status-lozenge aui-lozenge jira-issue-status-lozenge-yellow jira-issue-status-lozenge-indeterminate aui-lozenge-subtle jira-issue-status-lozenge-max-width-medium" data-tooltip="&lt;span class=&quot;jira-issue-status-tooltip-title&quot;&gt;검토&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;jira-issue-status-tooltip-desc&quot;&gt;예외처리 신청내역 검토 및 적용 의사결정&lt;/span&gt;">검토</span>    </td>
+                                            <td class="summary"><p>
+                최종처리일시 컬럼을 기준으로 변경데이터 검색시 마지막 시작기준 이후부터 점검하도록 변경
+    </p>
+</td>
+                                            <td class="description">      * 최종처리일시 컬럼을 기준으로 주기적으로 재점검을 할때 POC할때는 마지막 분석 정상완료 스캔의 완료시간이후에 추가된 데이터만 분석을 하게 세팅되어 있었음<br/>
+ * 현재 방식은 분석이 오래걸리는동안 데이터가 들어오면 그때 데이터는 점검이 안되기 때문에, 마지막 분석 정상완료 스캔의 시작시간 이후에 추가된 데이터를 분석하는것으로 변경 필요
+  </td>
+                    </tr>
+
+
+                <tr id="issuerow379587" rel="379587" data-issuekey="B0XNF01-1053" class="issuerow">
+                                            <td class="issuetype">    유저스토리
+</td>
+                                            <td class="issuekey">
+
+    <a class="issue-link" data-issue-key="B0XNF01-1053" href="http://jira.kbonecloud.com/browse/B0XNF01-1053">B0XNF01-1053</a>
+</td>
+                                            <td class="priority">           최상위
+    </td>
+                                            <td class="status">
+                <span class=" jira-issue-status-lozenge aui-lozenge jira-issue-status-lozenge-yellow jira-issue-status-lozenge-indeterminate aui-lozenge-subtle jira-issue-status-lozenge-max-width-medium" data-tooltip="&lt;span class=&quot;jira-issue-status-tooltip-title&quot;&gt;검토&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;jira-issue-status-tooltip-desc&quot;&gt;예외처리 신청내역 검토 및 적용 의사결정&lt;/span&gt;">검토</span>    </td>
+                                            <td class="summary"><p>
+                검색성능을 위해 Dirty Read 방식으로 검색
+    </p>
+</td>
+                                            <td class="description">      검색성능을 위해 Uncommited Read 방식으로 검색 한다.<br/>
+ * SELECT Query 에 Append 하는 방식<br/>
+ ** DB2 : SELECT ...  WITH UR<br/>
+ ** MSSQL : SELECT ... WITH (NOLOCK)<br/>
+ ** Sybase ASE : SELECT ... AT ISOLATION 0<br/>
+ * SELECT 하기 전에 세션 설정 변경<br/>
+ ** MySQL / MariaDB : SET SESSION TRANSACTION ISOLATATION LEVEL READ UNCOMMITTED;<br/>
+ ** Sybase IQ : SET TEMPORARY OPTION ISOLATION_LEVEL = 0;
+  </td>
+                    </tr>
+
+
+                <tr id="issuerow379497" rel="379497" data-issuekey="B0XNF01-1045" class="issuerow">
+                                            <td class="issuetype">    유저스토리
+</td>
+                                            <td class="issuekey">
+
+    <a class="issue-link" data-issue-key="B0XNF01-1045" href="http://jira.kbonecloud.com/browse/B0XNF01-1045">B0XNF01-1045</a>
+</td>
+                                            <td class="priority">           최상위
+    </td>
+                                            <td class="status">
+                <span class=" jira-issue-status-lozenge aui-lozenge jira-issue-status-lozenge-blue-gray jira-issue-status-lozenge-new aui-lozenge-subtle jira-issue-status-lozenge-max-width-medium" data-tooltip="&lt;span class=&quot;jira-issue-status-tooltip-title&quot;&gt;등록&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;jira-issue-status-tooltip-desc&quot;&gt;요구사항 등록 완료 및 담당자가 업무를 시작하기 위한 준비 단계&lt;/span&gt;">등록</span>    </td>
+                                            <td class="summary"><p>
+                검출된 항목은 `이행점검` 3가지 방식을 통해 해당 column 만 점검하는 기능을 제공하며, 마지막 스캔을 업데이트 한다.
+    </p>
+</td>
+                                            <td class="description">      *1. 검출목록 화면 상단에 `이행점검` 버튼*<br/>
+ * 이행 점검을 하고싶은 최소 검출단위를 체크박스로 선택하고 이행점검을 클릭하면, 해당 컬럼을 PK, Unique key 를 통해 재점검(예외필터는 기존것 참고)을 수행한다.<br/>
+ * 이행점검을 수행하면 신규 스캔이 생성되지 않고, 마지막 스캔에 점검 결과가 업데이트 된다.<br/>
+ * 해당 컬럼을 PK, Unique key 로 조회해서 점검하여 빠르기 때문에 스케줄 등의 설정은 하지 않는다<br/>
+ * 같은 컬럼에서 다른 검출Rule이 검출되더라도, 사용자가 선택한 검출목록만 점검한다.<br/>
+ ** 예시)<br/>
+ ** ㅁ TABLE_A/COLUMN_A/주민번호<br/>
+ ** ㅁ TABLE_A/COLUMN_A/여권<br/>
+ ** ㅁ TABLE_A/COLUMN_A/운전<br/>
+ * 검출 경로 3개 일때<br/>
+ ** 주민번호 경로만 체크하고 이행점검 하면 주민번호만 갱신<br/>
+ ** 주민번호, 여권번호 경로만 체크하고 이행점검 하면 주민번호, 여권번호 갱신<br/>
+<br/>
+ <br/>
+<br/>
+ <br/>
+<br/>
+*2. 개인정보 검출 항목 의 이행점검*<br/>
+ * Unique 기준으로 이행점검을 수행한다.<br/>
+ * 해당 컬럼을 PK, Unique key 로 조회해서 점검하여 빠르기 때문에 스케줄 등의 설정은 하지 않는다.<br/>
+ * 이행점검을 수행하면 신규 스캔이 생성되지 않고, 마지막 스캔에 점검 결과가 업데이트 된다.<br/>
+<br/>
+ <br/>
+<br/>
+*3. 조치계획서 내의 이행점검(조치계획관리 구현후 추가)*<br/>
+ * 조치계획서는 검출목록에서 신청한 검출기준 들의 데이터를 가지고 있다<br/>
+ * 이행점검을 수행하면 신규 스캔이 생성되지 않고, 마지막 스캔에 점검 결과가 업데이트 된다.<br/>
+ * 해당 컬럼을 PK, Unique key 로 조회해서 점검하여 빠르기 때문에 스케줄 등의 설정은 하지 않는다
+  </td>
+                    </tr>
+
+
+                <tr id="issuerow379496" rel="379496" data-issuekey="B0XNF01-1044" class="issuerow">
+                                            <td class="issuetype">    유저스토리
+</td>
+                                            <td class="issuekey">
+
+    <a class="issue-link" data-issue-key="B0XNF01-1044" href="http://jira.kbonecloud.com/browse/B0XNF01-1044">B0XNF01-1044</a>
+</td>
+                                            <td class="priority">           최상위
+    </td>
+                                            <td class="status">
+                <span class=" jira-issue-status-lozenge aui-lozenge jira-issue-status-lozenge-blue-gray jira-issue-status-lozenge-new aui-lozenge-subtle jira-issue-status-lozenge-max-width-medium" data-tooltip="&lt;span class=&quot;jira-issue-status-tooltip-title&quot;&gt;등록&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;jira-issue-status-tooltip-desc&quot;&gt;요구사항 등록 완료 및 담당자가 업무를 시작하기 위한 준비 단계&lt;/span&gt;">등록</span>    </td>
+                                            <td class="summary"><p>
+                결과 출력 엑셀에는 최소 검출단위로 이동하는 링크를 제공해야 한다.
+    </p>
+</td>
+                                            <td class="description">      검출 목록을 엑셀 Report 로 출력시에<br/>
+<br/>
+검출 단위로 이동하는 링크를 제공해야한다.<br/>
+<br/>
+이를 위해 웹에서 결과를 볼때도 각 최소 단위마다 고유의 URL이 있어야 한다.
+  </td>
+                    </tr>
+
+
+                <tr id="issuerow379495" rel="379495" data-issuekey="B0XNF01-1043" class="issuerow">
+                                            <td class="issuetype">    유저스토리
+</td>
+                                            <td class="issuekey">
+
+    <a class="issue-link" data-issue-key="B0XNF01-1043" href="http://jira.kbonecloud.com/browse/B0XNF01-1043">B0XNF01-1043</a>
+</td>
+                                            <td class="priority">           최상위
+    </td>
+                                            <td class="status">
+                <span class=" jira-issue-status-lozenge aui-lozenge jira-issue-status-lozenge-blue-gray jira-issue-status-lozenge-new aui-lozenge-subtle jira-issue-status-lozenge-max-width-medium" data-tooltip="&lt;span class=&quot;jira-issue-status-tooltip-title&quot;&gt;등록&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;jira-issue-status-tooltip-desc&quot;&gt;요구사항 등록 완료 및 담당자가 업무를 시작하기 위한 준비 단계&lt;/span&gt;">등록</span>    </td>
+                                            <td class="summary"><p>
+                검출대상의 최소단위는 검출 룰(주민등록번호, 여권 등)으로 한다
+    </p>
+</td>
+                                            <td class="description">      현재 검출 최소단위가 컬럼으로 되어 있음<br/>
+<br/>
+검출된 룰 기준으로 변경한다<br/>
+<br/>
+예시) 검출 목록<br/>
+<br/>
+대상 | 검출Type<br/>
+<br/>
+서버URL_1/스키마_1/TABLE_1/COLUMN_A | 주민등록번호<br/>
+<br/>
+서버URL_1/스키마_1/TABLE_1/COLUMN_A | 여권번호<br/>
+<br/>
+ <br/>
+<br/>
+`서버URL_1/스키마_1/TABLE_1/COLUMN_A|주민등록번호{*}`{*} 클릭시 아래 상세내역은은 주민등록번호가 여러개 나오며, 첫번째 주민등록번호 결과가 선택되어져 있어야한다.
+  </td>
+                    </tr>
+                </tbody>
+    </table>
+    </issuetable-web-component>
+    <div class="end-of-stable-message"></div>
+            <table border="1" >
+<tr>
+    <td bgcolor="#f5f5f5" colspan="6"><font size="1">
+        Jira 8.20.21#820021-sha1:38274c8a85bba14d67e001e670ae14482d9becd4(을)를 사용하여 김성진(KB국민은행 정보보호부(P))에 의해 Thu Mar 26 18:37:25 KST 2026에서 생성됨.
+    </font></td>
+</tr>
+</table>
+
+</body>
+</html>
