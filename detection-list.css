@@ -7,8 +7,20 @@
   align-items: stretch;
 }
 
-.workspace.is-detail-open {
+.workspace.is-layout-side.is-detail-open {
   grid-template-columns: minmax(930px, 1.86fr) minmax(320px, 0.64fr);
+}
+
+.workspace.is-layout-side {
+  --context-list-max-height: 132px;
+}
+
+.workspace.is-layout-bottom {
+  --context-list-max-height: 228px;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) auto;
+  overflow: auto;
+  padding-right: 2px;
 }
 
 .workspace > * {
@@ -27,6 +39,12 @@
   display: none;
 }
 
+.workspace.is-layout-bottom .right-rail {
+  grid-template-columns: minmax(280px, 0.82fr) minmax(420px, 1.34fr) minmax(360px, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  align-items: stretch;
+}
+
 .detection-card,
 .status-card,
 .pii-card {
@@ -40,6 +58,10 @@
   height: 100%;
   overflow: visible;
   font-size: 14px;
+}
+
+.workspace.is-layout-bottom .detection-card {
+  min-height: 0;
 }
 
 .detection-card .pagination-row,
@@ -67,6 +89,72 @@
 .pii-card {
   overflow: hidden;
   padding: 8px;
+}
+
+.workspace.is-layout-bottom .pii-card {
+  order: 1;
+}
+
+.workspace.is-layout-bottom .pii-detail-card {
+  order: 2;
+  margin-top: 0;
+  height: 100%;
+  box-shadow: var(--shadow);
+}
+
+.workspace.is-layout-bottom .status-card {
+  order: 3;
+  height: 100%;
+}
+
+.layout-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  white-space: nowrap;
+}
+
+.layout-switch-btn {
+  min-height: 26px;
+  padding: 0 10px;
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.layout-switch-btn:hover {
+  color: var(--text);
+}
+
+.layout-switch-btn.is-active {
+  color: var(--accent);
+  background: linear-gradient(135deg, rgba(152, 123, 233, 0.18), rgba(125, 138, 247, 0.18));
+}
+
+.hero-heading-group {
+  min-width: 0;
+}
+
+.hero-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.hero-title-row h1 {
+  min-width: 0;
+}
+
+.hero-layout-switch {
+  flex: 0 0 auto;
 }
 
 .selection-summary {
@@ -244,6 +332,10 @@
   flex: 0 0 auto;
   min-height: 0;
   overflow: hidden;
+}
+
+.workspace.is-layout-bottom .pii-card {
+  height: 100%;
 }
 
 .history-icon-btn {

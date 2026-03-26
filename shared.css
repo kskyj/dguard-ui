@@ -1089,7 +1089,11 @@ body.sidebar-collapsed .sidebar .role-switch {
   padding-left: 0;
   list-style: none;
   font-size: 12px;
-  line-height: 1.2;
+  line-height: 1.4;
+  max-height: var(--context-list-max-height, 132px);
+  overflow-y: auto;
+  padding-right: 4px;
+  scrollbar-gutter: stable;
 }
 
 .context-block li + li {
@@ -1106,9 +1110,9 @@ body.sidebar-collapsed .sidebar .role-switch {
   background: transparent;
   color: #273252;
   font-weight: 700;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .detected-token {

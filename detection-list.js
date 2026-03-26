@@ -2,6 +2,7 @@
 const { STATUS_META, STATUS_ORDER, ASSIGNEES } = service;
 
 const ROLE_STORAGE_KEY = "dguard.currentRole";
+const LAYOUT_MODE_STORAGE_KEY = "dguard.detectionListLayoutMode";
 const refs = {};
 
 const DEFAULT_MENU_KEY = "detection-list";
@@ -11,6 +12,7 @@ const state = {
   sidebarCollapsed: false,
   selectedMenuKey: DEFAULT_MENU_KEY,
   openSidebarGroupKey: null,
+  layoutMode: "side",
   selectedDetectionId: null,
   selectedPiiId: null,
   checkedDetectionIds: new Set(),
@@ -77,8 +79,11 @@ document.addEventListener("DOMContentLoaded", init);
 
 function init() {
   cacheRefs();
+  removeLegacyToolbarLayoutSwitch();
+  normalizeLayoutSwitchLabels();
   ensureDetectionTableColumns();
   applyPersistedRole();
+  applyPersistedLayoutMode();
   refs.detectionSearchInput.placeholder = "검출경로, DB명, 스케줄ID 검색";
   applyInitialRouteState();
   bindEvents();
@@ -97,6 +102,15 @@ function applyPersistedRole() {
   window.sessionStorage.setItem(ROLE_STORAGE_KEY, state.role);
 }
 
+function applyPersistedLayoutMode() {
+  const savedMode = window.sessionStorage.getItem(LAYOUT_MODE_STORAGE_KEY);
+  if (savedMode === "side" || savedMode === "bottom") {
+    state.layoutMode = savedMode;
+    return;
+  }
+  window.sessionStorage.setItem(LAYOUT_MODE_STORAGE_KEY, state.layoutMode);
+}
+
 function cacheRefs() {
   const ids = [
     "sidebar",
@@ -108,6 +122,8 @@ function cacheRefs() {
     "logoutButton",
     "detectionSearchInput",
     "toggleFilterButton",
+    "layoutSideButton",
+    "layoutBottomButton",
     "detectTypeFilterSelect",
     "detectTypeFilterTrigger",
     "detectTypeFilterPanel",
@@ -166,6 +182,7 @@ function cacheRefs() {
     "piiEmpty",
     "piiPagination",
     "piiPaginationCaption",
+    "piiDetailCard",
     "detailUnique",
     "contextList",
     "detailRecheckButton",
@@ -199,12 +216,32 @@ function cacheRefs() {
   refs.roleButtons = [...document.querySelectorAll(".role-btn")];
   refs.workspace = document.querySelector(".workspace");
   refs.rightRail = document.querySelector(".right-rail");
+  refs.statusCard = document.querySelector(".status-card");
+  refs.piiCard = document.querySelector(".pii-card");
+  refs.piiDetailCardHome = refs.piiDetailCard?.parentElement ?? null;
   refs.detectionHeroTarget = document.querySelector(".hero-target");
   refs.detectionTitle = document.querySelector(".hero-card h1");
   const breadcrumbLinks = [...document.querySelectorAll(".breadcrumb-link")];
   refs.detectionBreadcrumbHome = breadcrumbLinks[0] ?? null;
   refs.detectionBreadcrumbTarget = breadcrumbLinks[1] ?? null;
   refs.detectionBreadcrumbCurrent = breadcrumbLinks[2] ?? null;
+}
+
+function removeLegacyToolbarLayoutSwitch() {
+  const legacySwitch = document.querySelector(".toolbar-actions.inline-actions > .layout-switch");
+  if (legacySwitch) {
+    legacySwitch.remove();
+  }
+}
+
+function normalizeLayoutSwitchLabels() {
+  if (refs.layoutSideButton) {
+    refs.layoutSideButton.textContent = "우측 보기";
+  }
+  if (refs.layoutBottomButton) {
+    refs.layoutBottomButton.textContent = "하단 보기";
+  }
+  refs.layoutSideButton?.closest(".layout-switch")?.setAttribute("aria-label", "상세영역 배치");
 }
 
 function ensureDetectionTableColumns() {
@@ -383,6 +420,14 @@ function bindEvents() {
       state.detectionFilterDraft.statuses = [...state.detectionFilters.statuses];
     }
     render();
+  });
+
+  refs.layoutSideButton.addEventListener("click", () => {
+    setLayoutMode("side");
+  });
+
+  refs.layoutBottomButton.addEventListener("click", () => {
+    setLayoutMode("bottom");
   });
 
   refs.clearDetectionFilters.addEventListener("click", () => {
@@ -692,6 +737,33 @@ function closeModalById(modalId) {
   }
 }
 
+function setLayoutMode(mode) {
+  if (mode !== "side" && mode !== "bottom") {
+    return;
+  }
+  if (state.layoutMode === mode) {
+    return;
+  }
+  state.layoutMode = mode;
+  window.sessionStorage.setItem(LAYOUT_MODE_STORAGE_KEY, mode);
+  render();
+}
+
+function syncDetailPanelPlacement() {
+  if (!refs.piiDetailCard || !refs.piiDetailCardHome || !refs.rightRail || !refs.statusCard) {
+    return;
+  }
+  if (state.layoutMode === "bottom") {
+    if (refs.piiDetailCard.parentElement !== refs.rightRail) {
+      refs.rightRail.insertBefore(refs.piiDetailCard, refs.statusCard);
+    }
+    return;
+  }
+  if (refs.piiDetailCard.parentElement !== refs.piiDetailCardHome) {
+    refs.piiDetailCardHome.appendChild(refs.piiDetailCard);
+  }
+}
+
 function populateStaticControls() {
   renderDetectionFilterControls();
   populateSelect(refs.bulkAssigneeSelect, ["", ...ASSIGNEES], "담당자 선택");
@@ -861,9 +933,17 @@ function populateSelect(element, values, allLabel, useStatusLabel = false) {
 
 function render() {
   const hasSelection = Boolean(state.selectedDetectionId);
+  const isBottomLayout = state.layoutMode === "bottom";
   document.body.classList.toggle("sidebar-collapsed", state.sidebarCollapsed);
   refs.workspace.classList.toggle("is-detail-open", hasSelection);
+  refs.workspace.classList.toggle("is-layout-side", !isBottomLayout);
+  refs.workspace.classList.toggle("is-layout-bottom", isBottomLayout);
+  syncDetailPanelPlacement();
   refs.rightRail.hidden = !hasSelection;
+  refs.layoutSideButton.classList.toggle("is-active", !isBottomLayout);
+  refs.layoutBottomButton.classList.toggle("is-active", isBottomLayout);
+  refs.layoutSideButton.setAttribute("aria-pressed", String(!isBottomLayout));
+  refs.layoutBottomButton.setAttribute("aria-pressed", String(isBottomLayout));
   refs.sidebarToggle.textContent = state.sidebarCollapsed ? ">" : "<";
   refs.sidebarToggle.setAttribute("aria-expanded", String(!state.sidebarCollapsed));
   refs.userMenuTrigger.setAttribute("aria-expanded", String(state.userMenuOpen));
