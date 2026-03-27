@@ -14,7 +14,7 @@ skills/
 ```
 - `SKILL.md`는 Claude에서 가장 중요한 진입점입니다.
 - `references/` 아래 문서는 보조 지침으로 활용할 수 있습니다.
-- `agents/openai.yaml`은 Codex/OpenAI 전용 설정일 가능성이 있으므로, Claude 기준에서는 직접적인 필수 요소가 아닐 수 있습니다.
+- `agents/openai.yaml`은 Codex/OpenAI 전용 설정 입니다.
 
 **Codex/OpenAI 기준으로 작성된 Skill 구조**로 Claude에서 사용하기 전에, 먼저 Claude에게 아래와 같이 요청해 주세요.
 
