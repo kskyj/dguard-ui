@@ -24,7 +24,7 @@ Use this checklist before creating a new D-Guard page.
 - Which columns need checkbox selection?
 - Should zero-count rows be hidden?
 - Should the top action bar show a list summary such as `전체 N건 X - Y 표시됨 Z건 선택됨`?
-- If the page has checkbox bulk selection, should it support a Gmail-style “select all filtered rows” banner?
+- If the page has checkbox bulk selection, should it support a Gmail-style `select all filtered rows` banner?
 - If the top summary is used, should the lower-left pagination caption be removed to avoid duplication?
 
 ## Filters And Search

@@ -1,4 +1,4 @@
-﻿# D-Guard UI Common Patterns
+# D-Guard UI Common Patterns
 
 ## Layout
 
@@ -44,12 +44,14 @@
 ## Typography And Density
 
 ### Header
+
 - Page title: `18px`, `800`
 - Breadcrumb: `12px`
 - Breadcrumb current item: `700`
 - Sidebar label: `14px`, `700`
 
 ### Tables
+
 - In `detection-list.html`, the main detection table body is `14px`.
 - In `detection-list.html`, the main detection table header is `13px`.
 - In `detection-list.html`, the lower PII table body is `13px`.
@@ -59,6 +61,7 @@
 - Identifier columns may align center when useful.
 
 ### Inputs And Buttons
+
 - Standard button height: `32px`
 - Standard button font size: `11px`
 - Main action minimum width: `92px`
@@ -81,26 +84,26 @@
 - Keep it on one line when possible.
 - Keep action buttons aligned to the right.
 - Keep main actions visually consistent with the current sample:
-  - filter/detail icon + `?곸꽭?꾪꽣`
-  - edit icon + `?섏젙`
-  - delete icon + `??젣`
-  - recheck icon + `?댄뻾?먭?`
-  - export/download icon + `?대낫?닿린`
+  - filter/detail icon + `상세필터`
+  - edit icon + `수정`
+  - delete icon + `삭제`
+  - recheck icon + `이행점검`
+  - export/download icon + `내보내기`
 - For list/table pages when useful, include an inline list summary next to the filter control.
-- Baseline summary pattern: `?꾩껜 N嫄?X - Y ?쒖떆??Z嫄??좏깮??
+- Baseline summary pattern: `전체 N건 X - Y 표시됨 Z건 선택됨`
 - Summary meaning:
   - total filtered rows
   - visible range on the current page
   - checked row count
 - Baseline emphasis pattern:
-  - `?꾩껜 N嫄?, `Z嫄??좏깮??: accent/purple emphasis
-  - `X - Y ?쒖떆??: dark text
+  - `전체 N건`, `Z건 선택됨`: accent/purple emphasis
+  - `X - Y 표시됨`: dark text
 - Show a clear applied-filter state and reset action in a slim row placed under the text input filter and above the table.
 - In compact detail-page tables, a count badge such as `설정 N개` can sit in the section header while the applied-filter summary row still stays directly above the table.
-- When a page includes top summary tiles such as 전체, 점검완료, 점검중, 점검오류, those tiles should be clickable and act as status-filter shortcuts with a visible active state.
+- When a page includes top summary tiles such as `전체`, `점검완료`, `점검중`, `점검오류`, those tiles should be clickable and act as status-filter shortcuts with a visible active state.
 - Place summary tiles inside the same list card as the toolbar and table when following the `inspection-target.html` pattern, with tight spacing instead of a detached summary card.
 - Summary tile colors should follow the matching status-chip color family for that state.
-- Applied search summary pattern: `寃??"?ㅼ썙??`, `珥덇린??.
+- Applied search summary pattern: `검색 "키워드"`, `초기화`.
 
 ## Detail Filter
 
@@ -109,9 +112,9 @@
 - Show selected values as flat chips.
 - Chips must support removal with `x`.
 - Do not apply immediately while choosing.
-- Only apply when the user presses `?곸슜`.
-- Use `?꾩껜` as the default placeholder.
-- Use `寃??寃곌낵 ?놁쓬` when no options match.
+- Only apply when the user presses `적용`.
+- Use `전체` as the default placeholder.
+- Use `검색 결과 없음` when no options match.
 
 ## Table Behavior
 
@@ -122,7 +125,7 @@
 - For settings-oriented detail-page tables, prefer a scrollable table region without pagination when the user mainly needs scan-and-edit behavior.
 - When a row only supports edit, use a trailing narrow header cell with an icon-only pencil action instead of a labeled `관리` column.
 - For list/table pages with checkbox bulk selection, a Gmail-style selection banner may appear directly under the table header.
-- Baseline banner copy: `?섏씠吏?먯꽌 5媛쒓? ?좏깮?섏뿀?듬땲?? 紐⑸줉?먯꽌 珥?8媛??곗씠???좏깮`
+- Baseline banner copy: `페이지에서 5개가 선택되었습니다. 목록에서 총 8개 데이터 선택`
 - The action in that banner should expand selection from current-page rows to all filtered rows.
 - Provide sortable headers where meaningful.
 - Use pagination by default.
@@ -130,9 +133,9 @@
 
 ## Pagination
 
-- Use a caption like `1-5 / 20嫄? by default.
+- Use a caption like `1-5 / 20건` by default.
 - For list/table pages, if the same information is already presented in the top action bar summary, the lower-left caption can be removed to avoid duplication.
-- Use `?댁쟾 / page numbers / ?ㅼ쓬`.
+- Use `이전 / page numbers / 다음`.
 - Pagination must honor search, filters, and sorting.
 
 ## Status Editing
@@ -176,5 +179,3 @@
   - role-based visibility and disabled states are correct
   - shared rules are not duplicated across page-specific stylesheets
 - Use screenshot capture only when visual proof is needed.
-
-

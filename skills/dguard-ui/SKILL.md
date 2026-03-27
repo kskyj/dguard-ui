@@ -18,9 +18,9 @@ This skill is for implementation work, not product planning. Use it when the tas
 3. Keep shared UI rules separate from page-specific logic and mock data.
 4. After implementation, verify the page in a real browser with `playwright`.
 
-If you need the detailed UI rules, read [references/common-patterns.md](C:\Users\kbuser_win10\.codex\skills\dguard-ui\references\common-patterns.md).
+If you need the detailed UI rules, read [references/common-patterns.md](references/common-patterns.md).
 
-If you are starting a new page, read [references/page-input-checklist.md](C:\Users\kbuser_win10\.codex\skills\dguard-ui\references\page-input-checklist.md) before coding.
+If you are starting a new page, read [references/page-input-checklist.md](references/page-input-checklist.md) before coding.
 
 ## Workflow
 
@@ -41,15 +41,15 @@ If you are starting a new page, read [references/page-input-checklist.md](C:\Use
 - Reproduce the existing header treatment closely: compact white header card, bold page title, optional highlighted target pill, breadcrumb below, and right-aligned user menu pill.
 - Use the standard top action bar pattern: search, detail filter, filter state, actions.
 - For detail-page inner tables such as the `inspection-target-detail.html` table-info section, reuse the same pattern in a compact form: text-input filter, detail-filter popover, applied-filter summary row, and a visible count badge such as `설정 N개`.
-- When search text is entered, reflect it in a filter state summary row placed under the text input filter and above the table. Use the pattern `검색 "키워드"  초기화` (e.g., `검색 "mssql"  초기화`). Detail filters should remain distinguishable alongside the search term.
-- For detail filters and multi-condition searches, the filter summary must show concrete criteria (e.g., `상태 2개 선택 "ff"`), not just a generic `필터 적용됨`.
-- For list/table pages with a toolbar summary, keep the order as `텍스트 입력 필터`, `상세필터`, `전체 N건 X - Y 표시 중 Z건 선택됨`, `상태 1개 선택 "ff"`, `초기화`, use `·` between filter criteria, and apply rounded chip styling. Emphasize `전체 N건` and `초기화` with the highlight color.
+- When search text is entered, reflect it in a filter state summary row placed under the text input filter and above the table. Use the pattern `검색 "키워드" 초기화` (e.g., `검색 "mssql" 초기화`). Detail filters should remain distinguishable alongside the search term.
+- For detail filters and multi-condition searches, the filter summary must show concrete criteria (e.g., `상태 2개 선택`, `검색 "ff"`), not just a generic `필터 적용`.
+- For list/table pages with a toolbar summary, keep the order as `텍스트 입력 필터`, `상세필터`, `전체 N건 X - Y 표시됨 Z건 선택됨`, concrete applied criteria such as `상태 1개 선택` or `검색 "ff"`, then `초기화`. Use `·` between filter criteria and apply rounded chip styling. Emphasize `전체 N건` and `초기화` with the highlight color.
 - Keep table-top action buttons aligned with the `inspection-target.html` baseline: shared button sizing, `32px` height, `11px` text, unified minimum widths, monochrome SVG icons plus labels.
 - In sample or mock pages, preserve the established action-button style using monochrome icons plus text, not colorful emoji.
-- For list/table pages when the page benefits from it, include an inline list summary in the top action bar. The current baseline pattern is `전체 N건 X - Y 표시 중 Z건 선택됨`.
-- When a page has top summary tiles such as 전체, 완료, 진행중, 오류, treat them as clickable filter shortcuts. Clicking a tile should apply the corresponding status filter, preserve other active search or keyword filters, and show a clear active state on the selected tile. Clicking the active tile again should clear that tile-driven status filter.
+- For list/table pages when the page benefits from it, include an inline list summary in the top action bar. The current baseline pattern is `전체 N건 X - Y 표시됨 Z건 선택됨`.
+- When a page has top summary tiles such as `전체`, `점검완료`, `점검중`, `점검오류`, treat them as clickable filter shortcuts. Clicking a tile should apply the corresponding status filter, preserve other active search or keyword filters, and show a clear active state on the selected tile. Clicking the active tile again should clear that tile-driven status filter.
 - When a page has top summary tiles immediately above a list table, prefer the `inspection-target.html` arrangement: place the tile strip inside the same list card as the toolbar and table, keep it visually attached to the table section, and use only tight vertical spacing.
-- Match each summary tile's border, gradient tint, and strong-value color to the corresponding row-status chip color family so waiting/running/completed/stopped states read consistently.
+- Match each summary tile's border, gradient tint, and strong-value color to the corresponding row-status chip color family so waiting, running, completed, and failed states read consistently.
 - Use table interactions consistently: row selection, checkbox selection separation, sorting, pagination, empty states.
 - When a detail-page table is settings-oriented, prefer an internal scrollable table shell with no pagination, while keeping counts and filters above the table.
 - For row-level edit actions inside settings tables, prefer a monochrome icon-only edit button with an empty or narrow trailing header cell instead of a text `관리` label.
@@ -103,7 +103,7 @@ When the user asks for a new page, gather or infer these inputs:
 - Mock data shape
 - Business rules such as delete, save, or recheck behavior
 
-Use [references/page-input-checklist.md](C:\Users\kbuser_win10\.codex\skills\dguard-ui\references\page-input-checklist.md) as the checklist.
+Use [references/page-input-checklist.md](references/page-input-checklist.md) as the checklist.
 
 ## Verification Checklist
 
