@@ -1,16 +1,16 @@
 # D-Guard 개발 프롬프트 (docs/DEVELOPMENT-PROMPT.md)
 
 > **이 파일은 Claude Code가 참조하는 개발 가이드입니다.**
-> 업체가 직접 읽을 필요 없습니다. Claude Code가 지시를 받으면 이 파일을 자동으로 참조합니다.
+> 사람이 직접 읽을 필요 없습니다. Claude Code가 지시를 받으면 이 파일을 자동으로 참조합니다.
 >
 > **디렉토리 구조** (두 저장소가 같은 레벨에 위치):
 > ```
 > 상위 디렉토리/
-> ├── {업체 프로젝트}/        ← 프로젝트 루트 (Claude Code 실행 위치, Spring Boot + Vue.js)
+> ├── {프로젝트}/        ← 프로젝트 루트 (Claude Code 실행 위치, Spring Boot + Vue.js)
 > │   ├── CLAUDE.md
 > │   ├── PLAN.md             ← Phase 1에서 생성되는 구현 계획서
 > │   ├── docs/
-> │   │   ├── README.md             ← 업체 실행 가이드
+> │   │   ├── README.md             ← 실행 가이드
 > │   │   ├── SETUP-GUIDE.md        ← 환경 세팅 가이드 (Claude 참조)
 > │   │   └── DEVELOPMENT-PROMPT.md ← 이 파일 (Claude 참조)
 > │   ├── .mcp.json
@@ -21,11 +21,11 @@
 > └── dguard-ui-mockup/       ← Mockup 참조 저장소 (읽기 전용)
 >     ├── index.html
 >     ├── detection-list.html/.js
->     ├── skills/dguard-ui/           ← 원본 스킬 (Codex용)
+>     ├── skills/dguard-ui/           ← 원본 스킬 (Codex용으로 변환 참고만 하고 사용하지 않음)
 >     ├── requirements/
 >     └── ...
 > ```
-> - `./` 또는 경로 없음 → **프로젝트 루트** (업체 프로젝트)
+> - `./` 또는 경로 없음 → **프로젝트 루트** (프로젝트)
 > - `../dguard-ui-mockup/` → **Mockup 저장소** (참조 전용)
 
 ---
@@ -200,7 +200,7 @@ Mockup 파일(HTML + JS + mock-service)을 분석하여 정리:
 6. **StatusEditor** (상태 버튼 그리드 + textarea 500자 + 담당자 드롭다운 + 역할별 제한)
 7. **Toast / ConfirmModal**
 
-스타일 기준: 페이지배경 #EDF0F5, 카드배경 #FFFFFF, 강조색 #987BE9, 기본액션 #727CF4, 버튼높이 32px/텍스트 11px, 테이블 세로 테두리 없음
+세부 스타일 기준과 디자인 토큰은 `.claude/skills/dguard-ui/SKILL.md` 및 `.claude/skills/dguard-ui/references/common-patterns.md`를 우선 참조합니다.
 
 ### 페이지별 QA 시나리오
 
@@ -428,21 +428,10 @@ Chrome으로 순차 검증:
 | Jira Key | 우선순위 | 요약 | 구현 단계 |
 |----------|---------|------|----------|
 | B0XNF01-1045 | 최상위 | 이행점검 3가지 방식 | Phase 3 공통 연계 기능 |
-| B0XNF01-1055 | 최상위 | 재검색시 상태 유지/갱신 | Phase 3 공통 연계 기능 |
 | B0XNF01-1043 | 최상위 | 최소 검출단위 = 검출룰 기준 | Phase 1 스키마 설계 |
 | B0XNF01-1044 | 최상위 | 엑셀 출력 + 고유 URL 링크 | Phase 3 공통 연계 기능 |
-| B0XNF01-1063 | 최상위 | CSV(tab) 일괄 등록 | Phase 3 공통 연계 기능 |
+| B0XNF01-1055 | 최상위 | 재검색시 상태 유지/갱신 | Phase 3 공통 연계 기능 |
 
-### Backend 전용
-
-| Jira Key | 우선순위 | 요약 | 비고 |
-|----------|---------|------|------|
-| B0XNF01-1073 | 중간 | REST API (3 endpoints) | 각 페이지 구현 시 함께 |
-| B0XNF01-1074 | 중간 | 예외필터 멀티선택 | inspection-run 구현 시 |
-| B0XNF01-1057 | 중간 | 예외필터 추가 후 재점검 없이 반영 | Backend 로직 |
-| B0XNF01-1054 | 최상위 | 최종처리일시 기준 변경 | Backend 로직 |
-| B0XNF01-1053 | 최상위 | Dirty Read 방식 검색 | Backend 로직 |
-| B0XNF01-1056 | 최상위 | Oracle 소문자테이블 버그 | Backend 버그 수정 |
 
 ### 범위 외 (이번에 포함하지 않음)
 
@@ -451,12 +440,19 @@ Chrome으로 순차 검증:
 | B0XNF01-1070 | 게시판 개선 | Mockup 없음, 별도 진행 |
 | B0XNF01-1071 | SSO 연동 | KB 인프라 접근 필요 |
 | B0XNF01-1072 | worKB 연동 + 쪽지 | 외부 서비스 연동 필요 |
+| B0XNF01-1053 | 최상위 | Dirty Read 방식 검색 | Backend 로직 |
+| B0XNF01-1054 | 최상위 | 최종처리일시 기준 변경 | Backend 로직 |
+| B0XNF01-1056 | 최상위 | Oracle 소문자테이블 버그 | Backend 버그 수정 |
+| B0XNF01-1073 | 중간 | REST API (3 endpoints) | 각 페이지 구현 시 함께 |
+| B0XNF01-1074 | 중간 | 예외필터 멀티선택 | inspection-run 구현 시 |
+| B0XNF01-1057 | 중간 | 예외필터 추가 후 재점검 없이 반영 | Backend 로직 |
+| B0XNF01-1063 | 최상위 | CSV(tab) 일괄 등록 | Phase 3 공통 연계 기능 |
 
 ---
 
 ## Final Verification Wave
 
-> **⚠️ 이 단계는 모든 구현이 완료된 후, 업체가 명시적으로 "확인" 한 뒤에만 작업을 완료로 표시합니다.**
+> **⚠️ 이 단계는 모든 구현이 완료된 후, 사람이 명시적으로 "확인" 한 뒤에만 작업을 완료로 표시합니다.**
 
 모든 Phase가 완료되면:
 1. 전체 테스트 스위트 실행 결과 확인

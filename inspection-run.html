@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +9,7 @@
   <link rel="stylesheet" href="./shared.css">
   <link rel="stylesheet" href="./inspection-run.css">
 </head>
+
 <body>
   <div class="app-shell">
     <aside class="sidebar card" id="sidebar">
@@ -19,7 +21,8 @@
             <span>DB Scan</span>
           </div>
         </div>
-        <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-expanded="true" aria-label="사이드바 접기">&lt;</button>
+        <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-expanded="true"
+          aria-label="사이드바 접기">&lt;</button>
       </div>
       <nav class="sidebar-nav" aria-label="주요 메뉴"></nav>
       <div class="sidebar-footer">
@@ -42,10 +45,13 @@
           </nav>
         </div>
         <div class="user-menu" id="userMenu">
-          <button type="button" class="user-menu-trigger" id="userMenuTrigger" aria-expanded="false" aria-haspopup="true">
+          <button type="button" class="user-menu-trigger" id="userMenuTrigger" aria-expanded="false"
+            aria-haspopup="true">
             김성진(5492438)
-            <svg class="user-menu-caret" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-              <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></path>
+            <svg class="user-menu-caret" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"
+              focusable="false">
+              <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"
+                stroke-linejoin="round"></path>
             </svg>
           </button>
           <div class="user-menu-panel" id="userMenuPanel" hidden>
@@ -95,7 +101,7 @@
             </label>
             <label class="form-group run-form-wide">
               <span>동작 설명</span>
-              <textarea id="vendorMessageInput" rows="4" placeholder="업체에 전달할 점검 목적과 일정 설명을 입력하세요."></textarea>
+              <textarea id="vendorMessageInput" rows="4" placeholder="점검 목적과 일정 설명을 입력하세요."></textarea>
             </label>
           </div>
           <div class="run-form-actions">
@@ -147,4 +153,5 @@
   <script src="./mock-inspection-target-service.js"></script>
   <script src="./inspection-run.js"></script>
 </body>
+
 </html>

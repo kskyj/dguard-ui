@@ -39,7 +39,12 @@
 1. **Chrome 확장 프로그램 설치** (브라우저에서 직접 설치)
    - Chrome 웹 스토어: https://chromewebstore.google.com/detail/claude/fcoeoabgfenejglbffodgkkbkcdhcgfn
 
-2. **기존 소스코드 Root에서 Claude Code 실행 및 프로젝트 초기화(기존 진행한 경우 Skip)**
+2. **Mockup 저장소 클론** (프로젝트 루트와 같은 레벨, 읽기 전용 참조용)
+   ```bash
+   git clone https://github.com/kskyj/dguard-ui.git ../dguard-ui-mockup
+   ```
+
+3. **기존 소스코드 Root에서 Claude Code 실행 및 프로젝트 초기화(기존 진행한 경우 Skip)**
    ```bash
    cd $소스코드_ROOT
    claude --dangerously-skip-permissions
@@ -57,7 +62,7 @@ Claude 세션에서 아래 프롬프트를 입력합니다:
 docs/SETUP-GUIDE.md 참고해서 환경 세팅하고 검증해줘
 ```
 
-> Claude가 Mockup 클론, MCP 설정(Spring Boot 환경설정에서 DB 정보 참조), JDK LSP, CLAUDE.md 보강, 스킬 변환, 검증을 순서대로 수행합니다.
+> Claude가 MCP 설정(Spring Boot 환경설정에서 DB 정보 참조), JDK LSP, CLAUDE.md 보강, 스킬 변환, 검증을 순서대로 수행합니다.
 
 ---
 
@@ -150,15 +155,16 @@ docs/DEVELOPMENT-PROMPT.md의 Phase 4를 참고해서 통합 검증해줘
 | 순서 | 누가 | 입력 |
 |------|------|------|
 | 1 | 사람 | Chrome 확장 설치 (브라우저) |
-| 2 | 사람 | `claude --dangerously-skip-permissions` |
-| 3 | 사람 | `/init` |
-| 4 | 사람 → Claude | `docs/SETUP-GUIDE.md 참고해서 환경 세팅하고 검증해줘` |
-| 5 | 사람 | `/new` |
-| 6 | 사람 | `/plan` |
-| 7 | 사람 → Claude | `docs/DEVELOPMENT-PROMPT.md의 Phase 1을 참고해서 전체 분석하고 구현 계획을 PLAN.md로 만들어줘` |
-| 8 | 사람 → Claude | (선택) PLAN.md 피드백: `"PLAN.md에서 ○○ 수정해줘"` |
-| 9 | 사람 | `/plan` (해제) |
-| 10 | 사람 → Claude | `PLAN.md와 docs/DEVELOPMENT-PROMPT.md 참고해서 순차적으로 구현해줘` |
-| 11 | 사람 → Claude | `docs/DEVELOPMENT-PROMPT.md의 Phase 3을 참고해서 공통 연계 기능 구현해줘` |
-| 12 | 사람 → Claude | `docs/DEVELOPMENT-PROMPT.md의 Phase 4를 참고해서 통합 검증해줘` |
+| 2 | 사람 | `git clone https://github.com/kskyj/dguard-ui.git ../dguard-ui-mockup` |
+| 3 | 사람 | `claude --dangerously-skip-permissions` |
+| 4 | 사람 | `/init` |
+| 5 | 사람 → Claude | `docs/SETUP-GUIDE.md 참고해서 환경 세팅하고 검증해줘` |
+| 6 | 사람 | `/new` |
+| 7 | 사람 | `/plan` |
+| 8 | 사람 → Claude | `docs/DEVELOPMENT-PROMPT.md의 Phase 1을 참고해서 전체 분석하고 구현 계획을 PLAN.md로 만들어줘` |
+| 9 | 사람 → Claude | (선택) PLAN.md 피드백: `"PLAN.md에서 ○○ 수정해줘"` |
+| 10 | 사람 | `/plan` (해제) |
+| 11 | 사람 → Claude | `PLAN.md와 docs/DEVELOPMENT-PROMPT.md 참고해서 순차적으로 구현해줘` |
+| 12 | 사람 → Claude | `docs/DEVELOPMENT-PROMPT.md의 Phase 3을 참고해서 공통 연계 기능 구현해줘` |
+| 13 | 사람 → Claude | `docs/DEVELOPMENT-PROMPT.md의 Phase 4를 참고해서 통합 검증해줘` |
 | 수시 | 사람 | `/compact` (페이지 2~3개마다) |
