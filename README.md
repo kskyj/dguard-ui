@@ -127,16 +127,12 @@ PLAN.md와 docs/DEVELOPMENT-PROMPT.md 참고해서 순차적으로 구현해줘
 
 ---
 
-## 6단계: 공통 연계 기능 + 통합 검증
+## 6단계: 통합 검증
 
 페이지 구현이 모두 완료되면:
 
 ```
-docs/DEVELOPMENT-PROMPT.md의 Phase 3을 참고해서 공통 연계 기능 구현해줘
-```
-
-```
-docs/DEVELOPMENT-PROMPT.md의 Phase 4를 참고해서 통합 검증해줘
+docs/DEVELOPMENT-PROMPT.md의 Phase 3을 참고해서 통합 검증해줘
 ```
 
 ---
@@ -165,6 +161,5 @@ docs/DEVELOPMENT-PROMPT.md의 Phase 4를 참고해서 통합 검증해줘
 | 9 | 사람 → Claude | (선택) PLAN.md 피드백: `"PLAN.md에서 ○○ 수정해줘"` |
 | 10 | 사람 | `/plan` (해제) |
 | 11 | 사람 → Claude | `PLAN.md와 docs/DEVELOPMENT-PROMPT.md 참고해서 순차적으로 구현해줘` |
-| 12 | 사람 → Claude | `docs/DEVELOPMENT-PROMPT.md의 Phase 3을 참고해서 공통 연계 기능 구현해줘` |
-| 13 | 사람 → Claude | `docs/DEVELOPMENT-PROMPT.md의 Phase 4를 참고해서 통합 검증해줘` |
+| 12 | 사람 → Claude | `docs/DEVELOPMENT-PROMPT.md의 Phase 4를 참고해서 통합 검증해줘` |
 | 수시 | 사람 | `/compact` (페이지 2~3개마다) |

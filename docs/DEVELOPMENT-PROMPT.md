@@ -179,10 +179,10 @@ Mockup 파일(HTML + JS + mock-service)을 분석하여 정리:
 |------|----------|-------------|--------------|-----------|
 | 2-0 | 공통 컴포넌트 | shared.css + shared.js | — | B0XNF01-1081 |
 | 2-1 | 점검대상 | inspection-target.html | mock-inspection-target-service.js | B0XNF01-1061 |
-| 2-2 | 점검대상 상세 | inspection-target-detail.html | mock-inspection-target-detail-service.js | B0XNF01-1062, B0XNF01-1063 |
-| 2-3 | 검출목록 | detection-list.html | mock-detection-service.js | B0XNF01-1060, B0XNF01-1059, B0XNF01-1043, B0XNF01-1044, B0XNF01-1045, B0XNF01-1055 |
+| 2-2 | 점검대상 상세 | inspection-target-detail.html | mock-inspection-target-detail-service.js | B0XNF01-1062 |
+| 2-3 | 검출목록 | detection-list.html | mock-detection-service.js | B0XNF01-1060, B0XNF01-1059, B0XNF01-1045 |
 | 2-4 | 점검이력 | analysis-history.html | mock-analysis-history-service.js | B0XNF01-1101 |
-| 2-5 | 점검수행 (스케줄등록) | inspection-run.html + inspection-run.js | (analysis-history와 공유) | B0XNF01-1101, B0XNF01-1074 |
+| 2-5 | 점검수행 (스케줄등록) | inspection-run.html + inspection-run.js | (analysis-history와 공유) | B0XNF01-1101|
 | 2-6 | 제외신청관리 | exception-request.html | mock-exception-request-service.js | B0XNF01-1058 |
 | 2-7 | 조치계획관리 | action-plan.html + action-plan-create.html | mock-action-plan-service.js | B0XNF01-1088 |
 
@@ -230,9 +230,8 @@ Mockup 파일(HTML + JS + mock-service)을 분석하여 정리:
 1. 페이지 진입 → DB 정보 요약 표시 (DB명, 호스트, 포트, 인스턴스)
 2. 테이블 목록 표시 (테이블명, 컬럼수, 검출건수, 최근점검일)
 3. 검출건수 클릭 → 검출목록 페이지로 해당 테이블 필터 적용 이동 확인
-4. "CSV 일괄등록" 버튼 → textarea 표시 확인
-5. 체크박스 3개 선택 → "삭제" → 확인 모달 → 삭제 반영 확인
-6. 관리자: 삭제 버튼 표시, 일반사용자: 숨김 확인
+4. 체크박스 3개 선택 → "삭제" → 확인 모달 → 삭제 반영 확인
+5. 관리자: 삭제 버튼 표시, 일반사용자: 숨김 확인
 
 **검출목록 (detection-list) QA:**
 1. 상단 요약 타일 표시 (전체/미확인/조치필요/제외/제외신청/제외거부 건수)
@@ -260,9 +259,8 @@ Mockup 파일(HTML + JS + mock-service)을 분석하여 정리:
 3. 테이블 체크박스 3개 선택 → 선택 표시 확인
 4. 검출룰 멀티선택: "주민등록번호", "여권번호" → 칩 표시 확인
 5. 반복주기 "매일 02:00" → 반영 확인
-6. 예외필터 멀티선택 2개 이상 → 적용 확인 (B0XNF01-1074)
-7. "저장" → 점검이력 이동 + 목록 반영 확인
-8. 필수값 미입력 시 "저장" 비활성화 확인
+6. "저장" → 점검이력 이동 + 목록 반영 확인
+7. 필수값 미입력 시 "저장" 비활성화 확인
 
 **제외신청관리 (exception-request) QA:**
 1. 제외신청 목록 (신청자, DB명, 테이블명, 컬럼명, 검출룰, 사유, 상태, 신청일)
@@ -285,84 +283,17 @@ Mockup 파일(HTML + JS + mock-service)을 분석하여 정리:
 
 ---
 
-## Phase 3: 공통 연계 기능 구현 가이드
-
-> Claude에게 `"docs/DEVELOPMENT-PROMPT.md의 Phase 3을 참고해서 공통 연계 기능 구현해줘"`라고 지시하면,
-> Claude는 아래 4개 기능을 구현하고 각각 QA 검증 + git commit 합니다.
-
-### 3-1. 이행점검 기능 (B0XNF01-1045)
-
-3가지 방식의 이행점검:
-1. 검출목록 상단 이행점검 버튼 (선택된 검출단위 재점검)
-2. 개인정보 검출항목의 Unique 기반 이행점검
-3. 조치계획서 내 이행점검
-
-- 이행점검은 신규 스캔 생성 없이 마지막 스캔 결과 업데이트
-- PK/Unique key 기반 빠른 재점검
-
-**QA 시나리오:**
-1. 검출목록에서 3개 선택 → "이행점검" → 로딩 후 3개만 갱신, 신규 스캔 미생성 확인
-2. 검출목록 상세에서 Unique 이행점검 → PK/Unique 기준 재점검 → 마지막 스캔 덮어쓰기 확인
-3. 조치계획서 상세 "이행점검" → 연결된 검출항목만 재점검 → 상태 갱신 확인
-4. 점검이력에서 신규 스캔 미생성 확인 (기존 스캔의 updated_at만 변경)
-
-→ git commit: `"feat(compliance): implement three verification methods"`
-
-### 3-2. 엑셀 내보내기 + 고유 URL (B0XNF01-1044)
-
-- 검출목록 엑셀 Report 출력
-- 각 최소 단위마다 고유 URL 포함
-- 선택 있으면 선택 기준, 없으면 검색 기준
-
-**QA 시나리오:**
-1. 5개 선택 → "엑셀 내보내기" → 5개만 포함 확인
-2. 미선택 + 필터(상태=미확인) → 내보내기 → 필터 결과 전체 포함 확인
-3. 엑셀 내 고유 URL → 브라우저 입력 → 해당 상세 화면 이동 확인
-4. 대용량(1000건+) 타임아웃 없이 완료 확인
-
-→ git commit: `"feat(export): implement Excel export with deep links"`
-
-### 3-3. CSV 일괄 등록 (B0XNF01-1063)
-
-- Tab 구분 CSV 복사-붙여넣기로 DB/테이블/컬럼 일괄 등록
-- DRM 때문에 엑셀 Tab 복사-붙여넣기 지원 필수
-- Sample CSV 제공
-
-**QA 시나리오:**
-1. 점검대상 상세 "CSV 일괄등록" → textarea 표시 확인
-2. "DB명\t테이블명\t컬럼명" 3행 붙여넣기 → Tab 파싱 → 미리보기 테이블 확인
-3. "Sample CSV 다운로드" → 샘플 형식과 입력 형식 일치 확인
-4. 잘못된 데이터 → 오류 표시 + 등록 비활성화 확인
-5. 정상 데이터 → "등록" → 토스트 + 목록 반영 확인
-
-→ git commit: `"feat(import): implement CSV bulk registration"`
-
-### 3-4. 재검색시 상태 유지 (B0XNF01-1055)
-
-- 동일 검출경로(검출룰 포함) + 동일 검출내용 → 기존 상태 유지
-- 동일 검출경로(검출룰 포함) + 다른 검출내용 → 미확인 상태로 갱신
-
-**QA 시나리오:**
-1. 특정 항목 "조치필요"로 변경 → 검출경로+검출룰+검출내용 기록
-2. 재검색 → 동일 내용이면 "조치필요" 유지 확인
-3. DB 데이터 변경 후 재검색 → "미확인"으로 갱신 확인
-4. 신규 검출항목은 "미확인"으로 생성 확인
-
-→ git commit: `"feat(detection): implement status persistence on rescan"`
-
----
-
-## Phase 4: 통합 검증 가이드
+## Phase 3: 통합 검증 가이드
 
 > Claude에게 `"docs/DEVELOPMENT-PROMPT.md의 Phase 4를 참고해서 통합 검증해줘"`라고 지시하면,
 > Claude는 아래 검증을 수행합니다.
 
-### 4-1. 전체 빌드 확인
+### 3-1. 전체 빌드 확인
 - 백엔드: `./gradlew clean build` (또는 `mvn clean package`)
 - 프론트엔드: `npm run build`
 - 모든 테스트 통과 확인
 
-### 4-2. 전체 페이지 브라우저 검증
+### 3-2. 전체 페이지 브라우저 검증
 Chrome으로 순차 검증:
 1. 점검대상 → DB 클릭 → 점검대상 상세 이동 확인
 2. 점검대상 상세 → 검출건수 클릭 → 검출목록 이동 확인
@@ -371,13 +302,7 @@ Chrome으로 순차 검증:
 5. 점검이력 → 스케줄 등록/수정/중지/삭제 확인
 6. 사이드바 메뉴 네비게이션 전체 확인
 
-### 4-3. 공통 연계 기능 통합 검증
-1. CSV 일괄등록 → 점검대상 목록 반영 확인
-2. 엑셀 내보내기 → 고유 URL 딥링크 이동 확인
-3. 이행점검 3가지 → 신규 스캔 없이 마지막 스캔 갱신 확인
-4. 재검색 → 동일 내용은 상태 유지, 다른 내용은 미확인 갱신 확인
-
-### 4-4. 역할별 검증
+### 3-3. 역할별 검증
 - 관리자 → 모든 기능 접근 가능 확인
 - 일반사용자 → 제한된 기능만:
   * 삭제 버튼 숨김
@@ -423,30 +348,25 @@ Chrome으로 순차 검증:
 | B0XNF01-1058 | 중간 | 제외신청관리 UI/UX | exception-request |
 | B0XNF01-1088 | 중간 | 조치계획 UI/UX | action-plan + action-plan-create |
 
-### Full-Stack 기능 (UI + Backend)
-
-| Jira Key | 우선순위 | 요약 | 구현 단계 |
-|----------|---------|------|----------|
-| B0XNF01-1045 | 최상위 | 이행점검 3가지 방식 | Phase 3 공통 연계 기능 |
-| B0XNF01-1043 | 최상위 | 최소 검출단위 = 검출룰 기준 | Phase 1 스키마 설계 |
-| B0XNF01-1044 | 최상위 | 엑셀 출력 + 고유 URL 링크 | Phase 3 공통 연계 기능 |
-| B0XNF01-1055 | 최상위 | 재검색시 상태 유지/갱신 | Phase 3 공통 연계 기능 |
-
 
 ### 범위 외 (이번에 포함하지 않음)
 
 | Jira Key | 요약 | 사유 |
 |----------|------|------|
-| B0XNF01-1070 | 게시판 개선 | Mockup 없음, 별도 진행 |
+| B0XNF01-1070 | 게시판 개선 | 별도 진행 |
 | B0XNF01-1071 | SSO 연동 | KB 인프라 접근 필요 |
 | B0XNF01-1072 | worKB 연동 + 쪽지 | 외부 서비스 연동 필요 |
-| B0XNF01-1053 | 최상위 | Dirty Read 방식 검색 | Backend 로직 |
-| B0XNF01-1054 | 최상위 | 최종처리일시 기준 변경 | Backend 로직 |
-| B0XNF01-1056 | 최상위 | Oracle 소문자테이블 버그 | Backend 버그 수정 |
-| B0XNF01-1073 | 중간 | REST API (3 endpoints) | 각 페이지 구현 시 함께 |
-| B0XNF01-1074 | 중간 | 예외필터 멀티선택 | inspection-run 구현 시 |
-| B0XNF01-1057 | 중간 | 예외필터 추가 후 재점검 없이 반영 | Backend 로직 |
-| B0XNF01-1063 | 최상위 | CSV(tab) 일괄 등록 | Phase 3 공통 연계 기능 |
+| B0XNF01-1053 | 최상위 | Dirty Read 방식 검색 | 별도 진행 |
+| B0XNF01-1054 | 최상위 | 최종처리일시 기준 변경 | 별도 진행 |
+| B0XNF01-1056 | 최상위 | Oracle 소문자테이블 버그 | 별도 진행 |
+| B0XNF01-1073 | 중간 | REST API (3 endpoints) | 별도 진행 |
+| B0XNF01-1074 | 중간 | 예외필터 멀티선택 | 별도 진행 |
+| B0XNF01-1057 | 중간 | 예외필터 추가 후 재점검 없이 반영 | 별도 진행 |
+| B0XNF01-1063 | 최상위 | CSV(tab) 일괄 등록 | 별도 진행 |
+| B0XNF01-1055 | 최상위 | 재검색시 상태 유지/갱신 | 별도 진행 |
+| B0XNF01-1043 | 최상위 | 최소 검출단위 = 검출룰 기준 | 별도 진행 |
+| B0XNF01-1044 | 최상위 | 엑셀 출력 + 고유 URL 링크 | 별도 진행 |
+| B0XNF01-1045 | 최상위 | 이행점검 3가지 방식 | 별도 진행 |
 
 ---
 
