@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +9,7 @@
   <link rel="stylesheet" href="./shared.css">
   <link rel="stylesheet" href="./inspection-target.css">
 </head>
+
 <body>
   <div class="app-shell">
     <aside class="sidebar card" id="sidebar">
@@ -19,7 +21,8 @@
             <span>DB Scan</span>
           </div>
         </div>
-        <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-expanded="true" aria-label="사이드바 접기">&lt;</button>
+        <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-expanded="true"
+          aria-label="사이드바 접기">&lt;</button>
       </div>
 
       <nav class="sidebar-nav" aria-label="주요 메뉴"></nav>
@@ -44,10 +47,13 @@
           </nav>
         </div>
         <div class="user-menu" id="userMenu">
-          <button type="button" class="user-menu-trigger" id="userMenuTrigger" aria-expanded="false" aria-haspopup="true">
+          <button type="button" class="user-menu-trigger" id="userMenuTrigger" aria-expanded="false"
+            aria-haspopup="true">
             김성진(5492438)
-            <svg class="user-menu-caret" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-              <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></path>
+            <svg class="user-menu-caret" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"
+              focusable="false">
+              <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"
+                stroke-linejoin="round"></path>
             </svg>
           </button>
           <div class="user-menu-panel" id="userMenuPanel" hidden>
@@ -64,11 +70,13 @@
               <span>전체 DB</span>
               <strong id="summaryTotal">0</strong>
             </button>
-            <button type="button" class="summary-tile is-completed" id="summaryFilterCompleted" data-summary-status="COMPLETED">
+            <button type="button" class="summary-tile is-completed" id="summaryFilterCompleted"
+              data-summary-status="COMPLETED">
               <span>점검완료</span>
               <strong id="summaryCompleted">0</strong>
             </button>
-            <button type="button" class="summary-tile is-running" id="summaryFilterRunning" data-summary-status="RUNNING">
+            <button type="button" class="summary-tile is-running" id="summaryFilterRunning"
+              data-summary-status="RUNNING">
               <span>점검중</span>
               <strong id="summaryRunning">0</strong>
             </button>
@@ -91,7 +99,8 @@
               </span>
               상세필터
             </button>
-            <p class="toolbar-caption" id="targetToolbarCaption"><span class="toolbar-caption-strong">전체 0건</span> <span class="toolbar-caption-highlight">0 - 0 표시됨</span></p>
+            <p class="toolbar-caption" id="targetToolbarCaption"><span class="toolbar-caption-strong">전체 0건</span> <span
+                class="toolbar-caption-highlight">0 - 0 표시됨</span></p>
             <div class="toolbar-actions inline-actions">
               <button type="button" class="ghost-btn" id="bulkLabelButton" disabled>
                 <span class="btn-icon" aria-hidden="true">
@@ -327,7 +336,7 @@
         <div class="inspection-guide-box">
           <strong>이동 안내</strong>
           <p>선택한 DB만 대상으로 점검 스케줄을 설정하는 화면으로 이동합니다.</p>
-          <p>이후 등록하는 스케줄은 업체 전달용 설명과 함께 정리할 수 있습니다.</p>
+          <p>점검룰, 예외설정을 변경할 수 있습니다.</p>
         </div>
       </div>
       <div class="modal-footer">
@@ -343,4 +352,5 @@
   <script src="./mock-inspection-target-service.js"></script>
   <script src="./inspection-target.js"></script>
 </body>
+
 </html>
