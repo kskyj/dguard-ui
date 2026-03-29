@@ -122,12 +122,12 @@ PLAN.md와 docs/DEVELOPMENT-PROMPT.md 참고해서 순차적으로 구현해줘
 
 ---
 
-## 6단계: 횡단기능 + 통합 검증
+## 6단계: 공통 연계 기능 + 통합 검증
 
 페이지 구현이 모두 완료되면:
 
 ```
-docs/DEVELOPMENT-PROMPT.md의 Phase 3을 참고해서 횡단기능 구현해줘
+docs/DEVELOPMENT-PROMPT.md의 Phase 3을 참고해서 공통 연계 기능 구현해줘
 ```
 
 ```
@@ -153,11 +153,12 @@ docs/DEVELOPMENT-PROMPT.md의 Phase 4를 참고해서 통합 검증해줘
 | 2 | 사람 | `claude --dangerously-skip-permissions` |
 | 3 | 사람 | `/init` |
 | 4 | 사람 → Claude | `docs/SETUP-GUIDE.md 참고해서 환경 세팅하고 검증해줘` |
-| 5 | 사람 | `/plan` |
-| 6 | 사람 → Claude | `docs/DEVELOPMENT-PROMPT.md의 Phase 1을 참고해서 전체 분석하고 구현 계획을 PLAN.md로 만들어줘` |
-| 7 | 사람 → Claude | (선택) PLAN.md 피드백: `"PLAN.md에서 ○○ 수정해줘"` |
-| 8 | 사람 | `/plan` (해제) |
-| 9 | 사람 → Claude | `PLAN.md와 docs/DEVELOPMENT-PROMPT.md 참고해서 순차적으로 구현해줘` |
-| 10 | 사람 → Claude | `docs/DEVELOPMENT-PROMPT.md의 Phase 3을 참고해서 횡단기능 구현해줘` |
-| 11 | 사람 → Claude | `docs/DEVELOPMENT-PROMPT.md의 Phase 4를 참고해서 통합 검증해줘` |
+| 5 | 사람 | `/new` |
+| 6 | 사람 | `/plan` |
+| 7 | 사람 → Claude | `docs/DEVELOPMENT-PROMPT.md의 Phase 1을 참고해서 전체 분석하고 구현 계획을 PLAN.md로 만들어줘` |
+| 8 | 사람 → Claude | (선택) PLAN.md 피드백: `"PLAN.md에서 ○○ 수정해줘"` |
+| 9 | 사람 | `/plan` (해제) |
+| 10 | 사람 → Claude | `PLAN.md와 docs/DEVELOPMENT-PROMPT.md 참고해서 순차적으로 구현해줘` |
+| 11 | 사람 → Claude | `docs/DEVELOPMENT-PROMPT.md의 Phase 3을 참고해서 공통 연계 기능 구현해줘` |
+| 12 | 사람 → Claude | `docs/DEVELOPMENT-PROMPT.md의 Phase 4를 참고해서 통합 검증해줘` |
 | 수시 | 사람 | `/compact` (페이지 2~3개마다) |
