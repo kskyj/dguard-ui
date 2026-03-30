@@ -19,7 +19,7 @@
 |------|------|------|
 | `README.md` | 실행 가이드 (이 파일) | 사람 확인 |
 | `docs/SETUP-GUIDE.md` | 환경 세팅 상세 | Claude가 참조 |
-| `docs/DEVELOPMENT-PROMPT.md` | 개발 가이드 (Phase 1~4 + 부록) | Claude가 참조 |
+| `docs/DEVELOPMENT-PROMPT.md` | 개발 가이드 (Phase 1~3 + 부록) | Claude가 참조 |
 
 > `docs/SETUP-GUIDE.md`와 `docs/DEVELOPMENT-PROMPT.md`는 사람이 직접 읽을 필요 없습니다.
 > Claude Code가 지시를 받으면 해당 파일을 자동으로 참조합니다.
