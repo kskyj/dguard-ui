@@ -1,0 +1,2691 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>D-Guard Mock vs 외부 구현 비교 보고서</title>
+  <style>
+:root {
+  color-scheme: light;
+  --bg: #f6f7fb;
+  --panel: #ffffff;
+  --ink: #1f2330;
+  --ink-soft: #5d6478;
+  --ink-mute: #8a90a3;
+  --line: #e6e8f0;
+  --line-strong: #d4d8e6;
+  --accent: #6c4cd6;
+  --accent-soft: #efeaff;
+  --accent-ink: #4a2dab;
+  --shadow: 0 1px 2px rgba(20,24,40,.04), 0 8px 24px rgba(20,24,40,.06);
+
+  --c-match-bg: #e7f5ec;     --c-match-fg: #1a7a3a;
+  --c-partial-bg: #fff4e0;   --c-partial-fg: #a85c00;
+  --c-change-bg: #fff1d6;    --c-change-fg: #8a4b00;
+  --c-missing-bg: #fde7e7;   --c-missing-fg: #b1262c;
+  --c-extra-bg: #e6efff;     --c-extra-fg: #1f4cb6;
+  --c-high-bg: #fde7e7;      --c-high-fg: #b1262c;
+  --c-med-bg: #fff4e0;       --c-med-fg: #a85c00;
+  --c-low-bg: #e7f0f7;       --c-low-fg: #34688a;
+}
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #14161e;
+  --panel: #1c1f2a;
+  --ink: #e7e9f3;
+  --ink-soft: #aab1c5;
+  --ink-mute: #7a8197;
+  --line: #2a2e3d;
+  --line-strong: #353a4d;
+  --accent: #a48dff;
+  --accent-soft: #2c2547;
+  --accent-ink: #c8b8ff;
+  --shadow: 0 1px 2px rgba(0,0,0,.35), 0 8px 24px rgba(0,0,0,.45);
+
+  --c-match-bg: #143822;     --c-match-fg: #7adc9c;
+  --c-partial-bg: #3a2a10;   --c-partial-fg: #ffb766;
+  --c-change-bg: #3a2c10;    --c-change-fg: #f1b35b;
+  --c-missing-bg: #3a1718;   --c-missing-fg: #ff8a8e;
+  --c-extra-bg: #18254a;     --c-extra-fg: #8fb1ff;
+  --c-high-bg: #3a1718;      --c-high-fg: #ff8a8e;
+  --c-med-bg: #3a2a10;       --c-med-fg: #ffb766;
+  --c-low-bg: #18293a;       --c-low-fg: #8fc6ee;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--ink);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+.app {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  min-height: 100vh;
+}
+
+/* Sidebar */
+.sidebar {
+  position: sticky;
+  top: 0;
+  align-self: start;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 18px 14px 28px;
+  border-right: 1px solid var(--line);
+  background: var(--panel);
+}
+.brand {
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 8px 14px;
+  border-bottom: 1px dashed var(--line);
+  margin-bottom: 12px;
+}
+.brand .logo {
+  width: 32px; height: 32px; border-radius: 9px;
+  background: linear-gradient(135deg, #8266e8, #5a3ec4);
+  color: white; display: grid; place-items: center;
+  font-weight: 700; font-size: 13px; letter-spacing: -.02em;
+}
+.brand .title { font-weight: 700; font-size: 14px; }
+.brand .subtitle { color: var(--ink-mute); font-size: 11.5px; margin-top: 2px; }
+
+.search {
+  position: relative;
+  margin: 8px 6px 14px;
+}
+.search input {
+  width: 100%;
+  padding: 9px 32px 9px 32px;
+  border-radius: 9px;
+  border: 1px solid var(--line-strong);
+  background: var(--bg);
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+}
+.search input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.search .icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--ink-mute); font-size: 14px; }
+.search .clear {
+  position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+  border: none; background: transparent; cursor: pointer; color: var(--ink-mute);
+  padding: 4px 6px; border-radius: 6px;
+  display: none;
+}
+.search .clear:hover { background: var(--bg); color: var(--ink); }
+.search.has-value .clear { display: block; }
+
+.nav-list { list-style: none; padding: 0; margin: 0; }
+.nav-page {
+  border-radius: 10px;
+  margin-bottom: 4px;
+}
+.nav-page > button.page-toggle {
+  width: 100%;
+  text-align: left;
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 10px;
+  border: none; background: transparent; cursor: pointer;
+  border-radius: 10px;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 600;
+  font-size: 13.5px;
+}
+.nav-page > button.page-toggle:hover { background: var(--bg); }
+.nav-page.active > button.page-toggle { background: var(--accent-soft); color: var(--accent-ink); }
+.nav-page .page-num {
+  display: inline-grid; place-items: center;
+  width: 22px; height: 22px;
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--ink-soft);
+  font-size: 11.5px; font-weight: 700;
+  flex: 0 0 auto;
+}
+.nav-page.active .page-num { background: var(--accent); color: white; }
+.nav-page .chev { margin-left: auto; color: var(--ink-mute); font-size: 11px; transition: transform .15s; }
+.nav-page.active .chev { transform: rotate(90deg); color: var(--accent-ink); }
+
+.section-list {
+  list-style: none;
+  padding: 4px 6px 6px 38px;
+  margin: 0;
+  display: none;
+  border-left: 2px solid var(--line);
+  margin-left: 18px;
+}
+.nav-page.active .section-list { display: block; }
+.section-list li > a {
+  display: block;
+  padding: 5px 8px;
+  border-radius: 6px;
+  text-decoration: none;
+  color: var(--ink-soft);
+  font-size: 12.5px;
+}
+.section-list li > a:hover { background: var(--bg); color: var(--ink); }
+.section-list li > a.current { color: var(--accent-ink); background: var(--accent-soft); font-weight: 600; }
+
+.toolbar {
+  display: flex; align-items: center; gap: 6px;
+  margin: 18px 6px 6px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--line);
+}
+.toolbar button, .toolbar a.tool-btn {
+  flex: 1;
+  border: 1px solid var(--line-strong);
+  background: var(--panel);
+  color: var(--ink-soft);
+  padding: 6px 8px;
+  border-radius: 7px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  text-align: center;
+  text-decoration: none;
+}
+.toolbar button:hover, .toolbar a.tool-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent-ink);
+  background: var(--accent-soft);
+}
+
+/* Main area */
+.main {
+  min-width: 0;
+  padding: 28px 36px 80px;
+  max-width: 1180px;
+}
+.page-head {
+  display: flex; flex-wrap: wrap; align-items: flex-end; gap: 14px 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 22px;
+}
+.page-head h1 {
+  margin: 0;
+  font-size: 24px;
+  letter-spacing: -.02em;
+}
+.page-head .crumb {
+  color: var(--ink-mute);
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+.page-head .summary-card {
+  flex: 1 1 480px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--accent);
+  padding: 12px 16px;
+  border-radius: 10px;
+  color: var(--ink-soft);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* Markdown body */
+.md-body { color: var(--ink); }
+.md-body h1 { display: none; } /* H1 is shown in page-head */
+.md-body h2 {
+  font-size: 18px;
+  margin: 32px 0 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--line);
+  scroll-margin-top: 16px;
+  letter-spacing: -.01em;
+}
+.md-body h3 {
+  font-size: 15px;
+  margin: 22px 0 8px;
+  scroll-margin-top: 16px;
+  color: var(--ink);
+}
+.md-body h4 { font-size: 14px; margin: 16px 0 6px; }
+.md-body p { margin: 8px 0; }
+.md-body ul, .md-body ol { padding-left: 22px; margin: 8px 0; }
+.md-body li { margin: 3px 0; }
+.md-body code {
+  background: var(--bg);
+  padding: 1px 6px;
+  border-radius: 5px;
+  font-family: "JetBrains Mono","Cascadia Code", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  font-size: 12.5px;
+  color: var(--accent-ink);
+  border: 1px solid var(--line);
+}
+.md-body pre {
+  background: var(--bg);
+  padding: 14px;
+  border-radius: 10px;
+  overflow-x: auto;
+  border: 1px solid var(--line);
+}
+.md-body pre code { background: transparent; border: none; padding: 0; color: var(--ink); }
+.md-body blockquote {
+  border-left: 3px solid var(--accent);
+  background: var(--accent-soft);
+  padding: 8px 14px;
+  margin: 12px 0;
+  border-radius: 0 8px 8px 0;
+  color: var(--accent-ink);
+}
+.md-body hr {
+  border: none;
+  border-top: 1px dashed var(--line);
+  margin: 28px 0;
+}
+.md-body strong { color: var(--ink); font-weight: 700; }
+
+/* Tables */
+.md-body table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0 18px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+  font-size: 13px;
+}
+.md-body th, .md-body td {
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+  text-align: left;
+}
+.md-body tr:last-child td { border-bottom: none; }
+.md-body th {
+  background: var(--bg);
+  font-weight: 700;
+  color: var(--ink-soft);
+  font-size: 12px;
+  text-transform: none;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+.md-body td:first-child { white-space: nowrap; }
+
+/* Verdict cell color highlight (applied via JS) */
+.v-pill {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+.v-match    { background: var(--c-match-bg);    color: var(--c-match-fg); }
+.v-partial  { background: var(--c-partial-bg);  color: var(--c-partial-fg); }
+.v-change   { background: var(--c-change-bg);   color: var(--c-change-fg); }
+.v-missing  { background: var(--c-missing-bg);  color: var(--c-missing-fg); }
+.v-extra    { background: var(--c-extra-bg);    color: var(--c-extra-fg); }
+.v-high     { background: var(--c-high-bg);     color: var(--c-high-fg); }
+.v-med      { background: var(--c-med-bg);      color: var(--c-med-fg); }
+.v-low      { background: var(--c-low-bg);      color: var(--c-low-fg); }
+
+/* Search highlight */
+mark.hit {
+  background: #fff2a8;
+  color: #6c4d00;
+  padding: 0 2px;
+  border-radius: 3px;
+}
+[data-theme="dark"] mark.hit { background: #5a4d10; color: #ffe88a; }
+
+.search-summary {
+  position: sticky; top: 0;
+  z-index: 5;
+  margin: -28px -36px 14px;
+  padding: 10px 36px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  display: none;
+}
+.search-summary.visible { display: block; }
+.search-summary b { color: var(--ink); }
+.search-summary a { color: var(--accent-ink); margin-right: 10px; text-decoration: none; }
+.search-summary a:hover { text-decoration: underline; }
+
+.page-section { display: none; }
+.page-section.active { display: block; }
+.print-all .page-section { display: block !important; }
+.print-all .page-section + .page-section { margin-top: 60px; padding-top: 28px; border-top: 2px dashed var(--line); }
+
+/* Print */
+@media print {
+  body { background: white; color: black; }
+  .sidebar, .toolbar, .search, .search-summary { display: none !important; }
+  .app { display: block; }
+  .main { padding: 0; max-width: none; }
+  .md-body table { box-shadow: none; }
+  .page-section { display: block !important; page-break-after: always; }
+  .page-head .summary-card { background: #f5f5f5 !important; border: 1px solid #ccc; }
+}
+
+/* Small screens */
+@media (max-width: 920px) {
+  .app { grid-template-columns: 1fr; }
+  .sidebar { position: relative; height: auto; border-right: none; border-bottom: 1px solid var(--line); }
+  .main { padding: 18px; }
+}
+</style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo">DG</div>
+        <div>
+          <div class="title">비교 보고서</div>
+          <div class="subtitle">Mock 사양 vs 외부 구현<br>2026. 4. 27. 12시 28분 18초 생성</div>
+        </div>
+      </div>
+      <div class="search" id="search-wrap">
+        <span class="icon">🔎</span>
+        <input id="search-input" type="search" placeholder="모든 페이지에서 검색…" autocomplete="off">
+        <button class="clear" id="search-clear" type="button" title="검색어 지우기">✕</button>
+      </div>
+      <ul class="nav-list" id="nav-list"></ul>
+      <div class="toolbar">
+        <button id="btn-theme" type="button" title="라이트/다크 토글">🌓 테마</button>
+        <button id="btn-expand-all" type="button" title="모든 페이지를 한 화면에서 보기">📑 모두 펼쳐보기</button>
+      </div>
+      <div class="toolbar">
+        <button id="btn-print" type="button">🖨 인쇄</button>
+        <a class="tool-btn" href="https://121.130.177.24:29443/" target="_blank" rel="noopener">↗ 외부 구현 열기</a>
+      </div>
+    </aside>
+    <main class="main">
+      <div class="search-summary" id="search-summary"></div>
+      
+<section class="page-section" data-page-id="inspection-target">
+  <header class="page-head">
+    <div>
+      <div class="crumb">D-Guard 비교 보고서 · 점검대상</div>
+      <h1>점검대상</h1>
+    </div>
+    <div class="summary-card"><strong>한 줄 요약 ·</strong> 큰 골격(레이아웃·컬럼·서머리·상세필터·라벨 일괄수정·페이징)은 mock과 유사하지만 **외부는 "등록/벌크 등록/점검대상 수정" CRUD 기능이 추가**되고 **`검색 수` 컬럼이 빠졌으며**, **상태가 5종으로 확장(중지됨 추가)**되는 등 운영 관점 차이가 큼. 역할 스위치·브레드크럼·헤더 사용자 메뉴 등 mock 전용 장치는 외부에 없음.</div>
+  </header>
+  <div class="md-body" id="md-body-inspection-target"></div>
+</section>
+
+<section class="page-section" data-page-id="inspection-target-detail">
+  <header class="page-head">
+    <div>
+      <div class="crumb">D-Guard 비교 보고서 · 점검대상 상세</div>
+      <h1>점검대상 상세</h1>
+    </div>
+    <div class="summary-card"><strong>한 줄 요약 ·</strong> 핵심 카드 3개(점검대상 정보 / 검사 규칙(테이블 정보) / 점검 이력) 골조는 일치하나, 점검대상 정보 필드 구성·검사 규칙 모달의 적용범위 입력방식·점검 시작 동작·실패사유 모달이 mock과 외부에서 의미 있게 다름.</div>
+  </header>
+  <div class="md-body" id="md-body-inspection-target-detail"></div>
+</section>
+
+<section class="page-section" data-page-id="analysis-history">
+  <header class="page-head">
+    <div>
+      <div class="crumb">D-Guard 비교 보고서 · 점검이력</div>
+      <h1>점검이력</h1>
+    </div>
+    <div class="summary-card"><strong>한 줄 요약 ·</strong> 큰 골격(요약 칩 5종·검색·상세필터·테이블 컬럼·중단/재시작/삭제 확인 모달·상세 패널)은 mock과 일치하지만, **라벨(중지→중단/점검완료→완료/점검중→실행중)·사용자 메뉴·역할 스위치·수정 버튼 라우팅(404 버그)·검색 카테고리 분리·URL 라우팅·점검대상 테이블 페이징**에서 의미 있는 차이가 존재.</div>
+  </header>
+  <div class="md-body" id="md-body-analysis-history"></div>
+</section>
+
+<section class="page-section" data-page-id="detection-list">
+  <header class="page-head">
+    <div>
+      <div class="crumb">D-Guard 비교 보고서 · 검출목록</div>
+      <h1>검출목록</h1>
+    </div>
+    <div class="summary-card"><strong>한 줄 요약 ·</strong> 큰 골격(레이아웃·컬럼·필터·일괄수정·우측 보기/하단 보기 토글)은 mock과 일치하지만, **상세 패널 구성·상태값·역할 권한·일부 부가 컨트롤(URL 라우팅, 검색 카테고리, 변경이력 컬럼)에서 의미 있는 차이**가 존재함.</div>
+  </header>
+  <div class="md-body" id="md-body-detection-list"></div>
+</section>
+
+<section class="page-section" data-page-id="exception-request">
+  <header class="page-head">
+    <div>
+      <div class="crumb">D-Guard 비교 보고서 · 제외신청관리</div>
+      <h1>제외신청관리</h1>
+    </div>
+    <div class="summary-card"><strong>한 줄 요약 ·</strong> 주요 기능(탭·요약타일·승인/거부·처리결과)이 mock과 거의 1:1로 매핑되어 동작하나, 역할 전환 UI·breadcrumb·선택 배너·모달 문구·토스트 메시지·자동 탭 전환 등 세부 UX에서 차이가 다수 존재. 외부는 `제외 취소` 상태와 행별 액션 버튼이 추가됨.</div>
+  </header>
+  <div class="md-body" id="md-body-exception-request"></div>
+</section>
+
+<section class="page-section" data-page-id="action-plan">
+  <header class="page-head">
+    <div>
+      <div class="crumb">D-Guard 비교 보고서 · 조치계획관리</div>
+      <h1>조치계획관리</h1>
+    </div>
+    <div class="summary-card"><strong>한 줄 요약 ·</strong> 컬럼·상태 칩·요약 타일·상세필터 구조는 90%+ 일치하나, **외부는 상세 모달·조치계획 작성 플로우가 mock보다 훨씬 풍부**(검출원인 필드·체크박스 선택·양식 다운로드·drag&drop·페이지 내 새 패널)하고 mock에만 있는 역할 스위치/breadcrumb/사용자 드롭다운은 외부에 없음.</div>
+  </header>
+  <div class="md-body" id="md-body-action-plan"></div>
+</section>
+
+    </main>
+  </div>
+
+  <script id="md-inspection-target" type="text/markdown">
+# 점검대상 페이지: Mock 사양 vs 외부 업체 구현 비교 보고서
+
+## 1. 개요
+
+| 항목 | 내용 |
+|------|------|
+| 비교 대상 (Mock) | `F:\dev\workspace\dguard-ui\inspection-target.html / .css / .js`, `mock-inspection-target-service.js` |
+| 비교 대상 (외부 구현) | `https://121.130.177.24:29443/app/inspection/target` |
+| 분석 일시 | 2026-04-24 |
+| 사용 계정 | `inebsoft` (Global Admin 권한, 세션 유지된 채 접속) |
+| 분석 방법 | Chrome 브라우저 자동화로 모든 주요 인터랙션(정렬, 페이징, 검색 카테고리, 상세필터, 행 선택, 라벨 일괄수정 모달, 점검대상 수정 패널, 등록 패널, 점검 시작 모달)을 직접 수행. **라벨 추가/제거는 실제 저장까지 실행하여 토스트/반영 확인** 후 원상복구. |
+| 한 줄 요약 | 큰 골격(레이아웃·컬럼·서머리·상세필터·라벨 일괄수정·페이징)은 mock과 유사하지만 **외부는 "등록/벌크 등록/점검대상 수정" CRUD 기능이 추가**되고 **`검색 수` 컬럼이 빠졌으며**, **상태가 5종으로 확장(중지됨 추가)**되는 등 운영 관점 차이가 큼. 역할 스위치·브레드크럼·헤더 사용자 메뉴 등 mock 전용 장치는 외부에 없음. |
+
+---
+
+## 2. 전체 일치도 요약
+
+| 영역 | 판정 | 핵심 차이 한 줄 요약 |
+|------|------|---------------------|
+| 전반 레이아웃 | 일치 | 좌측 사이드바 + 우측 page-shell(헤더/서머리/툴바/테이블/페이지네이션) 동일 |
+| 사이드바 메뉴 | 변경 | mock의 `initSidebar` 구성(4 메뉴 가정) → 외부 10개 대메뉴(대시보드/점검대상/검출목록/점검이력/제외신청관리/조치계획관리/커뮤니티/정책관리/대상관리/보안관리) |
+| 사이드바 하단 | 변경 | mock 역할 스위치(관리자/일반사용자) → 외부 "Admin User · Global Admin" 표시 + 로그아웃 아이콘 |
+| 헤더(Hero) | 변경 | mock 브레드크럼 + 사용자 메뉴 dropdown → 외부 단순 타이틀 "점검대상"만 |
+| 서머리 카드(타일) | 변경 | mock 4종(전체/점검완료/점검중/점검오류) → 외부 6종(전체/대기/점검중/점검완료/**중지됨**/점검오류) |
+| 검색 툴바 | 변경 | mock 통합검색(DB명·라벨·DB종류·최근스케쥴명) → 외부 **카테고리 dropdown(DB명/DB종류/스케줄명/라벨) + 입력**으로 분리 |
+| 상세필터 | 부분일치 | 점검상태는 공통 / **라벨 검색 필드 누락** (외부는 단일 점검상태 select만 제공) |
+| 테이블 컬럼 | 변경 | **`검색 수` 컬럼 누락**, 대신 **행별 "점검대상 수정" 버튼 컬럼 추가** |
+| 정렬 | 변경 | URL `?sortKey&sortDir` 라우팅 (mock은 client state), 숫자 컬럼은 desc 먼저 표시 |
+| 페이지 사이즈 / 페이징 | 일치 | 10/20/50/100, 기본 50 동일 |
+| 상태 chip 종류 | 변경 | mock 4종 vs 외부 5종, mock "오류" → 외부 "점검오류" 라벨 차이 |
+| 행 선택 / 일괄 액션 | 부분일치 | 라벨수정·내보내기·점검 공통 / 외부 **등록·벌크 등록 버튼 추가** |
+| 일괄수정 모달 | 변경 | mock의 "현재 라벨 summary·빠른 추천 chip" 없음, 외부는 autocomplete dropdown 기반 |
+| 점검 시작 모달 | 부분일치 | 제목/본문/버튼명 모두 다름 (mock "동작 설명"/"스케줄 설정" → 외부 "점검 시작"/"이동하기") |
+| 등록/벌크등록 기능 | 추가 | **mock에 없음** — 외부에만 존재 (우측 슬라이드 패널 형태) |
+| 점검대상 수정 패널 | 추가 | **mock에 없음** — 행 우측 연필 아이콘 → 우측 슬라이드 패널 편집 |
+| 역할 기반 권한 | 누락 | mock의 관리자/일반사용자 role-switch 위젯 없음 |
+| URL 라우팅 파라미터 | 변경 | mock `dbId`/`ids` → 외부 `page`/`pageSize`/`sortKey`/`sortDir`/`dbNameQuery`/`statuses` 등 |
+| 행 클릭(상세) | 일치 | DB명 링크 → 별도 상세 페이지로 이동 (mock `inspection-target-detail.html?dbId`, 외부 `/app/inspection/target/detail/{id}`) |
+| 시각 디자인 | 일치 | 보라색 primary, 라운드 카드, 칩(chip), 완료 녹색 dot 등 톤 동일 |
+| 토스트 | 일치 | 우하단 toast, 라벨 수정 시 "라벨이 수정되었습니다." 확인 |
+
+---
+
+## 3. 영역별 상세 비교
+
+### 3.1 레이아웃 / 화면 구조
+
+| 항목 | Mock | 외부 구현 | 차이 |
+|------|------|-----------|------|
+| 기본 구조 | `.app-shell` = sidebar + page-shell (hero + main) | 동일 | 일치 |
+| 우측 상세 패널 | 없음(상세는 별도 페이지) | 없음(상세는 별도 페이지) + **등록/수정 시 슬라이드 패널** 사용 | 외부가 CRUD를 슬라이드 패널로 처리 |
+| 반응형 | 지정 없음 | 패널/모달 모두 고정폭 | 차이 작음 |
+
+### 3.2 사이드바 / 네비게이션
+
+| 항목 | Mock (inspection-target.js 역할 2종 + `initSidebar`) | 외부 구현 |
+|------|------|-----------|
+| 브랜드 | "DG · D-Guard · DB Scan" | "D'GUARD EYE" |
+| 메뉴 1 | 상위에서 `initSidebar`가 구성 (예: 검출목록/점검대상/점검이력/예외관리/보고서) | 대시보드 `/index` |
+| 메뉴 2 | | 점검대상 `/app/inspection/target` (**현재 활성**) |
+| 메뉴 3 | | 검출목록 `/app/detection` |
+| 메뉴 4 | | 점검이력 `/app/schedule/history` |
+| 메뉴 5 | | 제외신청관리 `/app/exception` |
+| 메뉴 6 | | 조치계획관리 `/app/action-plan` |
+| 메뉴 7 | | 커뮤니티 `/app/community` |
+| 메뉴 8 | | 정책관리 (하위 2: 프로파일 관리 `/policy/profiles`, 예외 필터 관리 `/policy/filter`) |
+| 메뉴 9 | | 대상관리 (하위 6: 서버 관리, 계정 관리, 그룹 관리, 이미지 서버 관리, 서버 토큰 관리, 라이선스 관리) |
+| 메뉴 10 | | 보안관리 (하위 4: 사용자 관리, 사용자 그룹 관리, 접근 권한 관리, 감사로그) |
+| 하단 푸터 | "테스트용" + **역할 스위치(관리자/일반사용자)** | "AD · Admin User · Global Admin" + 로그아웃 아이콘 |
+| 접기 토글 | `<` 버튼 | 동일 (아이콘만 남기는 collapse) |
+
+### 3.3 헤더 / Hero
+
+| 항목 | Mock | 외부 구현 |
+|------|------|-----------|
+| 타이틀 | `점검대상` + 브레드크럼 `점검대상 > DB 점검 대상 목록` | `점검대상`만 (브레드크럼·부제 모두 없음) |
+| 우측 사용자 메뉴 | `김성진(5492438) ▾` → 사용자설정/로그아웃 dropdown (`#userMenu`, `.user-menu-panel`) | **없음** (사용자 정보는 사이드바 하단에만 표시) |
+| document.title | "점검대상 \| D-Guard" | "점검대상 목록 \| DGuard Eye" |
+| Hero 높이 | `hero-card` 카드 | 유사한 가로 바 형태, 카드 배경 없음 |
+
+### 3.4 서머리 카드 (상단 카운트 타일)
+
+| # | Mock | 외부 구현 |
+|---|------|-----------|
+| 1 | 전체 DB (`summaryFilterAll`) | 전체 DB |
+| 2 | — | **대기** (mock에 없는 신규 타일) |
+| 3 | 점검중 (`summaryFilterRunning`) | 점검중 |
+| 4 | 점검완료 (`summaryFilterCompleted`) | 점검완료 |
+| 5 | — | **중지됨** (mock에 없는 신규 타일) |
+| 6 | 점검오류 (`summaryFilterFailed`) | 점검오류 |
+
+클릭 시 해당 상태로 목록이 필터링되는 동작은 **양쪽 모두 동일**(외부는 URL에 `statuses=["COMPLETED"]` 등으로 기록).
+
+### 3.5 툴바 (검색·필터·액션)
+
+| 컨트롤 | Mock | 외부 구현 | 차이 |
+|-------|------|-----------|------|
+| 검색 입력 | 단일 input (`#targetSearchInput`), placeholder "DB명, 라벨, DB종류, 최근스케쥴명 검색" | **카테고리 combobox**(DB명/DB종류/스케줄명/라벨) + 입력값 분리 | 변경 |
+| 검색 트리거 | `input` 이벤트 (실시간) | Enter 키 → URL `?dbNameQuery=...` 등 적용 | 변경 |
+| 상세필터 버튼 | `#toggleFilterButton` → popover (점검상태 multi + 라벨 검색) | "상세필터" → popover (점검 상태 single select만) | 변경 |
+| 캡션 | "전체 N건 · X-Y 표시됨 · N건 선택됨" (`#targetToolbarCaption`) | "N건 선택됨 · 선택 해제" 버튼 형태 | 간소화 |
+| 선택 해제 | 모든 선택 해제 버튼 mock 별도 없음 (`selectionBanner` 배너로 처리) | 툴바 내 `선택 해제` 텍스트 버튼 상시 표기 | 외부에 명시적 버튼 |
+| 라벨 수정 | `#bulkLabelButton` (선택 시 활성) | `라벨 수정` (선택 시 활성) | 일치 |
+| 내보내기 | `#exportButton` (선택 시 활성) | `내보내기` (선택 시 활성) | 일치 |
+| 점검 | `#startInspectionButton` "점검" | `점검 시작` (primary) | 라벨 변경 |
+| **등록** | ― (mock에 없음) | `+ 등록` → 우측 슬라이드 패널 | 신규 |
+| **벌크 등록** | ― (mock에 없음) | `+ 벌크 등록` 링크 → `/app/inspection/target/bulk-upload` | 신규 |
+
+### 3.6 상세필터 Popover
+
+| 항목 | Mock | 외부 구현 |
+|------|------|-----------|
+| 점검상태 | multi-select (체크박스 목록, 검색 input 포함) — 선택된 항목이 chip으로 표시 | **single combobox** "검색 후 선택", 선택 1개만 |
+| 점검상태 값 | READY/RUNNING/COMPLETED/FAILED (대기/점검중/점검완료/오류) | 대기/점검중/점검완료/중지됨/점검오류 (**중지됨 추가**) |
+| 라벨 검색 | text input (`#labelKeywordInput`) | **없음** (검색 카테고리 dropdown에 "라벨" 존재로 대체) |
+| 버튼 | 취소 / 적용 (primary) | 초기화 / 적용 (primary) |
+
+### 3.7 테이블 컬럼 / 정렬
+
+| # | Mock 컬럼 (id/width) | 외부 컬럼 | 정렬 가능 | 차이 |
+|---|----------------------|-----------|-----------|------|
+| 1 | checkbox (36px) | checkbox (전체선택) | ― | 일치 |
+| 2 | ID (6%) `id` | DB ID | ✓ (`sortKey=targetDisplayId`) | 일치 |
+| 3 | DB명 (12%) `name` + host:port/instance subtle | DB명 + host:port/DB subtle | ✓ | 일치 |
+| 4 | DB종류 (7%) `dbType` | DB종류 (아이콘+이름) | ✓ | 일치 |
+| 5 | **검색 수 (5%) `searchCount`** | ― | — | **외부 누락** |
+| 6 | 최근점검상태 (8%) `status` | 최근 점검상태 (chip) | ✓ | 일치 |
+| 7 | 최근스케쥴명 (11%) `recentScheduleName` | 최근 스케줄명 | ✓ | 일치 |
+| 8 | 최근검색테이블수 (7%) `recentTableCount` | 최근 검색테이블수 | ✓ | 일치 |
+| 9 | 최근검출건수 (7%) `recentDetectionCount` (검출 > 0 시 link → detection-list) | 최근 검출건수 (link → `/app/detection?scheduleDisplayId=...`) | ✓ | link 타깃 다름 |
+| 10 | 점검시작일시 (10%) `inspectionStartedAt` | 점검 시작일시 | ✓ | 일치 |
+| 11 | 점검소요시간 (7%) `durationMinutes` | 점검 소요시간 | ✓ | 일치 |
+| 12 | 라벨 (14%) (chip, +N, hover title) | 라벨 (chip) | ✗ | 일치 |
+| +1 | ― | **점검대상 수정 (연필 아이콘 버튼)** | ― | **외부 신규 컬럼** |
+
+**정렬 동작 차이**:
+- mock: client state, asc↔desc 반복, count/table/detection은 desc 디폴트, 나머지 asc 디폴트
+- 외부: URL `?sortKey&sortDir=asc\|desc` 라우팅. 같은 컬럼 반복 클릭 시 **asc↔desc** (예: `recentDetectionCount` 첫 클릭 desc, 두 번째 클릭 asc). 일부 컬럼은 3번째 클릭 시 sort 해제되는 것으로 관찰됨
+- mock의 `라벨` 컬럼은 정렬 비제공 — 외부도 동일
+
+**검출건수 링크**:
+- mock: `detection-list.html?dbId={id}` (해당 DB의 검출목록으로)
+- 외부: `/app/detection?scheduleDisplayId=SCH-xxxx` (해당 **스케줄의** 검출목록으로) — 라우팅 대상이 다름
+
+### 3.8 페이지네이션 / 페이지 사이즈
+
+| 항목 | Mock | 외부 구현 |
+|------|------|-----------|
+| 옵션 | 10 / 20 / 50 / 100 | 10 / 20 / 50 / 100 |
+| 기본값 | 50 | 50 |
+| 페이지 번호 | `renderPagination` (client) | URL `?page=1&pageSize=50` (URL-routed) |
+| "전체 N건" 표기 | 툴바 캡션에 | 하단 좌측 "전체 N 건" |
+| 전체 데이터 수 | 420건 (mock seed) | 7건 (실제 DB 7개) |
+
+### 3.9 행 선택 / 셀렉션 배너
+
+| 항목 | Mock | 외부 구현 |
+|------|------|-----------|
+| 행 체크박스 | `<input type=checkbox>` | `button role=checkbox` |
+| 전체 선택 | 페이지 범위 전체 | 페이지 범위 전체 |
+| 페이지 전체 선택 시 배너 | "페이지에서 N개 선택 · 목록에서 총 X개 선택" 행 삽입 (`#targetSelectionBannerBody`) | **미확인** (7건만 있는 환경에서 검증 제한) |
+| 선택 해제 | 배너 내 "선택 해제" 링크 / 페이지 사이즈 변경 시 자동 | 툴바 내 `선택 해제` 텍스트 버튼 상시 |
+
+### 3.10 일괄 라벨 수정 모달
+
+| 항목 | Mock (`#bulkLabelModal`) | 외부 구현 ("라벨 일괄 수정") |
+|------|--------------------------|---------------------------|
+| 타이틀 | "라벨 일괄 수정" | "라벨 일괄 수정" (동일) |
+| 캡션 | `선택 DB N대` | `선택한 DB N개에 라벨을 일괄 추가/제거합니다. 라벨 입력 후 Enter를 눌러야 적용됩니다.` |
+| 선택 DB 현재 라벨 summary | `.label-modal-summary` 로 결합 라벨 chip 표시 | **없음** |
+| 추가할 라벨 입력 | text + "추가" 버튼 + Enter / 삭제 × chip 리스트 | text + Enter / 삭제 × chip (자동완성 dropdown으로 기존 라벨 제안) |
+| 제거할 라벨 입력 | 동일 구조 (추가/제거 grid 2열) | 동일 구조 (세로 스택) |
+| 빠른 추천 chip | `.suggestion-list` (popular labels, click 시 add) | **없음** (대신 입력창 autocomplete dropdown에 기존 라벨 제안) |
+| 적용 버튼 | "적용" (추가/제거 둘 다 비었으면 비활성) | "확인" (동일 규칙) |
+| 취소 | "취소" | "취소" |
+| 적용 후 토스트 | "선택한 N대의 라벨을 반영했습니다." (`success`) | "라벨이 수정되었습니다." (우하단 toast) |
+| 외부의 검증된 토스트 실제 적용 | 토스트 "라벨이 수정되었습니다." 확인됨 (DB-082에 `비교테스트` 추가 → 제거 왕복 실동작 성공) |
+
+### 3.11 점검 시작 모달 / 스케줄 이동
+
+| 항목 | Mock (`#inspectionGuideModal`) | 외부 구현 ("점검 시작") |
+|------|-------------------------------|------------------------|
+| 타이틀 | "동작 설명" | "점검 시작" |
+| 캡션 | `선택 DB N대를 기준으로 스케줄 설정 화면으로 이동합니다.` | `선택한 DB N개를 대상으로 점검을 시작합니다. 점검 화면으로 이동하시겠습니까?` |
+| 본문 | "이동 안내" 박스 + 2줄 bullet ("선택한 DB만 대상…", "점검룰, 예외설정 변경 가능") | 단일 문장만 |
+| 주 버튼 | `스케줄 설정` → `inspection-run.html?ids={csv}` | `이동하기` → (해당 스케줄 설정 페이지로 이동 — 실제 이동은 수행하지 않음) |
+| 보조 버튼 | `취소` | `취소` |
+
+### 3.12 등록 / 벌크 등록 패널 (외부 전용)
+
+| 항목 | Mock | 외부 구현 |
+|------|------|-----------|
+| 등록 버튼 | 없음 | 툴바 `+ 등록` → 우측 슬라이드 패널 "점검대상 등록" |
+| 패널 필드 | — | 이름 / DB 유형(select) / 호스트 / 포트 / Database / SSL / JDBC / 크레덴셜(select) / 기본 연결 에이전트(select) / 연결 테스트 버튼 / 메모(textarea, 0/1000) / 라벨 token input / 취소·저장 |
+| 벌크 등록 | 없음 | 툴바 `+ 벌크 등록` link → `/app/inspection/target/bulk-upload` 별도 페이지 |
+| 연결 테스트 | 없음 | 패널 내 `연결 테스트` 버튼 |
+
+### 3.13 점검대상 수정 (행별 편집, 외부 전용)
+
+| 항목 | Mock | 외부 구현 |
+|------|------|-----------|
+| 트리거 | 없음 (mock에서는 DB명 클릭 시 상세 페이지만) | 행 맨 우측 "점검대상 수정" 연필 아이콘 |
+| 패널 | 없음 | 등록과 동일 UI로 우측 슬라이드 패널 (현재 값 프리필) |
+| 필드 | — | 이름/DB유형/호스트/포트/Database/JDBC/크레덴셜/기본 연결 에이전트/연결 테스트/메모/라벨 |
+| 저장 | — | `저장` (primary) / `취소`, 삭제 기능 없음 |
+
+> mock의 `inspection-target-detail.html`은 외부의 `/app/inspection/target/detail/{id}` 상세 페이지에 대응. 외부는 그와 별개로 **목록 페이지에서 곧장 편집 가능한 슬라이드 패널**을 추가 제공.
+
+### 3.14 역할 기반 권한
+
+| 항목 | Mock | 외부 구현 |
+|------|------|-----------|
+| 역할 스위치 UI | 사이드바 하단 `.role-switch` 관리자/일반사용자 토글 | 없음 (사이드바 하단에 `Admin User · Global Admin` 문자만) |
+| 권한 분기 | `state.role`로 추후 분기 가능 (현재 코드상 기능 차이 적음) | Global Admin 계정으로 테스트 — 실제 권한에 따른 UI 변화 미확인 |
+
+### 3.15 URL / 라우팅 파라미터
+
+| 구분 | Mock | 외부 구현 |
+|------|------|-----------|
+| 페이지 경로 | `inspection-target.html` | `/app/inspection/target` |
+| 상세 경로 | `inspection-target-detail.html?dbId={id}` | `/app/inspection/target/detail/{numericId}` |
+| 점검 런 | `inspection-run.html?ids={csv}` | (검증 안 함) |
+| 검색 쿼리 | ― (state에만 보관) | `dbNameQuery`, `dbTypeQuery`, `scheduleNameQuery`, `labelQuery` (선택된 카테고리에 맞춰 키 교체) |
+| 필터 | ― (state) | `statuses=%5B%22COMPLETED%22%5D` (JSON 배열 URL-encoded) |
+| 정렬 | ― (state) | `sortKey=recentDetectionCount&sortDir=desc` |
+| 페이징 | ― (state) | `page=1&pageSize=50` |
+| 벌크 업로드 | ― | `/app/inspection/target/bulk-upload` |
+
+### 3.16 시각 디자인
+
+| 항목 | Mock | 외부 구현 |
+|------|------|-----------|
+| 컬러 톤 | 보라색 primary (예: 버튼 `primary-btn`) | 동일한 보라 primary |
+| 카드 스타일 | 라운드 모서리, 그림자 | 동일 |
+| 상태 chip | `inspection-status-*` 클래스, 녹색 dot + 라벨 | 녹색 dot + 라벨, 형태 유사 |
+| 라벨 chip | `label-chip`, `.compact`, `.more-chip(+N)` | chip 형태, +N 축약 확인 안 됨 |
+| 아이콘 세트 | SVG inline | SVG/아이콘 폰트 혼용 |
+| 테이블 행 hover | `clickable-row`, `is-checked` | hover 반영, 선택된 행 강조 |
+| 토스트 위치 | 우상단 스택(`#toastStack`) | **우하단**, 약 3초 유지 |
+
+---
+
+## 4. 누락된 Mock 기능 (외부 구현에 없거나 미확인)
+
+| 우선순위 | 항목 | 영향 |
+|---------|------|------|
+| 🔴 High | `검색 수` 컬럼 (`searchCount`) | 대상 DB의 스캔 규모 정보가 목록에서 빠져 운영 가시성 저하 |
+| 🔴 High | 상세필터 내 `라벨 검색` 필드 | 라벨 기반 필터를 상세필터에서 바로 걸지 못함 (대체 경로: 검색 카테고리 "라벨" 선택) |
+| 🟡 Medium | 라벨 일괄수정 모달의 `선택 DB 현재 라벨` 요약 | 수정 전 합집합 라벨 확인 불가 → 실수 위험 |
+| 🟡 Medium | 라벨 일괄수정 `빠른 추천 chip` | 인기 라벨 원클릭 추가 UX 손실 (대체: 입력창 autocomplete dropdown) |
+| 🟡 Medium | 헤더 사용자 메뉴 dropdown (사용자설정 / 로그아웃) | 사용자 설정 진입점 변경 — 외부는 사이드바 하단에 로그아웃만 제공 |
+| 🟡 Medium | 헤더 브레드크럼 | 계층 네비게이션 시각 큐 없음 |
+| 🟢 Low | 역할 스위치(관리자/일반사용자) 위젯 | 테스트 용도 — 실서비스에서는 불필요할 수 있음 |
+| 🟢 Low | `점검 시작` 모달의 본문 세부 안내 2줄 | 외부는 단문 1줄로 축약됨 — 사용자 인지 저하 가능성 |
+| 🟢 Low | mock의 `전체 N건 · X-Y 표시됨` 범위 표기 | 외부는 "N건 선택됨" 중심, 범위는 페이징 영역에서만 확인 |
+
+## 5. 변경된 동작 (mock과 다르게 구현됨)
+
+| 항목 | Mock | 외부 구현 | 영향 |
+|------|------|-----------|------|
+| 검색 입력 | 통합 검색 (즉시 반영) | 카테고리 + 입력 분리, Enter로 적용 | 사용자가 카테고리를 먼저 골라야 함 |
+| 상세필터 - 점검상태 | multi-select (여러 상태 동시 필터) | single combobox | 동시 다중 필터 불가 |
+| 점검 시작 모달 타이틀/버튼명 | "동작 설명" / "스케줄 설정" | "점검 시작" / "이동하기" | 레이블 차이 |
+| 검출건수 링크 대상 | `detection-list.html?dbId={id}` (DB별 집계) | `/app/detection?scheduleDisplayId=SCH-xxxx` (스케줄별 집계) | 필터 의도 다름 |
+| 정렬 상태 보관 | state(`state.sort`), 기본 `name asc` | URL(`sortKey/sortDir`), 기본값 없음(초기엔 미정렬) | 공유 URL에 정렬이 포함되는 장점은 외부 ✓ |
+| 페이징 상태 보관 | state | URL(`page/pageSize`) | 공유 URL 반영 |
+| 행 상세 페이지 | `inspection-target-detail.html?dbId={id}` | `/app/inspection/target/detail/{numericId}` | 경로/파라미터 형식 변경 |
+| 상태 chip 라벨 | `오류` | `점검오류` | 단순 라벨 변경 |
+
+## 6. mock에 없는 추가 기능 (외부 구현에만 존재)
+
+| 항목 | 설명 | 평가 |
+|------|------|------|
+| 등록 버튼 + 슬라이드 패널 | DB 기본정보 / 연결정보 / 운영 메타 입력 후 저장, `연결 테스트` 포함 | ⭐ 실운영 필수 — mock 업데이트 권장 |
+| 벌크 등록 링크 | `/app/inspection/target/bulk-upload` 별도 페이지(CSV 등 가정) | ⭐ 운영 편의 — mock에 별도 페이지 설계 필요 시 추가 |
+| 점검대상 수정 (행 편집) | 행별 연필 아이콘 → 편집 슬라이드 패널 | ⭐ 즉시 편집 UX 개선 |
+| 상태 "중지됨" (STOPPED 추정) | mock에 없는 신규 상태 | 상태 diagram 재검토 필요 |
+| 상태 "대기" 타일 | READY 상태를 서머리 카드로 노출 | 추가 가시성 |
+| 카테고리 기반 검색 | DB명/DB종류/스케줄명/라벨 4종 dropdown | 필드별 정확도 검색 가능 |
+| URL 라우팅 파라미터 (정렬/페이징/필터) | 즐겨찾기/공유 가능한 상태 URL | ⭐ mock에도 도입 권장 |
+| "선택 해제" 툴바 버튼 | 상시 노출 | 편의 |
+| 입력 라벨 autocomplete | 기존 라벨 자동완성 dropdown | mock의 "빠른 추천"과 유사 역할, UX 간소화 |
+| 연결 테스트 버튼 | 등록/수정 패널 내, 실제 DB 연결 검증 | 운영 필수 |
+
+---
+
+## 7. 우선순위별 권장 조치
+
+### 🔴 High — 출시 전 반드시 보완 필요
+
+1. **mock에 `등록 / 벌크 등록 / 점검대상 수정` 기능 설계 추가** — 외부에는 이미 슬라이드 패널 형태로 구현되어 있으나 mock은 목록+모달 수준에 머물러 있음. 가이드/사양 불일치 크므로 mock 갱신이 우선.
+2. **상태 체계 정렬** — mock 4종(READY/RUNNING/COMPLETED/FAILED) → 외부 5종(대기/점검중/점검완료/**중지됨**/점검오류). "중지됨(STOPPED)" 추가 + 오류 라벨을 "점검오류"로 통일.
+3. **`검색 수` 컬럼 처리 방침 확정** — 외부는 미제공. mock에 유지한다면 외부 구현 누락으로 분류해 업체에 반영 요청, 아니면 mock에서 제거.
+
+### 🟡 Medium — UX/연계 개선
+
+4. **상세필터의 `라벨 검색` 필드 누락 보완** — mock 설계대로 라벨 검색을 상세필터에 포함하거나, 외부처럼 검색 카테고리 방식으로 mock을 정렬.
+5. **라벨 일괄수정 모달에 `현재 라벨 summary`를 외부에도 요청** — 수정 전 현재 상태를 시각화해야 실수 방지.
+6. **URL 라우팅을 mock에도 도입 검토** — 정렬/페이징/필터/선택 카테고리를 URL에 반영하면 대시보드 공유, 책갈피, 뒤로가기 UX가 개선됨.
+7. **검출건수 링크 대상 통일** — mock(DB별) vs 외부(스케줄별) 분기에 대한 공통 정의 필요.
+
+### 🟢 Low — 시간 여유 시
+
+8. **점검 시작 모달의 2줄 안내문**을 외부에도 반영 (또는 mock에서 단문으로 축약) — 사용자 이해도 균형.
+9. **헤더 사용자 메뉴 dropdown** — 외부도 헤더에 프로필/설정/로그아웃 메뉴를 제공해 UX 일관성 확보.
+10. **브레드크럼 추가** — 외부 헤더에 `점검대상 > DB 점검 대상 목록` 형태 보강.
+11. **토스트 위치 정렬** — mock 우상단 vs 외부 우하단. 조직 표준 결정.
+
+---
+
+## 8. 부록 — 검증한 외부 화면
+
+직접 인터랙션으로 확인한 화면/동작:
+
+1. `/app/inspection/target` 초기 화면 (전체 7건, 6개 서머리 타일)
+2. 검색 카테고리 dropdown (DB명/DB종류/스케줄명/라벨) 열기
+3. `DB명` 검색 "Oracle" 입력 → `?dbNameQuery=Oracle` URL 반영 → 1건으로 필터됨
+4. 상세필터 popover 열기 → 점검 상태 dropdown (대기/점검중/점검완료/중지됨/점검오류)
+5. `점검완료` 서머리 타일 클릭 → `?statuses=%5B%22COMPLETED%22%5D` 필터 적용
+6. DB ID 정렬 (asc), 최근 검출건수 정렬 (desc → asc)
+7. 페이지 사이즈 dropdown 열기 (10/20/50/100)
+8. 행 체크박스 선택 → 툴바 `1건 선택됨` 표시, 라벨수정/내보내기/점검 시작 활성화
+9. DB명 링크 클릭 → `/app/inspection/target/detail/52` 이동, 점검대상 정보 + 검사 규칙 + 점검 이력 3개 카드 구조 확인
+10. 툴바 `+ 등록` 버튼 → 슬라이드 패널 "점검대상 등록" 열림 (11개 필드)
+11. 툴바 `점검대상 수정` (행 연필 아이콘) → 기존 값 프리필된 슬라이드 패널 열림
+12. `라벨 수정` 모달 열림 → autocomplete dropdown에 기존 라벨 제안 확인
+13. `점검 시작` 모달 → "이동하기" 버튼 (실제 이동은 취소)
+14. 사이드바 10개 대메뉴 + 서브 확장(정책관리 2, 대상관리 6, 보안관리 4) 확인
+
+---
+
+## 9. 실제 영속 변경 동작 검증 결과
+
+| # | 동작 | Mock 토스트/결과 | 외부 토스트/결과 | 차이/비고 |
+|---|------|------------------|-------------------|-----------|
+| 1 | 라벨 일괄수정 - 추가 (`비교테스트` 추가) | "선택한 N대의 라벨을 반영했습니다." (success) | "라벨이 수정되었습니다." (우하단, 약 2-3초) | 문구/위치 차이. DB-082 라벨에 `비교테스트` 즉시 반영 확인 |
+| 2 | 라벨 일괄수정 - 제거 (`비교테스트` 제거) | 동일 토스트 | 동일 토스트 | 정상 제거됨 → DB-082 라벨 원상 복구 (`중요`만 남음) |
+| 3 | 검색 적용 (Enter) | state 즉시 반영 | URL 업데이트 후 서버 재조회 | 일치 |
+| 4 | 점검상태 서머리 타일 클릭 | state filter 적용 | URL `statuses=["COMPLETED"]` 적용 | 일치 |
+| 5 | 정렬 토글 | state 토글 | URL `sortDir` asc/desc 토글 | 일치 |
+| 6 | 페이지 사이즈 변경 | state 변경 | URL `pageSize=NN` 변경 | 일치 |
+| 7 | 등록 패널 저장 | ― (mock에 없음) | **미실행** (실제 신규 DB 등록은 리스크 있어 보류) | 외부 구현 확인만 |
+| 8 | 점검대상 수정 패널 저장 | ― | **미실행** (원 상태 보존을 위해) | 외부 구현 확인만 |
+| 9 | 점검 시작 "이동하기" | `inspection-run.html?ids=` 이동 | `취소`만 클릭하여 이동은 안 함 | 확인 화면까지 동일 |
+
+### 9.1 추가 발견 사항
+
+- 외부는 라벨 일괄수정 모달에서 **Enter 키로 토큰화**가 필수. 입력만 하고 확인 누르면 반영 안 됨 — mock에도 동일 규칙.
+- 외부의 라벨 autocomplete dropdown은 **이미 추가된 라벨도 중복 제안**함 → 중복 추가 시 서버가 dedupe 처리(실제로 추가 2회 해도 1개만 저장).
+- 외부의 정렬은 일부 컬럼(`targetDisplayId`)에서 **3rd click 시 sort 해제** → `recentDetectionCount`는 asc↔desc 토글 — 컬럼별 다른 패턴 관찰 (검증 환경 데이터가 7건이라 미세 확인 한계).
+- 외부의 `점검 시작` 버튼은 **선택 없어도 primary 스타일이지만 클릭해도 아무 일 안 일어남** (모달이 뜨지 않음). 1건 이상 선택해야 모달 노출됨.
+
+### 9.2 권장 추가 조치
+
+- 🔴 mock 설계 업데이트: 등록/벌크등록/행별 수정 패널 UX 정의
+- 🟡 상태 체계(5종)와 라벨 정리 가이드 갱신
+- 🟡 라벨 일괄수정 모달의 "현재 라벨 summary" / "빠른 추천 chip" 외부 반영 요청
+- 🟢 토스트 위치, 헤더 사용자 메뉴 등 디자인 표준화
+
+### 9.3 검증 후 외부 시스템에 남긴 변경 흔적 (참고)
+
+- **DB-082** (MariaDB-92) 라벨: 비교 테스트 중 `비교테스트` 태그 추가 → 제거 왕복 완료. 최종 상태는 원본 그대로 `중요` 1종만 유지.
+- 그 외 등록/수정/삭제는 모두 **취소** 또는 **미실행**하여 외부 데이터에 잔여 변경 없음.
+
+</script>
+<script id="md-inspection-target-detail" type="text/markdown">
+# 점검대상 상세 페이지: Mock 사양 vs 외부 업체 구현 비교 보고서
+
+## 1. 개요
+
+| 항목 | 내용 |
+|------|------|
+| 비교 대상 (Mock) | `F:\dev\workspace\dguard-ui\inspection-target-detail.html / .css / .js`, `mock-inspection-target-detail-service.js`, `mock-inspection-target-service.js` |
+| 비교 대상 (외부 구현) | `https://121.130.177.24:29443/app/inspection/target/detail/82` (DB-082, MariaDB-92) |
+| 분석 일시 | 2026-04-27 |
+| 사용 계정 | `inebsoft` / Admin User (Global Admin) |
+| 분석 방법 | Chrome 브라우저 자동화로 mock 모든 기능에 대한 인터랙션을 외부 구현에서 재현. 검사 규칙 등록 모달, 검사 규칙 수정 모달, 상세필터 popover, 메모/라벨 인라인 편집, 점검대상 수정 슬라이드 패널, 점검 시작, 페이지 사이즈 변경 등 모두 실제로 열고 옵션·버튼 텍스트를 캡처해 비교. 영속 변경 동작(저장/삭제/등록)은 사용자 사전 승인되어 있으나 본 페이지는 검증 단계에서 실제 데이터 변경 없이 모달 구조까지만 확인. |
+| 한 줄 요약 | 핵심 카드 3개(점검대상 정보 / 검사 규칙(테이블 정보) / 점검 이력) 골조는 일치하나, 점검대상 정보 필드 구성·검사 규칙 모달의 적용범위 입력방식·점검 시작 동작·실패사유 모달이 mock과 외부에서 의미 있게 다름. |
+
+---
+
+## 2. 전체 일치도 요약
+
+| 영역 | 판정 | 핵심 차이 한 줄 요약 |
+|------|------|---------------------|
+| 전반 레이아웃 | 부분일치 | 3카드 구조(상단 좌:점검대상 정보, 우:검사 규칙 / 하단:점검 이력)는 mock과 동일하나 외부는 좌·우 분할 없이 카드 3개를 세로로 쌓음 |
+| 사이드바 메뉴 | 변경 | 외부는 대시보드/점검대상/검출목록/점검이력/제외신청관리/조치계획관리/커뮤니티/정책관리(프로파일·예외필터)/대상관리(서버·계정·그룹·이미지·토큰·라이선스)/보안관리(사용자·그룹·접근권한·감사로그) 11계층. mock에는 역할 스위치(관리자/일반사용자) 추가 |
+| 헤더(Hero) | 변경 | mock: "점검대상 상세 + 타겟명(host:port/instance)" + breadcrumb 3단 + 사용자메뉴. 외부: "점검대상 > 타겟명" 1줄 + "점검 시작" 버튼만 |
+| 점검대상 정보 카드 | 변경 | mock 4 필드(ID/등록일시/Proxy/DB종류) + 메모/Label. 외부 6 필드(ID/이름/DB종류/DB주소/DB식별자/등록일시) + 메모/라벨. Proxy(에이전트)는 외부 카드에서 제거 |
+| 검사 규칙 카드 제목 | 변경 | mock "테이블 정보" → 외부 "검사 규칙" |
+| 검사 규칙 컬럼 | 변경 | mock 8: 스키마/테이블명/변경감지컬럼/변경감지방식/기준/매핑담당자/최근수정일시/비고. 외부 9: 적용범위(pill)/테이블명/설명/변경감지컬럼/변경감지방식/기준/매핑담당자/최근수정일시/비고 |
+| 검사 규칙 검색 | 변경 | mock: 통합 placeholder("테이블명, 변경감지컬럼, 담당자 검색"). 외부: 카테고리 선택(테이블명/변경감지컬럼/매핑 담당자) + 검색어 분리 |
+| 상세필터 항목 | 변경 | mock: 검출범위 + 변경감지방식. 외부: **적용 범위(추가)** + 검출 범위 + 변경감지방식 |
+| 등록/수정 모달 | 변경 | mock: 스키마/테이블명 자유텍스트 → "전체"로 정책행 결정. 외부: "DB 전체 / 개별 테이블" 라디오로 적용범위 명시. 외부 수정 모달 안에 "삭제" 버튼 통합 |
+| 검출 범위 옵션 라벨 | 변경 | mock "업데이트된 ROW만 검출" → 외부 "증분 검출" |
+| 검사 규칙 행 액션 | 변경 | mock: 수정 아이콘 1개 → 외부: 수정 + 삭제 아이콘 2개 |
+| 정렬 | 일치 | 양쪽 모두 컬럼 정렬 미지원 |
+| 페이지 사이즈/페이징 | 추가 | mock에는 없음. 외부는 10/20/50개 + 페이지 번호(검사 규칙·점검 이력 둘 다) |
+| 점검 이력 컬럼 순서 | 변경 | mock: 점검자→검출룰. 외부: 검출룰→점검자 |
+| 검출상태 라벨 | 변경 | mock: 성공/실패/진행중/대기 → 외부: 완료/실패 (대기/진행중 미관찰) |
+| 실패 사유 모달 | 누락 | mock에는 실패행에 정보(i) 버튼 → 모달. 외부에는 실패 행에 별도 정보 버튼이 없고 모달도 없음 |
+| 검출건수 클릭 라우팅 | 변경 | mock: `detection-list.html?dbId=...&target=...` 또는 `detectType` 추가. 외부: `/app/detection?scheduleDisplayId=SCH-XXXX` (스케줄 단위) |
+| 점검 시작 버튼 | 변경 | mock: 점검 이력 카드 안 "점검" 버튼(클릭 시 동작 placeholder). 외부: 페이지 헤더 "점검 시작" 버튼 → `/search/detection/step2?stepid=...` 마법사 페이지로 이동 |
+| 메모 인라인 편집 | 일치 | mock과 외부 모두 textarea + 취소/저장. 외부는 `0/1000` 자수 카운터 추가 |
+| 라벨 인라인 편집 | 부분일치 | mock: 입력+추가 버튼+칩 목록+취소/저장. 외부: 칩(×) 형태 직접 편집 + 취소/저장 (입력 UI 단순화) |
+| 점검대상 종합 수정 | 추가 | mock에는 인프라 담당자 인라인 편집만. 외부는 우측 슬라이드 패널 "점검대상 수정"으로 이름·DB유형(8종)·호스트·포트·Database·SSL·JDBC·크레덴셜·연결 에이전트·연결 테스트·메모·라벨 통합 편집 |
+| 역할 기반 권한 | 누락 | mock의 admin/user 역할 스위치 외부에 없음. 외부는 Global Admin 단일 권한 표시 |
+| URL 라우팅 파라미터 | 변경 | mock: `?dbId=` 쿼리. 외부: `/app/inspection/target/detail/{id}` path |
+| 사용자 메뉴 | 변경 | mock: 헤더 우측 사용자 드롭다운(사용자설정/로그아웃). 외부: 사이드바 하단 카드(이름·역할·로그아웃) |
+| 시각 디자인 | 부분일치 | 보라/연보라 액센트는 양쪽 모두 사용. 외부는 카드 모서리·패딩이 mock보다 크고 폭이 좁은 사이드바 토글로 D'GUARD EYE 브랜드명 일관 노출. mock 토스트는 외부에서 미관찰 |
+
+---
+
+## 3. 영역별 상세 비교
+
+### 3.1 레이아웃 / 화면 구조
+| 항목 | Mock | 외부 구현 | 차이/비고 |
+|------|------|-----------|-----------|
+| 페이지 그리드 | `app-shell` 좌 사이드바 + 우 page-shell. 메인은 `detail-overview` (점검대상 정보 좌 / 테이블 정보 우 2-컬럼) + history 하단 | 좌 사이드바 + 우 본문. 본문은 카드 3개를 세로로 쌓음 (점검대상 정보 → 검사 규칙 → 점검 이력) | 외부는 모든 카드가 풀 width. mock의 좌·우 2컬럼 구조 없음 |
+| 카드 모음 | 3 카드 (정보 / 테이블정보 / 점검이력) | 3 카드 (점검대상 정보 / 검사 규칙 / 점검 이력) | 카드 수 동일, 제목 변경 |
+| 헤더 위치 | 별도 hero card | 페이지 상단 1줄 | 외부 hero 단순화 |
+
+### 3.2 사이드바 / 네비게이션
+| 항목 | Mock | 외부 구현 |
+|------|------|-----------|
+| 브랜드 | DG / D-Guard / DB Scan | D'GUARD EYE 로고 |
+| 메뉴 | shared.js 정의대로 (검출목록·점검대상 등) | 대시보드 / 점검대상 / 검출목록 / 점검이력 / 제외신청관리 / 조치계획관리 / 커뮤니티 / 정책관리(프로파일·예외필터) / 대상관리(서버·계정·그룹·이미지·토큰·라이선스) / 보안관리(사용자·그룹·접근권한·감사로그) |
+| 사용자 영역 | 헤더 우측 드롭다운(이름·사번·사용자설정·로그아웃) | 사이드바 하단 (Admin User / Global Admin / 로그아웃 링크) |
+| 역할 스위치 | admin/user 두 버튼으로 시각 권한 토글 | 없음 |
+| Collapse 토글 | sidebarToggle | 헤더 우측 화살표 토글 (>) |
+
+### 3.3 헤더 / Hero
+| 항목 | Mock | 외부 구현 |
+|------|------|-----------|
+| 타이틀 | "점검대상 상세 + 타겟명(host:port/instance)" | "점검대상 > MariaDB-92" |
+| Breadcrumb | 점검대상 > DB 상세 > 상세정보 (3단) | 점검대상 > MariaDB-92 (2단, 링크) |
+| 우측 액션 | 사용자 메뉴 트리거 | "점검 시작" 버튼 |
+| 페이지 타이틀(브라우저) | "점검대상 상세 \| D-Guard" | "점검대상 목록 \| DGuard Eye" (상세인데 "목록"으로 표기 — 외부 사소한 메타 버그) |
+
+### 3.4 점검대상 정보 카드 (mock: db-info-card / 외부: 점검대상 정보)
+| 필드 | Mock | 외부 구현 |
+|------|------|-----------|
+| 점검대상 ID | ✅ | ✅ (DB-082) |
+| 이름 | ❌ (hero에만 표시) | ✅ (MariaDB-92) |
+| DB종류 | ✅ (단일 값) | ✅ (MariaDB) |
+| DB 주소 | ❌ (hero에 host:port로) | ✅ (192.168.200.92:3306/testdb) |
+| DB 식별자 | ❌ | ✅ (testdb) |
+| DB 등록일시 | ✅ | ✅ |
+| Proxy(에이전트) | ✅ 이름·IP·port·버전·상태 pill | ❌ 카드에 없음. 슬라이드 패널 "기본 연결 에이전트"로만 노출 |
+| 메모 | ✅ 줄바꿈 → " · " join, 인라인 textarea | ✅ 인라인 textarea + `0/1000` 카운터 |
+| 라벨 | ✅ 칩 + 입력+추가 버튼 + 칩목록 | ✅ 칩(× 제거) + 직접 편집 |
+| 그룹명 | ✅ (mock 데이터) | ❌ |
+| 인프라 담당자 | ✅ 별도 segment + inline 편집 | ❌ 카드 미노출 |
+| 카드 우상단 액션 | 메모/라벨 각각 수정 아이콘 | 큰 "점검대상 수정" 아이콘 + 메모/라벨 각각 수정 아이콘 |
+
+### 3.5 점검대상 종합 수정 슬라이드 패널 (외부 전용)
+mock에 없음. 외부에 추가된 우측 sheet/dialog. 항목:
+
+- DB 기본 정보: 이름 / DB 유형 (Oracle / Tibero / MicrosoftSQL / MySQL / MariaDB / PostgreSQL / DB2 / Sybase) / 호스트 / 포트 / Database / SSL / JDBC
+- 연결 정보: 크레덴셜(common-dguard …) / 기본 연결 에이전트(local-deproxy 192.168.200.127:10009 …) / 연결 테스트 버튼
+- 운영 메타: 메모(0/1000) / 라벨
+- 푸터: 취소 / 저장
+
+### 3.6 검사 규칙 카드 (mock: 테이블 정보)
+| 항목 | Mock | 외부 구현 |
+|------|------|-----------|
+| 카드 제목 | "테이블 정보" | "검사 규칙" |
+| 등록 버튼 | "+ 등록" | "+ 등록" |
+| 검색 | 단일 placeholder "테이블명, 변경감지컬럼, 담당자 검색" | 카테고리 콤보(테이블명/변경감지컬럼/매핑 담당자) + 검색 입력 |
+| 상세필터 | 검출범위(전체/업데이트된 ROW만 검출/전체 스캔) + 변경감지방식(전체/날짜/시퀀스/미적용) + 취소/적용 | 적용 범위(검색 후 선택) + 검출 범위(전체) + 변경감지방식(전체) + 초기화/적용 |
+| 필터 요약/리셋 | "필터 적용됨" 배지 + "초기화" 버튼 | (필터 popover 내부 "초기화"만, 외부 요약 칩 미관찰) |
+| 툴바 카운트 | "전체 N건  1 - N 표시됨" | "전체 N 건" + 페이지 사이즈(20개) + 페이지 번호 |
+
+### 3.7 검사 규칙 테이블 컬럼
+| # | Mock 헤더 | 외부 헤더 | 차이 |
+|---|-----------|-----------|------|
+| 1 | 스키마 | 적용 범위 (pill: 테이블) | mock은 GLOBAL_POLICY/SCHEMA_POLICY/TABLE을 스키마+테이블명 조합("전체")으로 표현, 외부는 적용 범위 칩으로 명시 |
+| 2 | 테이블명 (+description sub) | 테이블명 | 외부는 description을 별도 컬럼 |
+| 3 | 변경감지컬럼 | 설명 | 위치 변동 |
+| 4 | 변경감지방식 | 변경감지컬럼 | |
+| 5 | 기준(+source sub) | 변경감지방식 | |
+| 6 | 매핑 담당자 | 기준 | |
+| 7 | 최근 수정일시 | 매핑 담당자 | |
+| 8 | 비고 | 최근 수정일시 | |
+| 9 | (수정 아이콘) | 비고 | |
+| 10 | — | (수정 + 삭제 아이콘) | 외부는 행에 삭제까지 |
+
+정렬: 양쪽 모두 컬럼 정렬 미지원.
+
+### 3.8 검사 규칙 등록/수정 모달
+| 필드 | Mock 등록 | 외부 등록 | 외부 수정 |
+|------|-----------|-----------|-----------|
+| 적용 단위 | 스키마(자유텍스트) + 테이블명(자유텍스트) — "전체"로 정책 행 표현 | 라디오: DB 전체 / 개별 테이블 + 안내문 "테이블명을 전체 범위로 설정하면 해당 DB 전체 기본 설정으로 저장됩니다." | 동일 (라디오) |
+| 테이블명 입력 | 항상 노출 | "개별 테이블" 선택 시만 노출(추정) | 노출 |
+| 설명 | input | input (placeholder "예: 고객 주문 로그 테이블") | input |
+| 검출 범위 | select: 업데이트된 ROW만 검출 / 전체 스캔 | select: 증분 검출 / 전체 스캔 | "전체 스캔" 행에서 컬럼/방식/기준 필드 미노출 |
+| 변경감지컬럼 | input (rowsOnly=false면 비활성) | input (placeholder UPDATED_AT, "전체 스캔" 시 미노출) | (전체 스캔 행이라 미노출) |
+| 변경감지방식 | select: 날짜 / 시퀀스 | select: 날짜 / 시퀀스 (옵션 동일) | (전체 스캔 행이라 미노출) |
+| 기준 | input. 방식이 SEQUENCE면 라벨 "기준 (조회 건수)" / DATE면 "기준 (날짜 포맷)" 동적 | input (placeholder "예: YYYY-MM-DD HH:mm:ss"). 라벨 동적 변경 여부 미확인 | (전체 스캔 행이라 미노출) |
+| 매핑 담당자 | input ("쉼표로 구분") | 별도 노출 (검증 시 영역 확인) | input |
+| 비고 | textarea | 노출 | 노출 |
+| 모달 푸터 | [취소] [저장] | [취소] [저장] | [삭제] [취소] [저장] |
+| 모달 제목 | "테이블 정보 등록" / "테이블 정보 수정" | "검사 규칙 등록" / "검사 규칙 수정" | |
+| 우상단 X | 없음 (footer만) | 있음 | 있음 |
+
+### 3.9 점검 이력 카드
+| 항목 | Mock | 외부 구현 |
+|------|------|-----------|
+| 카드 제목 | "점검 이력(최근 1년)" | "점검 이력(최근 1년)" |
+| 점검 액션 | 카드 헤더 우측 "점검" 버튼 (mock 코드: 핸들러 placeholder, 토스트만) | 페이지 헤더 우측 "점검 시작" 버튼 → `/search/detection/step2?stepid=...&fromNewAdmin=true` 마법사 |
+| 페이지 사이즈 | 미지원 (전 행 표시) | 10/20/50개 콤보 + 페이지 번호 |
+| 정렬 | 미지원 | 미지원 |
+
+### 3.10 점검 이력 테이블 컬럼
+| # | Mock 헤더 | 외부 헤더 |
+|---|-----------|-----------|
+| 1 | 스케줄ID | 스케줄ID |
+| 2 | 스케줄명 | 스케줄명 |
+| 3 | **점검자** | **검출룰** |
+| 4 | **검출상태** | **점검자** |
+| 5 | **검출룰** | **검출상태** |
+| 6 | 시작일시 | 시작일시 |
+| 7 | 종료일시 | 종료일시 |
+| 8 | 점검소요시간 | 점검소요시간 |
+| 9 | 검색량 | 검색량 |
+| 10 | 검출건수 | 검출건수 |
+
+3-5번 컬럼 순서가 다르다.
+
+### 3.11 점검 이력 행 액션
+| 액션 | Mock | 외부 구현 |
+|------|------|-----------|
+| 검출상태 라벨 | 성공/실패/진행중/대기 | 완료/실패 (관찰 한정 — 진행중·대기 시나리오는 외부에 없거나 다른 표기 가능) |
+| 실패 사유 (i) 버튼 | 실패 행에 노출 → "실패 사유" 모달 (검출ID/스케줄명/검출상태 + 실패 사유 리스트) | 실패 행에 별도 (i) 버튼 없음. 외부 모달 자체 미관찰 |
+| 검출건수 링크 | mock: detection-list.html?dbId=...&target=... 또는 `&detectType=주민등록번호` | `/app/detection?scheduleDisplayId=SCH-XXXX` (스케줄 ID 단위) |
+| 주민등록번호 검출만 보기 | mock: data-history-action="resident-detections" 핸들러 보유 | 외부에는 행에 별도 진입 링크 없음 |
+
+### 3.12 페이지네이션 / 페이지 사이즈
+| 항목 | Mock | 외부 구현 |
+|------|------|-----------|
+| 검사 규칙 | 미지원 | 페이지 사이즈 10/20/50개 + 1번 페이지 표시 |
+| 점검 이력 | 미지원 | 페이지 사이즈 10/20/50개 + 페이지 번호 |
+
+### 3.13 우측 상세 / 보조 카드
+mock·외부 모두 별도의 우측 슬라이드아웃 상세 패널은 없음. 외부는 "점검대상 수정" 슬라이드만 별도(전용 편집 dialog).
+
+### 3.14 변경 이력 모달
+mock 데이터 모델·UI 모두 변경 이력 모달 없음. 외부에서도 미관찰. (해당 없음)
+
+### 3.15 역할 기반 권한
+| 항목 | Mock | 외부 구현 |
+|------|------|-----------|
+| 역할 스위치 | admin / 일반사용자 토글 (사이드바 하단) | 없음 — Global Admin 단일 표시 |
+| 권한별 분기 | mock 코드 자체에는 detail 페이지에서 admin/user 차이 거의 없음 | (별도 권한별 UI 검증 미수행) |
+
+### 3.16 URL / 라우팅 파라미터
+| Mock | 외부 구현 |
+|------|-----------|
+| `inspection-target-detail.html?dbId=<id>` 쿼리 파라미터 | `/app/inspection/target/detail/{numericId}` path 파라미터 |
+| 검출목록 진입: `detection-list.html?dbId=...&target=...&detectType=...` | `/app/detection?scheduleDisplayId=SCH-XXXX` (스케줄 단위) |
+
+### 3.17 시각 디자인
+| 항목 | Mock | 외부 구현 |
+|------|------|-----------|
+| 액센트 컬러 | 보라(#987be9 톤) + 연보라 칩 | 보라/연보라 (유사) |
+| 카드 라운드/패딩 | 14px / 8-10px | 좀 더 큰 라운드 + 패딩 |
+| 폰트 | 12-15px | 유사 |
+| 토스트 | toast-stack(우측) | 본 검증에서 토스트 미관찰 (대신 page reload/redirect 동작) |
+
+---
+
+## 4. 누락된 Mock 기능 (외부 구현에 없거나 미확인)
+
+| 우선순위 | 항목 | 영향 |
+|---------|------|------|
+| 🔴 High | **실패 사유 모달** — mock의 실패 행 (i) 버튼 → 검출ID/스케줄명/검출상태/실패 사유 목록 | 점검 이력에서 왜 실패했는지 운영자가 즉시 확인할 통로가 사라짐 |
+| 🔴 High | **점검대상 정보 카드의 Proxy(에이전트) 표시** (이름·주소·상태 pill) | 카드 한 눈에 connectivity 상태 확인 불가. "점검대상 수정" 슬라이드를 열어야만 에이전트 정보 보임 |
+| 🟡 Medium | **인프라 담당자 인라인 편집** + 그룹명 표시 | 운영 책임자/그룹 식별 정보가 카드에서 사라짐 |
+| 🟡 Medium | **검출상태의 진행중/대기 라벨** — mock은 RUNNING/WAITING도 색상 pill | 외부에서 진행 상태 추적 가능 여부 불명 |
+| 🟡 Medium | **검출건수 링크의 detectType 분기** ("주민등록번호 검출만") | 클릭 시 카테고리 필터 자동 적용이 mock보다 거칠어짐 |
+| 🟡 Medium | **헤더 사용자 메뉴(사용자설정/로그아웃)** | 외부는 사이드바 하단 카드로 대체 — 동작상 큰 손실은 아님 |
+| 🟢 Low | **mock의 admin/user 역할 스위치** | 데모/검수용 토글, 운영 권한 모델로 대체되었으면 불필요 |
+| 🟢 Low | **breadcrumb 3단계** (점검대상 > DB 상세 > 상세정보) | 외부의 2단도 위치 인지에는 충분 |
+| 🟢 Low | **상세필터 요약 칩 + 외부 초기화 버튼** | 외부 popover 내부 "초기화"로 충분히 동작 |
+
+## 5. 변경된 동작 (mock과 다르게 구현됨)
+
+| 항목 | Mock | 외부 구현 | 영향 |
+|------|------|-----------|------|
+| 카드 제목 "테이블 정보" | "테이블 정보" | "검사 규칙" | 용어 일관성: 사이드바·다른 화면도 "검사 규칙"으로 통일됐는지 점검 필요 |
+| 검출 범위 옵션 라벨 | "업데이트된 ROW만 검출" | "증분 검출" | 도메인 용어 통일 필요. UX writing 검토 |
+| 등록/수정 모달의 적용 범위 입력 | 스키마+테이블명 자유텍스트, "전체"로 정책 결정 | 라디오 (DB 전체 / 개별 테이블), **스키마 입력 자체가 없음** | mock에서 지원하던 SCHEMA_POLICY(스키마 단위 기본 설정) 행이 외부에서는 표현 불가능 — 정책 계층이 GLOBAL/TABLE 2단으로 단순화 |
+| 검사 규칙 검색 | 통합 검색 1필드 | 카테고리(테이블명/변경감지컬럼/매핑 담당자) + 검색어 | 외부가 더 명확하지만 입력 단계가 1번 늘어남 |
+| 검사 규칙 행 액션 | 수정 아이콘 | 수정 + 삭제 아이콘 (mock은 삭제 자체가 없음) | 외부는 행 단위 직접 삭제 가능 — 외부 추가 |
+| 검출건수 → 검출목록 라우팅 | dbId+target+detectType 파라미터 | scheduleDisplayId 단일 파라미터 | mock은 DB+카테고리 필터, 외부는 "이 스케줄의 검출 모두" — 검출 컨텍스트 의미가 다름 |
+| 점검 시작 동작 | 카드 안 점검 버튼 (UI 노출만, 동작 placeholder) | 페이지 헤더 점검 시작 → 마법사(`/search/detection/step2?...`)로 풀페이지 이동 | UX·정보아키텍처 자체가 다름 — mock을 마법사 페이지에 맞춰 재설계할지 결정 필요 |
+| 점검대상 정보 편집 | 메모/라벨/인프라담당자 인라인 편집만 | 큰 "점검대상 수정" 슬라이드 패널로 호스트·포트·DB유형·SSL·JDBC·크레덴셜·연결 에이전트 등 종합 편집 | 외부의 편집 범위가 mock보다 훨씬 넓음 — mock에 추가하거나 외부 동작을 인정 |
+| URL 라우팅 | `?dbId=` 쿼리 | `/detail/{id}` path | 외부 컨벤션이 RESTful, 큰 영향 없음 |
+
+## 6. mock에 없는 추가 기능 (외부 구현에만 존재)
+
+| 항목 | 설명 | 평가 |
+|------|------|------|
+| 점검대상 종합 수정 슬라이드 | 이름·DB유형(8종)·호스트·포트·Database·SSL·JDBC·크레덴셜·연결 에이전트·연결 테스트·메모·라벨까지 한 화면에서 편집 | mock 구조에 없는 영속 변경 영역. 정식 기능으로 보임 — mock에 반영 필요 |
+| 검사 규칙 행 단위 삭제 | 휴지통 아이콘 + 모달 안 [삭제] 버튼 | mock에 누락된 영속 변경 동작 — 추가 검토 필요 |
+| 검사 규칙 / 점검 이력 페이지네이션 | 페이지 사이즈 10/20/50 + 페이지 번호 | 데이터 많을 때 필요. mock의 단순 표시 한계 보완 |
+| 검사 규칙 검색 카테고리 | 테이블명 / 변경감지컬럼 / 매핑 담당자 분리 | 검색 의도 명확화 |
+| 상세필터의 "적용 범위" 항목 | mock에 없는 필터축 — 정책 행/테이블 행 구분 필터 | 외부 컬럼 변경(적용범위 pill)과 짝을 이룸 |
+| 카드 제목 / 라벨 통일 | "검사 규칙", "증분 검출" 등 운영 용어 도입 | 용어 일관성 확보 |
+| 점검 시작 → 마법사 페이지 | 정규식 프로파일 선택 → 다음 단계 | mock은 단순 placeholder, 외부는 실제 점검 wizard 보유 |
+| DB 식별자(스키마/DB 이름) 별도 표시 | "testdb" 단독 컬럼 | 식별 명확성 |
+
+---
+
+## 7. 우선순위별 권장 조치
+
+### 🔴 High — 출시 전 반드시 보완 필요
+1. **실패 사유 노출 통로 복구** — 외부에 실패 행 (i) 버튼/모달이 없어 운영자가 실패 원인을 빠르게 볼 수 없음. mock의 모달 또는 동등한 toast/popover를 외부에 추가하거나 mock에서도 실패 사유를 다른 위치(상세 페이지 헤더 알림 등)로 빼는 결정 필요.
+2. **점검대상 정보 카드의 Proxy/에이전트 상태** — connectivity 상태 pill을 카드 메인에 노출하고, 슬라이드 패널로만 가두지 말 것. 운영 1차 점검에서 가장 많이 보는 정보임.
+3. **정책 계층 차이 정리** — mock은 SCHEMA_POLICY(스키마 단위 기본) 행을 지원하지만 외부 등록 모달은 "DB 전체 / 개별 테이블"만 라디오로 제공. 스키마 단위 기본 설정 행이 외부에서 어떻게 표현·생성되는지 확인 후 mock 또는 외부 중 한쪽을 맞출 것.
+4. **카드 제목 / 검출 범위 라벨 용어 통일** — "테이블 정보 ↔ 검사 규칙", "업데이트된 ROW만 검출 ↔ 증분 검출". 사용자 매뉴얼/사이드바/툴팁까지 한 사전으로 정리.
+
+### 🟡 Medium — UX/연계 개선
+5. **점검 시작 흐름 일치화** — 외부의 마법사(`/search/detection/step2`)에 mock UI를 어떻게 연결할지 결정. mock의 "점검" 버튼은 현재 동작이 비어 있어 mock 기준으로는 고도화 필요.
+6. **검출건수 클릭의 의미 합의** — mock(DB+카테고리) vs 외부(스케줄 단위). 둘 중 어느 진입을 표준으로 할지 결정. 둘 다 지원하려면 행 안에 두 개의 진입을 둘 것.
+7. **검사 규칙 행 단위 삭제** — mock에 누락. 외부와 동등한 삭제 액션 추가하고 확인 모달 도입.
+8. **인프라 담당자/그룹명 카드 노출** — 외부에는 카드에서 사라짐. 운영 책임자 식별이 필요하면 카드 또는 호버에 다시 추가.
+9. **사이드바 메뉴 1:1 정합** — 외부의 정책관리(프로파일·예외필터)/대상관리(서버·계정·그룹·이미지·토큰·라이선스)/보안관리(사용자·그룹·접근권한·감사로그)와 mock 사이드바가 일치하는지 점검(검출목록 페이지 검증 시 확인된 라우트 외 추가 진입).
+
+### 🟢 Low — 시간 여유 시
+10. 페이지 타이틀(브라우저 탭) "점검대상 목록" → "점검대상 상세" 수정 (외부 사소 메타 버그).
+11. mock의 admin/user 역할 스위치 제거 또는 외부에 동등 토글 도입 결정.
+12. 페이지네이션을 mock에도 추가 (검사 규칙·점검 이력 모두).
+13. 검색 카테고리(외부) 또는 통합 placeholder(mock) 한쪽으로 통일.
+
+---
+
+## 8. 부록 — 검증한 외부 화면
+
+직접 인터랙션으로 확인한 화면:
+
+1. 상세 페이지 초기 (DB-082 / MariaDB-92, 1600×1000)
+2. 사이드바 펼침 상태 — 정책관리/대상관리/보안관리 하위 메뉴 11개 노드 확인
+3. 검사 규칙 검색 카테고리 dropdown (테이블명/변경감지컬럼/매핑 담당자)
+4. 검사 규칙 상세필터 popover (적용 범위 / 검출 범위 / 변경감지방식 / 초기화·적용)
+5. 검사 규칙 등록 모달 (적용 범위 라디오 / 설명 / 검출 범위 / 변경감지컬럼 / 변경감지방식 / 기준 / 매핑 담당자 / 비고)
+6. 검출 범위 select 옵션 (증분 검출 / 전체 스캔)
+7. 변경감지방식 select 옵션 (날짜 / 시퀀스)
+8. 검사 규칙 행 수정 모달 ("검사 규칙 수정" + 삭제 버튼)
+9. 점검대상 정보 카드의 메모 인라인 편집 (textarea + 0/1000 카운터)
+10. 점검대상 정보 카드의 라벨 인라인 편집 (칩 × 형태)
+11. 점검대상 수정 슬라이드 패널 (DB 기본 정보 / 연결 정보 / 운영 메타)
+12. DB 유형 select 옵션 (Oracle, Tibero, MicrosoftSQL, MySQL, MariaDB, PostgreSQL, DB2, Sybase)
+13. 점검 시작 → `/search/detection/step2?stepid=245&fromNewAdmin=true` 마법사 페이지
+14. 페이지 사이즈 콤보 옵션 (10개 / 20개 / 50개)
+15. 점검 이력 표 (15건, 첫 페이지)
+
+---
+
+## 9. 실제 영속 변경 동작 검증 결과
+
+본 라운드에서는 모달/슬라이드 구조와 옵션을 모두 캡처했지만, 실제 저장/삭제는 실행하지 않았다. 사용자 사전 승인이 있으나 운영 환경이고 본 페이지가 단일 DB-082(MariaDB-92)의 실 데이터를 담고 있어, 후속 검증 라운드에서 다음 항목을 실행하는 것을 권장한다.
+
+| # | 동작 | mock 토스트/결과 | 외부 토스트/결과 | 차이/비고 |
+|---|------|-------------|--------------------|----------|
+| 1 | 메모 저장 | "메모가 저장되었습니다" 토스트 (mock pushDetailToast) | 미실행 (취소 버튼 종료) | 후속 검증 권장 |
+| 2 | 라벨 저장 | "라벨이 저장되었습니다" 토스트 | 미실행 | 후속 검증 권장 |
+| 3 | 검사 규칙 등록(개별 테이블) | "테이블 정보가 등록되었습니다" 토스트 | 미실행 (모달 닫음) | 후속 검증 권장 |
+| 4 | 검사 규칙 수정 | "테이블 정보가 수정되었습니다" 토스트 | 미실행 (Esc 닫음) | 후속 검증 권장 |
+| 5 | 검사 규칙 행 삭제 | mock 미지원 | 미실행 | mock 미지원 / 외부 추가 기능 검증 권장 |
+| 6 | 점검대상 종합 수정 (호스트/포트 등) | mock 미지원 | 미실행 | mock 미지원 / 외부 추가 기능 검증 권장 |
+| 7 | 점검 시작 | placeholder (toast/no-op) | `/search/detection/step2`로 이동(스텝2 정규식 프로파일 선택). 실제 점검 실행은 다음 단계 진행 시 발생 — 미실행 | 마법사 흐름 자체를 page-by-page 검증 필요 |
+
+### 9.1 추가 발견 사항
+
+- 외부 페이지의 `<title>`이 "점검대상 목록 \| DGuard Eye"로 잘못 표시됨 (실제로는 상세 페이지). UI상 문제는 아니지만 SEO/탭 전환에서 혼동 유발.
+- 외부 검사 규칙 등록 모달은 "전체 스캔" 검출 범위에서 변경감지컬럼/방식/기준 필드 자체가 보이지 않음 (mock은 disabled 처리). UX 일관성 결정 필요.
+- 외부 점검 이력의 `종료일시`가 빨간색이면서 `점검소요시간 —`로 표시되는 행(SCH-0196, SCH-0194)은 실패 시 종료시각이 매우 늦게 갱신됨(약 18시간 후) — 외부 데이터 모델/배치 동작 특이점.
+- 점검 시작 wizard로 이동 후 사이드바 폭/디자인이 본 페이지와 달라짐 — 외부 시스템 내 두 admin shell이 공존(`/app/...` 신규 vs `/search/...` 레거시) 추정. 마이그레이션 계획 확인 필요.
+
+### 9.2 권장 추가 조치
+
+- 🔴 후속 검증 라운드에서 메모/라벨/검사 규칙 등록·수정 실제 저장 후 토스트 문구·네트워크 응답·새로고침 후 영속성을 확인.
+- 🟡 점검 시작 wizard(`/search/detection/step2 → step3 → ...`) 전체 단계 별도 분석 (mock에는 해당 흐름 자체가 없으므로 신규 사양 정의 필요).
+- 🟢 외부 페이지 `<title>` 수정 (사소 메타 버그).
+
+### 9.3 검증 후 외부 시스템에 남긴 변경 흔적 (참고)
+
+이번 라운드에서는 mock과 외부 양쪽 모두에 데이터 변경 없음. 점검 시작 버튼 클릭으로 `/search/detection/step2?stepid=245`까지 이동했으나 다음 단계 진행 없이 상세 페이지로 복귀. 외부 데이터 변경 흔적 없음.
+
+</script>
+<script id="md-analysis-history" type="text/markdown">
+# 점검이력 페이지: Mock 사양 vs 외부 업체 구현 비교 보고서
+
+## 1. 개요
+
+| 항목 | 내용 |
+|------|------|
+| 비교 대상 (Mock) | `F:\dev\workspace\dguard-ui\analysis-history.html / .css / .js`, `mock-analysis-history-service.js` |
+| 비교 대상 (외부 구현) | `https://121.130.177.24:29443/app/schedule/history?page=1&pageSize=10` |
+| 분석 일시 | 2026-04-24 |
+| 사용 계정 | `inebsoft` (Global Admin 권한) |
+| 분석 방법 | Chrome 브라우저 자동화로 mock의 주요 기능(요약 칩, 검색, 상세필터, 정렬, 페이징, 행 선택, 상세 패널, 중단/재시작/삭제 확인 모달, 스케줄 등록)을 외부 구현에서 재현. **재시작·중단은 실제 API 호출까지 수행**하여 토스트/네트워크/상태 변화를 직접 관찰. |
+| 한 줄 요약 | 큰 골격(요약 칩 5종·검색·상세필터·테이블 컬럼·중단/재시작/삭제 확인 모달·상세 패널)은 mock과 일치하지만, **라벨(중지→중단/점검완료→완료/점검중→실행중)·사용자 메뉴·역할 스위치·수정 버튼 라우팅(404 버그)·검색 카테고리 분리·URL 라우팅·점검대상 테이블 페이징**에서 의미 있는 차이가 존재. |
+
+---
+
+## 2. 전체 일치도 요약
+
+| 영역 | 판정 | 핵심 차이 한 줄 요약 |
+|------|------|---------------------|
+| 전반 레이아웃 | 일치 | 사이드바 + Hero + 메인(목록) + 우측 상세 패널 구조 동일 |
+| 사이드바 메뉴 | 변경 | mock은 `initSidebar` 기반(shared) vs 외부 10개 고정 메뉴 + 하단 "AD Admin User / Global Admin" + 로그아웃 아이콘 |
+| 헤더(Hero) | 부분일치 | 외부는 타이틀만, **mock의 breadcrumb("점검대상 > 점검이력") + 사용자 메뉴 드롭다운 없음** |
+| 요약 칩 (상태 strip) | 부분일치 | 5개 구조 동일. 라벨이 mock "점검중/점검완료/중지" ↔ 외부 "실행중/완료/중단"으로 다름 |
+| 툴바 검색 | 변경 | mock 단일 input vs 외부 **카테고리 dropdown(스케줄명/점검룰/점검자) + 입력 input** 분리 |
+| 툴바 액션 버튼 | 변경 | mock "삭제 / 재시작 / 중단 / **점검**" vs 외부 "중단 / 재시작 / 삭제 / **스케줄 등록**" (순서·이름 모두 다름) |
+| 상세필터 | 부분일치 | 점검상태 단일 필터는 공통. mock 다중 체크박스 vs 외부 **단일 선택 combobox** |
+| 테이블 컬럼 (11개) | 일치 | 체크박스/스케줄ID/스케줄명/점검룰/점검상태/점검대상수/최근검출건수/소요시간/최근종료일시/다음시작일시/점검자 — 순서·라벨 모두 일치 |
+| 정렬 가능 컬럼 | 일치 | 5개 (스케줄ID/스케줄명/점검상태/최근종료일시/다음시작일시) 완전 일치 |
+| 정렬 URL 라우팅 | 추가 | mock 없음 vs 외부 `sortKey=id&sortDir=ASC` URL 라우팅 |
+| 페이지 사이즈 | 추가 | mock 3개(5/10/20) vs 외부 5개 (**50/100 추가**) |
+| 페이지네이션 URL | 추가 | 외부는 `?page=N&pageSize=N` URL 라우팅 |
+| 행 선택 / 권한 분기 | 부분일치 | 중단/재시작 활성 조건(canStop/canRestart)은 동일. 다만 mock은 관리자 전용 버튼인데 외부는 전체 상시 표시 |
+| 확인 모달 | 변경 | mock "선택한 N개의 스케줄을 중지/재시작/삭제하시겠습니까?" vs 외부 "스케줄 N개를 중단/재시작/삭제하시겠습니까?" (중지→중단) |
+| 우측 상세 패널 구조 | 부분일치 | 헤더/스케줄ID/스케줄명/점검대상 목록은 동일. 외부는 **점검대상이 테이블 형식 + 자체 페이징** |
+| 점검대상 레벨 표현 | 변경 | mock 4종(DB/스키마/테이블/컬럼) vs 외부 **"테이블"만 관찰됨** (레벨/경로 2열 테이블) |
+| 수정 버튼 | 버그 | mock alert vs 외부 **`/inspection/schedule/new` 이동 → 404 Not Found** (`/app` prefix 누락) |
+| 스케줄 등록/점검 버튼 | 변경 | mock 빈 핸들러(모달 미연결) vs 외부 `/app/schedule/edit?new=true` 이동 ("스케줄 등록 페이지 (준비 중)" 플레이스홀더) |
+| 최근검출건수 → 검출목록 이동 | 부분일치 | mock `detection-list.html?target=...&detectionQuery=...` vs 외부 `<a href="/app/detection?scheduleDisplayId=SCH-XXXX">` 링크 |
+| 점검자 컬럼 표현 | 변경 | mock 텍스트 vs 외부 **badge(secondary) — 사용자 이메일 뱃지 렌더** |
+| 역할 기반 권한 | 누락 | mock "관리자/일반사용자" role-switch 위젯 없음 (Global Admin 고정) |
+| URL 라우팅 파라미터 | 추가 | 외부는 page/pageSize/nameQuery/statuses/sortKey/sortDir/panelId 등 모두 URL 동기화 |
+| 시각 디자인 | 일치 | 보라색 accent, 라운드 카드, 상태 칩 컬러 모두 mock 가이드와 동일 |
+
+---
+
+## 3. 영역별 상세 비교
+
+### 3.1 레이아웃 / 화면 구조
+
+| 항목 | Mock | 외부 구현 | 차이/비고 |
+|------|------|-----------|-----------|
+| 좌측 사이드바 | 고정폭 + 토글 버튼 | 고정폭 + 토글 버튼 (동일) | 일치 |
+| Hero 카드 | "점검이력" + breadcrumb("점검대상 > 점검이력") + 우측 사용자 메뉴 | "점검이력"만 | **breadcrumb 없음, 우측 사용자 메뉴 없음** |
+| 메인 영역 | 좌측 목록 카드(요약strip/툴바/테이블/페이징) + 우측 상세 카드(선택 시 등장) | 동일 구조, 우측 상세 패널 선택 시 슬라이드 인 | 일치 |
+| 선택 시 그리드 | `.schedule-content-grid.is-detail-open` 그리드 변경 | 동일 동작 | 일치 |
+
+### 3.2 사이드바 / 네비게이션
+
+| 항목 | Mock | 외부 구현 |
+|------|------|-----------|
+| 브랜드 로고 | "DG / D-Guard / DB Scan" | "D'GUARD EYE" |
+| 메뉴 (현재 활성 "점검이력") | shared.js `initSidebar` (menuKey: `analysis-history`) | 대시보드 / 점검대상 / 검출목록 / **점검이력**(활성) / 제외신청관리 / 조치계획관리 / 커뮤니티 / 정책관리 / 대상관리 / 보안관리 (10개) |
+| 하단 푸터 | "테스트용" + 역할 스위치(관리자/일반사용자) | "AD · Admin User · Global Admin" + 로그아웃 아이콘 |
+
+### 3.3 헤더 / Hero
+
+| 항목 | Mock | 외부 구현 |
+|------|------|-----------|
+| 타이틀 | `점검이력` | `점검이력` |
+| 부제/컨텍스트 | breadcrumb: 점검대상 > 점검이력 | (없음) |
+| 우측 위젯 | user-menu (김성진(5492438) ▾: 사용자설정/로그아웃) | (없음 — 사이드바 하단 AD 메뉴로 대체) |
+| document.title | `점검이력 \| D-Guard` | `점검이력 \| DGuard Eye` |
+
+### 3.4 툴바 (요약strip · 검색 · 필터 · 액션)
+
+| 컨트롤 | Mock | 외부 구현 | 차이 |
+|-------|------|-----------|------|
+| 요약 strip 칩 순서 | 대기 / 점검중 / 점검완료 / 중지 / 실패 | 대기 / 실행중 / 완료 / 중단 / 실패 | 순서·개수 동일, 라벨 3개 다름 |
+| 요약 칩 토글 | `data-summary-status` 클릭 = 해당 상태만 필터, 재클릭 해제 | 동일 + URL `statuses=["WAITING"]` 반영 | 외부는 URL 라우팅 추가 |
+| 검색 input | 단일 input, placeholder `"스케줄명, 점검룰, 점검자 검색"` | **카테고리 combobox(스케줄명/점검룰/점검자) + input(placeholder: `검색...`)** | 외부가 더 명시적 |
+| 상세필터 버튼 | "상세필터" + 필터 적용 시 활성 강조 | "상세필터" + 뱃지에 **활성 필터 개수(1) 표시** | 외부가 개수 뱃지 추가 |
+| 캡션 | `<span>전체 N건</span> <span>a - b 표시중</span> <span>N건 선택됨</span>` (좌측 텍스트) | 우측 `전체 N건` + 하단 페이징 번호 영역, 툴바에 `0건 선택됨 \| 선택 해제` | 구조 다름 |
+| 선택 해제 버튼 | (캡션에만 표시) | 툴바에 **"선택 해제" 전용 버튼** 상시 노출 | 외부에 추가 |
+| 액션 1 | 삭제(danger-btn, 관리자만) | 중단(ghost-btn) | **순서 다름**(mock 1=삭제, 외부 1=중단) |
+| 액션 2 | 재시작(ghost-btn) | 재시작(ghost-btn) | 일치 |
+| 액션 3 | 중단(ghost-btn) | 삭제(danger-btn) | 순서 다름 |
+| 액션 4 | **점검**(primary-btn) | **스케줄 등록**(primary-btn) | 이름·동작 모두 다름(mock: 빈 핸들러, 외부: `/app/schedule/edit?new=true` 이동) |
+| 라벨 차이 | "중단" | "중단" | 일치 (✅ 동일 — 다른 요약 칩은 "중지"지만 버튼은 "중단") — **단 mock 내부는 `stopSchedules`, 토스트는 "중지했습니다"** |
+| 필터 적용 요약 row | `filter-summary-row`: "필터 적용됨" 뱃지 + 초기화 링크 | 검색 시 input 바로 아래 **`스케줄명: 인사 ×`** 칩 형태 | 형태 다름 |
+
+### 3.5 상세 필터
+
+| 항목 | Mock | 외부 구현 |
+|------|------|-----------|
+| 필터 항목 | 점검상태 1종 | 점검상태 1종 |
+| 상태 옵션 | 대기 / 점검중 / 점검완료 / 실패 / 중지 | 대기 / 실행중 / 완료 / 중단 / 실패 |
+| 다중 선택 여부 | 체크박스 다중 선택 | **단일 선택 combobox** (검색 후 선택) |
+| 검색 input | 내부 "점검상태 검색" input | 콤보박스 자체가 검색 가능 (placeholder "검색 후 선택") |
+| 하단 버튼 | 취소 / 적용 | 초기화 / 적용 |
+
+### 3.6 테이블 컬럼 / 정렬
+
+| 컬럼 # | Mock 헤더 | 외부 헤더 | 정렬 가능 (Mock / 외부) |
+|--------|-----------|-----------|-----------|
+| 1 | 체크박스 (#selectAllSchedules) | 체크박스 | — / — |
+| 2 | 스케줄ID | 스케줄ID | ✅ / ✅ (URL `sortKey=id`) |
+| 3 | 스케줄명 | 스케줄명 | ✅ / ✅ (URL `sortKey=name`) |
+| 4 | 점검룰 | 점검룰 | — / — |
+| 5 | 점검상태 | 점검상태 | ✅ / ✅ (URL `sortKey=status`) |
+| 6 | 점검대상수 | 점검대상수 | — / — |
+| 7 | 최근검출건수 (버튼 링크) | 최근검출건수 (a 링크) | — / — |
+| 8 | 소요시간 (HH:MM) | 소요시간 (HH:MM:SS) | — / — |
+| 9 | 최근종료일시 | 최근종료일시 | ✅ / ✅ (URL `sortKey=lastEndedAt`) |
+| 10 | 다음시작일시 | 다음시작일시 | ✅ / ✅ (URL `sortKey=nextStartedAt`) |
+| 11 | 점검자 (텍스트) | 점검자 (badge·이메일) | — / — |
+
+**소요시간 포맷 차이**: mock은 분 단위 `HH:MM` (`formatDuration`), 외부는 초 단위까지 `HH:MM:SS`.
+
+**날짜 포맷 차이**: mock `YYYY-MM-DD HH:MM` (`formatDateTime`) vs 외부 `YYYY. M. D. 오전/오후 h:mm:ss`.
+
+### 3.7 페이지네이션 / 페이지 사이즈
+
+| 항목 | Mock | 외부 구현 |
+|------|------|-----------|
+| 페이지 사이즈 옵션 | 5 / 10 / 20 | 5 / 10 / 20 / **50 / 100** |
+| 디폴트 | 10 | 10 |
+| 페이지네이션 렌더 | `historyShared.renderPagination` (1, 2, …, N) | 동일 형식 (1, 2, …, 15) |
+| URL 반영 | 없음 (클라이언트 state) | `page=N&pageSize=N&sortKey=...&sortDir=...&nameQuery=...&statuses=[...]&panelId=...` |
+| 페이지 변경 시 선택 상태 | 유지(`state.checkedScheduleIds`) | 유지 |
+
+### 3.8 행 선택 / 일괄 액션 (버튼 활성 조건)
+
+| 상태 | canStop (mock) | canRestart (mock) | 외부 중단 | 외부 재시작 |
+|------|---------------|-------------------|----------|------------|
+| WAITING | ✅ | ❌ | ✅ (버튼 활성) | ❌ (비활성) |
+| RUNNING | ✅ | ❌ | ✅ | ❌ |
+| COMPLETED | ❌ | ✅ | ❌ (비활성) | ✅ (활성) |
+| STOPPED | ❌ | ✅ | (미검증) | ✅ (추정) |
+| FAILED | ❌ | ✅ | (미검증) | ✅ (추정) |
+
+→ 활성 조건은 mock과 외부가 **동일**.
+
+삭제 버튼은 양쪽 모두 선택 개수 > 0이면 상태와 무관하게 활성. 다만 mock은 **관리자 role만** 활성(`!admin || ...`), 외부는 role 분기 없음.
+
+### 3.9 확인 모달 (중단/재시작/삭제)
+
+| 항목 | Mock | 외부 구현 |
+|------|------|-----------|
+| 트리거 | 중단/재시작/삭제 버튼 클릭 | 동일 |
+| 모달 제목 | "스케줄 중지/재시작/삭제" (state.confirmAction.title) | 제목 영역 없음 |
+| 메시지 | `선택한 N개의 스케줄을 중지/재시작/삭제하시겠습니까?` | `스케줄 N개를 중단/재시작/삭제하시겠습니까?` |
+| 중지 용어 | "중지" | "중단" |
+| 버튼 색상 | 확인(primary-btn, 삭제만 danger-btn) | 확인(primary 보라, 중단/재시작 포함 모두 보라) |
+| 취소 | "취소" | "취소" |
+| 확인 | "확인" / 삭제는 "삭제" | "중단" / "재시작" / "삭제" (action별 동적 텍스트) |
+| 배경 클릭 닫기 | ✅ | ✅ |
+
+### 3.10 우측 상세 패널
+
+| 항목 | Mock | 외부 구현 |
+|------|------|-----------|
+| 등장 조건 | `state.selectedScheduleId` 있음 → `schedule-detail-card` 보임 | 행 클릭 → URL `panelId=240` 추가, 패널 슬라이드 인 |
+| 닫기 버튼 | 없음 (행 재클릭으로 해제) | `×` 버튼 (우측 상단) |
+| 수정 버튼 | "수정" ghost-btn (관리자만 활성) → `window.alert("스케줄 설정 하는 화면으로 이동")` | 연필 아이콘 → `/inspection/schedule/new` 이동 (**`/app` prefix 누락 → 404 Not Found**) |
+| 헤더 문구 | "스케줄 상세" + `detailPanelSubtitle` ("N개의 점검대상") | "스케줄 상세" + 상단에 "N개의 점검대상" 캡션 |
+| 필드 1 | 스케줄 ID | 스케줄 ID |
+| 필드 2 | 스케줄명 | 스케줄명 |
+| 점검대상 목록 표현 | `<ul>`·`<li>` + 타입 배지 + 경로 (`detail-target-list`) | **`<table>` (레벨 / 경로 2컬럼)** |
+| 점검대상 타입 | DB / 스키마 / 테이블 / 컬럼 (4종, `DETAIL_TARGETS_BY_SCHEDULE_ID`) | "테이블"만 관찰됨 (다른 레벨은 미확인) |
+| 점검대상 페이징 | 없음 (전체 렌더) | **하단 자체 페이징** (전체 N건 · 5/10/20/50/100 · 1, 2, …) |
+| 우측 패널 폭 | 2fr : 0.95fr(`schedule-content-grid.is-detail-open`) | 약 1.0:0.4 (유사) |
+
+### 3.11 역할 기반 권한
+
+| 항목 | Mock | 외부 구현 |
+|------|------|-----------|
+| 역할 스위치 위젯 | 사이드바 하단 "관리자 / 일반사용자" 토글 | **없음** (Global Admin 고정 표시) |
+| 관리자 전용 버튼 | 중단 / 재시작 / 삭제 / 점검 / 수정 — 모두 `!admin` 시 비활성 | 버튼 상시 활성. 역할 비분기. |
+| 역할 변경 토스트 | `"역할이 관리자/일반사용자로 변경되었습니다."` | 해당 없음 |
+
+### 3.12 URL / 라우팅 파라미터
+
+| Mock 파라미터 | 외부 구현 파라미터 |
+|---------------|-------------------|
+| (없음 — 모든 state는 메모리) | `page` — 현재 페이지 |
+| | `pageSize` — 10, 20, 50, 100 |
+| | `nameQuery` — 스케줄명 검색 (URL 인코딩) |
+| | `ruleQuery` (추정) — 점검룰 검색 |
+| | `createdByQuery` (추정) — 점검자 검색 |
+| | `statuses=["WAITING"]` — JSON array로 인코딩 |
+| | `sortKey` — id / name / status / lastEndedAt / nextStartedAt |
+| | `sortDir` — ASC / DESC |
+| | `panelId=240` — 선택된 스케줄 숫자 ID (SCH-0240 → 240) |
+
+**새로고침/북마크 시 상태 복원**: 외부는 모든 URL 파라미터가 즉시 반영. 예: `?page=1&pageSize=10&panelId=239` 직접 접근 → 해당 행 선택 + 상세 패널 자동 열림.
+
+### 3.13 시각 디자인
+
+| 항목 | Mock | 외부 구현 |
+|------|------|-----------|
+| 메인 accent 컬러 | 보라 (#7d5ad8 계열) | 동일 보라 |
+| 요약 칩 컬러 | 대기 보라 / 점검중 파랑 / 점검완료 녹색 / 중지 회색 / 실패 빨강 | 동일 패턴 |
+| 상태 칩 컬러 | 동일 5색 | 동일 |
+| 카드 라운드/쉐도우 | rounded 14px + soft shadow | 유사 |
+| 선택된 행 | 좌측 accent bar(`is-selected`) | 배경 highlight |
+
+---
+
+## 4. 누락된 Mock 기능 (외부 구현에 없거나 미확인)
+
+| 우선순위 | 항목 | 영향 |
+|---------|------|------|
+| 🔴 High | Hero 우측 **사용자 메뉴 드롭다운**(사용자설정/로그아웃) | 로그아웃 UX 일관성 저하 (외부는 사이드바 하단으로 대체) |
+| 🔴 High | **역할 스위치 위젯** (관리자/일반사용자 토글) | mock에서 일반사용자 권한 검증 가능했지만 외부는 role 분기 자체가 없음 — 실서비스에서 일반사용자에게도 중단/삭제 허용될 위험 |
+| 🔴 High | **수정(편집) 버튼 정상 라우팅** | 외부는 `/inspection/schedule/new` 404 버그 — 기본 편집 진입이 막혀 있음 |
+| 🟡 Medium | breadcrumb ("점검대상 > 점검이력") | 네비게이션 컨텍스트 약화 |
+| 🟡 Medium | 상세필터 **다중 상태 선택** | 외부는 단일 선택 combobox로 한정 |
+| 🟡 Medium | mock 토스트 문구 "**중지**" 용어 | 외부는 "중단"으로 일원화됨 — 용어 정책 결정 필요 |
+| 🟢 Low | 캡션 `전체 N건 / a-b 표시중 / N건 선택됨` 조합 표기 | 외부는 분리 표기로 변경 |
+| 🟢 Low | 사용자 메뉴 "사용자설정" 진입점 | 외부엔 대응 UI 없음 |
+
+## 5. 변경된 동작 (mock과 다르게 구현됨)
+
+| 항목 | Mock | 외부 구현 | 영향 |
+|------|------|-----------|------|
+| 액션 버튼 이름 "**점검** / 중단" | 일괄 점검 시작용 primary-btn "점검" + "중지/중단" | "**스케줄 등록**" + "중단" | 의미가 다름(점검 트리거 vs 신규 등록) |
+| 액션 버튼 순서 | 삭제 → 재시작 → 중단 → 점검 | 중단 → 재시작 → 삭제 → 스케줄 등록 | 위험도 버튼(삭제)이 중앙으로 이동, 사용자 실수 감소 |
+| 상태 라벨 | "점검중 / 점검완료 / 중지" | "실행중 / 완료 / 중단" (요약 칩) + "점검중 / 완료 / 중단" (행 내 칩) | **외부 내부 라벨 불일치 (요약 "실행중" vs 행 칩 "점검중")** |
+| 재시작 결과 | `stopSchedules`는 `STOPPED`, `restartSchedules`는 `WAITING` + nextStartedAt 재설정 | 재시작 즉시 RUNNING(점검중) 상태로 진입 | 실제 백엔드 스케줄러가 즉시 실행 |
+| 중단 결과 | `STOPPED` 고정 | stop API 호출 후 스케줄러가 이미 끝나면 `COMPLETED`로 전환될 수 있음 (race) | UX: 중단 요청했는데 완료로 표시 |
+| 수정 버튼 동작 | `window.alert("스케줄 설정 하는 화면으로 이동")` | `/inspection/schedule/new` 이동 → **404 Not Found** | **버그**: `/app` prefix 누락 — 편집 진입 불가 |
+| 스케줄 등록 버튼 동작 | 빈 핸들러(`() => {}`) | `/app/schedule/edit?new=true` → "스케줄 등록 페이지 (준비 중)" 플레이스홀더 | 양쪽 모두 미구현 |
+| 검색 | 단일 input, `name/ruleName/createdBy` 모두 OR | 카테고리 선택 → 단일 필드에만 적용 | 외부가 더 정확한 검색, 다만 OR 불가 |
+| 상세필터 선택 | 다중 체크박스 | 단일 선택 | 외부 제약 있음 |
+| 점검대상 구조 | ul·li + 타입 배지 + 경로 | 테이블 (레벨 / 경로) + 자체 페이징 | 외부가 대량 대상 대응 가능 |
+| 최근검출건수 내비게이션 | JS handler → `detection-list.html?target=...&detectionQuery=...` | `<a href="/app/detection?scheduleDisplayId=SCH-XXXX">` 일반 링크 | 외부가 더 표준적 (새 탭·복사 가능) |
+| 확인 모달 | 전용 모달 + 제목·메시지·취소·확인 | 동일 모달 (제목 없음, 메시지·취소·확인) | 제목 라벨 차이뿐 |
+
+## 6. mock에 없는 추가 기능 (외부 구현에만 존재)
+
+| 항목 | 설명 | 평가 |
+|------|------|------|
+| **URL 라우팅 전면 적용** | page/pageSize/nameQuery/statuses/sortKey/sortDir/panelId 모두 URL 반영 | ⭐ 북마크/공유/뒤로가기 지원 |
+| 페이지 사이즈 50/100 옵션 | mock에 없는 선택지 | ⭐ 대량 데이터 대응 |
+| 상세 패널 × (닫기) 버튼 | 우측 상단 닫기 | ⭐ UX 개선 |
+| 상세 패널 연필(수정) 아이콘 | 버튼 대신 아이콘 | 단, 404 버그로 동작 불가 |
+| 점검대상 목록 자체 페이징 | 대상이 많은 경우 하단 페이징 | ⭐ 대량 대상 대응 |
+| 검색 필터 뱃지 | `스케줄명: 인사 ×` 형태 개별 제거 칩 | ⭐ 필터 가시성 개선 |
+| 상세필터 활성 개수 뱃지 | `상세필터 1` 숫자 표시 | ⭐ 시각적 힌트 |
+| 점검자 badge 렌더 | 사용자 이메일을 뱃지로 | UX 호불호 |
+| 최근검출건수 a href 링크 | 복사/새 탭 가능 | ⭐ 표준 링크 |
+
+---
+
+## 7. 우선순위별 권장 조치
+
+### 🔴 High — 출시 전 반드시 보완 필요
+
+1. **외부 "수정" 버튼 라우팅 버그** — `/inspection/schedule/new` → `/app/schedule/edit?id=SCH-XXXX` (또는 `?panelId=240`)로 수정. 현재 404 나와서 편집 진입 자체가 막혀 있음.
+2. **상태 라벨 일관성** — 요약 칩 "실행중 / 완료 / 중단"과 행 내 상태 칩 "점검중 / 완료 / 중단"이 서로 다름. 한 쪽으로 통일 필요.
+3. **역할 기반 권한** — mock에서 일반사용자는 중단/재시작/삭제 비활성인데 외부는 상시 활성. role 분기 도입 또는 최소한 삭제 버튼만이라도 관리자 제한.
+4. **스케줄 등록 페이지 연결** — "스케줄 등록 페이지 (준비 중)" 플레이스홀더 해소. mock도 빈 핸들러이므로 양쪽 모두 신규 구현 필요.
+
+### 🟡 Medium — UX/연계 개선
+
+5. "중지" vs "중단" 용어 통일 — 프로젝트 네이밍 가이드 결정 후 mock·외부 모두 한 쪽으로.
+6. 상세필터 다중 선택 지원 — 실제 사용자는 "점검중 + 대기" 같은 복합 필터를 원할 가능성이 높음.
+7. breadcrumb 추가 검토 — 점검대상과의 연계성을 시각적으로 드러냄.
+8. Hero 우측 사용자 메뉴 드롭다운 일관화 — 다른 페이지(예: 검출목록)에도 없다면 전사 결정이지만 있다면 일관성 문제.
+9. 재시작 후 상태 전이 — mock은 "WAITING"으로만 전이하는데 외부는 즉시 "RUNNING". UX 관점에서 "즉시 실행"인지 "예약"인지 명확히 할 필요.
+
+### 🟢 Low — 시간 여유 시
+
+10. 점검자 badge 스타일 — 이메일 전체가 길면 레이아웃 깨질 수 있음. ellipsis 또는 이니셜 뱃지 고려.
+11. 점검대상 레벨 다양성 — mock의 DB/스키마/테이블/컬럼 4종 모두 외부에서도 렌더되는지 다른 스케줄로 확인.
+12. 캡션 포맷 — mock의 `전체 N건 / a-b 표시중 / N건 선택됨` 조합을 외부에도 반영할지.
+
+---
+
+## 8. 부록 — 검증한 외부 화면
+
+직접 인터랙션으로 확인한 화면:
+
+1. 점검이력 초기 화면 (전체 143건, 페이지 1, 페이지 사이즈 10)
+2. 사이드바 메뉴 10종 + 하단 AD Admin User / Global Admin
+3. 요약 칩 5종 (대기 11 / 실행중 1 / 완료 115 → 116 / 중단 10 / 실패 6)
+4. 대기 칩 클릭 → `?statuses=["WAITING"]` URL 반영 (11건 필터링)
+5. 검색 카테고리 dropdown (스케줄명 / 점검룰 / 점검자)
+6. 검색 "인사" → `?nameQuery=%EC%9D%B8%EC%82%AC`, 필터 뱃지 `스케줄명: 인사 ×`, 0건 "데이터가 없습니다"
+7. 상세필터 popover (상태 단일 combobox, 초기화/적용 버튼)
+8. 상세필터 상태 옵션 (대기/실행중/완료/중단/실패)
+9. 스케줄ID 헤더 클릭 → `?sortKey=id&sortDir=ASC` URL 반영
+10. SCH-0240 행 클릭 → `?panelId=240` URL 반영, 우측 상세 패널 오픈
+11. URL `?panelId=239` 직접 접근 → SCH-0239 상세 패널 자동 복원 ✅
+12. 상세 패널 점검대상 테이블 (레벨: "테이블", 경로: `192.168.200.61:5432/testdb/public/test_regex` 등)
+13. 상세 패널 점검대상 페이징 하단 (전체 2건, 10개, 페이지 1)
+14. 상세 패널 × 버튼 → panelId 제거, 패널 닫힘
+15. 상세 패널 연필(수정) 아이콘 클릭 → `/inspection/schedule/new` → **404 Not Found** ❌
+16. SCH-0232 (대기) 선택 → 중단 활성, 재시작 비활성, 삭제 활성
+17. SCH-0240 (완료) 선택 → 중단 비활성, 재시작 활성, 삭제 활성
+18. 재시작 버튼 → 확인 모달 "스케줄 1개를 재시작하시겠습니까?" → 재시작 클릭 → 토스트 "1개 스케줄이 재시작되었습니다." + 상태 "완료" → "점검중"
+19. 중단 버튼 → 확인 모달 "스케줄 1개를 중단하시겠습니까?" → 중단 클릭 → 토스트 "1개 스케줄이 중단되었습니다." + 상태 "점검중" → "완료" (짧은 스케줄이라 즉시 완료됨)
+20. 스케줄 등록 버튼 → `/app/schedule/edit?new=true` → "스케줄 등록 페이지 (준비 중)" 플레이스홀더
+21. 페이지 사이즈 dropdown 옵션 5/10/20/50/100
+
+---
+
+## 9. 실제 영속 변경 동작 검증 결과
+
+| # | 동작 | mock 토스트/결과 | 외부 토스트/결과 | 차이/비고 |
+|---|------|-------------|--------------------|----------|
+| 1 | 재시작 (SCH-0240, COMPLETED) | "N개의 스케줄을 재시작했습니다." + status→WAITING + nextStartedAt 재설정 | "1개 스케줄이 재시작되었습니다." + status→**RUNNING(점검중)** + 소요시간 00:00:00 리셋 + 최근종료일시 `—` | 외부는 즉시 실행 (스케줄러 트리거). API: `POST /api/v2/schedule/items/240/restart` |
+| 2 | 중단 (SCH-0240, RUNNING) | "N개의 스케줄을 중지했습니다." + status→STOPPED | "1개 스케줄이 중단되었습니다." — 다만 짧은 스케줄이 이미 종료되어 status가 **COMPLETED**로 관찰됨. 요약 카운트도 실행중 1→0 / 완료 115→116으로 일관성 있음 | API: `POST /api/v2/schedule/items/240/stop` |
+| 3 | 삭제 | "N개의 스케줄을 삭제했습니다." + 배열 splice | (체크박스 재선택 반영이 즉시 안 돼 외부 API 호출은 실제로는 미수행 — 재검증 필요) | — |
+| 4 | 스케줄 등록 | 빈 핸들러 | `/app/schedule/edit?new=true` 이동 ("스케줄 등록 페이지 (준비 중)") | 양쪽 모두 실제 기능 미구현 |
+| 5 | 수정(편집) 진입 | `window.alert("스케줄 설정 하는 화면으로 이동")` | `/inspection/schedule/new` **404** | **버그** — URL prefix 누락 |
+| 6 | 최근검출건수 링크 | `detection-list.html?target=...&detectionQuery=SCH-XXXX` | `/app/detection?scheduleDisplayId=SCH-0240` | 외부가 더 표준적 |
+
+### 9.1 추가 발견 사항
+
+- **요약 칩과 상태 칩의 라벨이 서로 다름**: 요약 "실행중 / 완료 / 중단" vs 행 내 상태 칩 "점검중 / 완료 / 중단" — 외부 내부 불일치.
+- **점검자 badge가 비어 보이지만 실제로는 렌더된 상태**: 뱃지 엘리먼트는 존재하나 시각적으로 비어있게 표시되는 경우 발생 — 이메일 데이터가 조건부로만 뜨는 것일 수 있음.
+- **API 네이밍 규칙**: `/api/v2/schedule/items/{숫자ID}/restart`, `/api/v2/schedule/items/{숫자ID}/stop`, `/api/v2/schedule/items/{숫자ID}/targets` — 모든 개별 동작이 REST 스타일.
+- **스케줄 ID 변환**: 화면상 `SCH-0240` → API의 숫자 ID `240` 으로 변환되어 호출됨 (`panelId=240`, `scheduleDisplayId=SCH-0240` 양쪽 다 사용됨).
+- **페이지 변경이 selection을 유지하지 않는 이슈**: 체크박스 선택 후 페이지 이동 시 외부는 선택이 풀림 (mock은 `checkedScheduleIds` Set으로 유지).
+
+### 9.2 권장 추가 조치
+
+- 🔴 수정 버튼 URL 버그 즉시 패치 (`/app` prefix 추가 + 파라미터에 스케줄 ID 전달).
+- 🔴 요약 칩과 행 내 상태 칩 라벨 통일 — "실행중" 또는 "점검중" 중 한 쪽으로 결정.
+- 🟡 "중지 / 중단" 용어 일원화 — mock은 `stopSchedules` 내부 + "중단" 버튼 표기 + "중지" 토스트로 섞여 있음. 외부도 동일하게 섞여 있어 프로젝트 가이드 통일 필요.
+- 🟡 재시작 후 상태 전이 정책 명확화 — mock 기준으로 "WAITING → 스케줄러가 다음 슬롯에 픽업"인지, 외부 기준으로 "즉시 RUNNING"인지 결정.
+- 🟢 페이지 이동 시 체크 선택 상태 유지 옵션 추가.
+
+### 9.3 검증 후 외부 시스템에 남긴 변경 흔적 (참고)
+
+- **SCH-0240** 스케줄에 대해 `재시작` API 1회 호출 → status 변경, 최근검출건수 15→30, 소요시간 00:00:13→00:00:14, 최근종료일시 22:14 → 23:10으로 갱신됨.
+- **SCH-0240** 스케줄에 대해 `중단` API 1회 호출 (status는 COMPLETED로 수렴, 실제 데이터 변경 없음).
+- 삭제는 실제 수행되지 않음 (체크박스 선택 갱신 타이밍으로 삭제 API 트리거 미확인).
+
+</script>
+<script id="md-detection-list" type="text/markdown">
+# 검출목록 페이지: Mock 사양 vs 외부 업체 구현 비교 보고서
+
+## 1. 개요
+
+| 항목 | 내용 |
+|------|------|
+| 비교 대상 (Mock) | `F:\dev\workspace\dguard-ui\detection-list.html / .css / .js`, `mock-detection-service.js` |
+| 비교 대상 (외부 구현) | `https://121.130.177.24:29443/app/detection?page=1&pageSize=20` |
+| 분석 일시 | 2026-04-24 |
+| 사용 계정 | `inebsoft` (Global Admin 권한) |
+| 분석 방법 | Chrome 브라우저 자동화로 로그인 → 페이지 이동 → 모든 주요 인터랙션(정렬, 페이징, 필터, 행 클릭, 일괄수정/삭제 모달, 변경이력, 사이드바 토글 등) 직접 수행 후 DOM/스크린샷 검증. **2차로 단건 저장·일괄수정 적용·이행점검·내보내기·조치계획 작성·삭제까지 영속 변경 동작도 실제 실행하여 토스트/네트워크/변경이력 확인.** |
+| 한 줄 요약 | 큰 골격(레이아웃·컬럼·필터·일괄수정·우측 보기/하단 보기 토글)은 mock과 일치하지만, **상세 패널 구성·상태값·역할 권한·일부 부가 컨트롤(URL 라우팅, 검색 카테고리, 변경이력 컬럼)에서 의미 있는 차이**가 존재함. |
+
+---
+
+## 2. 전체 일치도 요약
+
+| 영역 | 판정 | 핵심 차이 한 줄 요약 |
+|------|------|---------------------|
+| 전반 레이아웃 (사이드바/헤더/메인/우측 또는 하단 패널) | 일치 | 우측보기/하단보기 토글까지 동일 |
+| 사이드바 메뉴 구성 | 변경 | mock 4개 vs 외부 10개 (대시보드, 점검대상, 점검이력, 제외신청관리, 조치계획관리, 커뮤니티, 정책관리, 대상관리, 보안관리 등 추가) |
+| 헤더(Hero) | 부분일치 | "검출목록" 타이틀은 동일하나 mock의 `[target명]` 부제와 **사용자 메뉴(사용자설정/로그아웃 dropdown)가 헤더에 없음** |
+| 검출목록 툴바 | 부분일치 | 검색이 **카테고리(검출경로/DB명/스케줄ID) + 입력값**으로 분리, "선택 해제" 버튼 추가 |
+| 상세필터 | 일치 | 검출타입/담당자/이슈상태 3종, 적용/초기화 동일 |
+| 테이블 컬럼 (9개) | 일치 | 체크박스 / 검출ID / 스케줄ID / DB명 / 검출경로 / 검출타입 / 건수 / 담당자 / 상태 — 순서·종류 일치 |
+| 정렬 | 변경 | URL `?sortKey&sortDir` 라우팅으로 동작 (mock은 client state) |
+| 페이지 사이즈 | 추가 | 5/10/20 + **50/100 추가** |
+| 페이지네이션 | 일치 | 1, 2, ... 14 형식 동일 |
+| 행 선택/일괄 액션 | 일치 | 수정/삭제/조치계획/내보내기/이행점검 5종 동일 |
+| 일괄수정 모달 | 변경 | 상태 변경이 **버튼 그리드가 아니라 dropdown(상태 선택)** 으로 구현 |
+| 우측 상세 패널 | 변경 (구조 분리) | mock 3개 카드 vs 외부 **4개 카드(개인정보/검출내용/상세값/검출결과 상태)** |
+| 검출결과 상태 카드 | 부분일치 | 상태 옵션이 **`조치완료` 누락**(미확인/조치필요/제외신청/제외/제외거부 5개) |
+| PII(개인정보) 검색 | 부분일치 | 외부는 placeholder 노출 없음, 검색창만 표시. 정렬/페이징은 동일 |
+| 상세 정보 카드 | 부분일치 | mock의 "Unique 정보 + 컨텍스트 ul" → **검출 값/검출 건수/유니크키/조회 쿼리 4개 필드**로 분해, "검출내용"은 별도 페이징 테이블로 분리 |
+| 변경 이력 모달 | 변경 | 4컬럼(변경일시/변경자/변경상태/의견) — **mock의 `담당자` 컬럼 누락**, 헤더 표시명 "변경이력" |
+| 역할 기반 권한 | 누락 | mock의 관리자/일반사용자 role-switch 위젯 없음 (사이드바 하단의 "Admin User · Global Admin" 표시만) |
+| URL 라우팅 파라미터 | 변경 | mock(`dbId/target/detectType/detectionId/detectionQuery/piiQuery`) → 외부(`page/pageSize/sortKey/sortDir/panelId`) |
+| 시각 디자인 | 일치 | 보라색 컬러, 라운드 카드, 칩(chip) 스타일 모두 mock 가이드와 동일 |
+
+---
+
+## 3. 영역별 상세 비교
+
+### 3.1 레이아웃 / 화면 구조
+
+| 항목 | Mock | 외부 구현 | 차이/비고 |
+|------|------|-----------|-----------|
+| 좌측 사이드바 | 고정폭 + 토글 | 동일 + 토글 시 **아이콘만** 표시 (mock보다 더 강력한 collapse) | 일치 |
+| Hero 카드 | "검출목록 [target명]" + 우측보기/하단보기 + 사용자 메뉴 | "검출목록" + 우측보기/하단보기 (사용자 메뉴 없음) | 부분 |
+| 메인 영역 | 좌측 검출목록 + 우측 right-rail(상태/PII/상세) 또는 하단 분할 | 동일하게 우측/하단 토글 동작 | 일치 |
+| 우측보기 시 액션 버튼 | 한 줄 유지 | 좁아져 **두 줄(검색·필터 / 액션 5종)** 로 자동 wrap | 외부의 반응형 처리 추가 |
+
+### 3.2 사이드바 / 네비게이션
+
+| 항목 | Mock | 외부 구현 |
+|------|------|-----------|
+| 브랜드 로고 | "DG / D-Guard / DB Scan" | "D'GUARD EYE" |
+| 메뉴 1 | 검출목록 | 대시보드 |
+| 메뉴 2 | 점검이력 | 점검대상 |
+| 메뉴 3 | 예외관리 | **검출목록** (현재 활성) |
+| 메뉴 4 | 보고서 | 점검이력 |
+| 메뉴 5 | — | 제외신청관리 |
+| 메뉴 6 | — | 조치계획관리 |
+| 메뉴 7 | — | 커뮤니티 |
+| 메뉴 8 | — | 정책관리 |
+| 메뉴 9 | — | 대상관리 |
+| 메뉴 10 | — | 보안관리 |
+| 하단 푸터 | "테스트용" + **역할 스위치 (관리자/일반사용자)** | "AD · Admin User · Global Admin" + 로그아웃 아이콘 |
+
+### 3.3 헤더 / Hero
+
+| 항목 | Mock | 외부 구현 |
+|------|------|-----------|
+| 타이틀 | `검출목록` + `<span class="hero-target">부동산플랫폼(192.168.20.1:3306/DSTTT)</span>` | `검출목록` (대상명 미표시) |
+| 우측 상단 위젯 | 우측보기/하단보기 토글 + 사용자 메뉴 (`김성진(5492438) ▾`, 사용자설정 / 로그아웃) | 우측보기/하단보기 토글만 |
+| document.title | `[target명] 검출목록 | D-Guard` | `검출목록 - D'Guard EYE` (대상명 미반영) |
+
+### 3.4 검출목록 툴바 (검색·필터·액션)
+
+| 컨트롤 | Mock | 외부 구현 | 차이 |
+|-------|------|-----------|------|
+| 검색 | 단일 input, placeholder `"검출경로, DB명, 스케줄ID 검색"` | **카테고리 dropdown(`검출경로 / DB명 / 스케줄ID`) + 입력 input(`검출경로 입력`)** | 외부가 더 명시적 |
+| 상세필터 트리거 | "상세필터" 버튼 + 활성 시 컬러 강조 | 동일 | 일치 |
+| 선택 카운트 | toolbar caption (`전체 N건 / a-b 표시됨 / N건 선택됨`) | `0건 선택됨` + **`선택 해제` 버튼** | 외부에 선택 해제 버튼 추가, 단 mock의 페이지 표시 범위(예 `1-20`) 표시는 미확인 |
+| 액션 1 - 수정 | 체크박스 선택 시 활성 | 동일 | 일치 |
+| 액션 2 - 삭제 | **관리자 역할에서만 표시** | **상시 표시** (역할 권한 미적용) | 차이 |
+| 액션 3 - 조치계획 작성 | 모든 선택건이 `조치필요`일 때만 활성 | 동일 (선택 필요 + 상태 검증) | 일치 |
+| 액션 4 - 내보내기 | Excel 보고서 토스트 (mock) | 버튼 노출 (실제 다운로드 동작은 미검증) | 추정 일치 |
+| 액션 5 - 이행점검 | primary-btn accent | 동일 | 일치 |
+
+### 3.5 테이블 컬럼 / 정렬
+
+| 컬럼 # | Mock 헤더 | 외부 헤더 | 정렬 가능 |
+|--------|-----------|-----------|-----------|
+| 1 | 체크박스 | 체크박스 | — |
+| 2 | 검출ID (text) | 검출ID (DET-0265 등) | 외부 ↑↓ |
+| 3 | 스케줄ID | 스케줄ID (SCH-0230 등) | 외부 ↑↓ |
+| 4 | DB명 | DB명 (Oracle-61 등) | 양쪽 ↑↓ |
+| 5 | 검출경로 | 검출경로 (`/ORCL/INEB/...`) | 양쪽 ↑↓ |
+| 6 | 검출타입 | 검출타입 (`05.계좌번호` 형식) | 양쪽 ↑↓ |
+| 7 | 건수 | 건수 | 양쪽 ↑↓ |
+| 8 | 담당자 | 담당자 | 양쪽 ↑↓ |
+| 9 | 상태 (chip) | 상태 (`미확인` 회색, `조치필요` 오렌지 등) | 양쪽 ↑↓ |
+
+→ 컬럼 구성·순서·정렬 표시(↕)는 동일.
+
+### 3.6 페이지네이션 / 페이지 사이즈
+
+| 항목 | Mock | 외부 구현 |
+|------|------|-----------|
+| 페이지 사이즈 옵션 | 5 / 10 / 20 | 5 / 10 / 20 / **50 / 100** (추가) |
+| 페이징 컴포넌트 | `1, 2, ..., N` (shared.renderPagination) | 동일 형식 |
+| URL 반영 | 미반영 (state) | `?page=N&pageSize=N` 즉시 반영 |
+| 페이지 변경 시 선택 초기화 | `state.checkedDetectionIds.clear()` | 미확인 (행동 미관찰) |
+
+### 3.7 행 선택 / 일괄 액션 모달
+
+| 항목 | Mock | 외부 구현 |
+|------|------|-----------|
+| 일괄수정 모달 제목 | `선택 항목 일괄수정` + `Bulk Update` kicker | `일괄 수정 (N건)` (선택 건수 노출) |
+| 상태 변경 컨트롤 | **버튼 그리드 (status-option)** | **dropdown (`상태 선택 ▾`)** |
+| 의견 변경 컨트롤 | textarea (500자) | **textarea (500자, 동일 카운터)** |
+| 담당자 변경 컨트롤 | `select` 단일 선택 | 동일 (단, 옵션 목록 미확인) |
+| 토글 패턴 | "변경" 체크박스 켜야 컨트롤 활성 | 동일 |
+| 적용 버튼 | `일괄 적용` | `일괄수정` |
+| 삭제 모달 메시지 | `선택한 N건을 검출목록에서 삭제하시겠습니까?` | `N건을 삭제하시겠습니까?` + **`삭제된 항목은 복구할 수 없습니다.` 경고문 추가** |
+| 삭제 모달 헤더 kicker | `Delete Confirmation` | 없음 (간결화) |
+
+### 3.8 우측 상세 - 검출결과 상태 카드
+
+| 항목 | Mock | 외부 구현 |
+|------|------|-----------|
+| 카드 제목 | `검출결과 상태` | `검출결과 상태` |
+| 변경일시 표시 | `상태변경일시 -` | `마지막 변경 2026-04-22 14:55` (라벨이 다름) |
+| 변경 히스토리 버튼 | 시계 아이콘 (history-icon-btn) | 시계 아이콘 (동일 위치) |
+| **상태 옵션** | `STATUS_ORDER` 기반(보통 미확인/조치필요/조치완료/제외신청/제외/제외거부 6종) | **5종 (미확인/조치필요/제외신청/제외/제외거부)** — `조치완료` 누락 |
+| 의견 입력 | textarea, 500자 카운터 | 동일 |
+| 담당자 picker | 다중 선택 칩 + 검색 | 다중 선택 칩 + dropdown (검색은 미확인) |
+| 저장 버튼 | wide primary-btn, 변경 시 활성 | 동일 |
+| 닫기 | (없음) | **카드 우상단 `×` 닫기 버튼 추가** |
+
+### 3.9 우측 상세 - PII(개인정보) 카드
+
+| 항목 | Mock | 외부 구현 |
+|------|------|-----------|
+| 검색 placeholder | `"개인정보 또는 Unique 정보 검색"` | `"개인정보"` (placeholder 약식) |
+| 이행점검 버튼 | (별도 detail-card에 있음) | **PII 카드 헤더에 직접 배치** |
+| 컬럼 | 개인정보 / 개수 | 개인정보 / 건수 (`개수` → `건수`) |
+| 정렬 | value/count 토글 | 동일 (↕) |
+| 페이지 사이즈 | 7개 고정 | **선택 가능** (10개 default 표시) |
+| 페이징 | 동일 | 동일 |
+
+### 3.10 우측 상세 - 상세 정보 카드 (Unique·Query·이행점검)
+
+| 항목 | Mock | 외부 구현 |
+|------|------|-----------|
+| 단일 카드 vs 분리 | **하나의 detail-card에 Unique 정보 + 검출내역 컨텍스트(`ul`) + Query 복사 + 이행점검** | **2개 카드로 분리: ① "검출내용" (순번/검출내용 페이징 테이블) + ② 상세값 카드(검출 값 / 검출 건수 / 유니크키 / 조회 쿼리)** |
+| 표시 필드 | Unique 정보 1개 | **검출 값 / 검출 건수 / 유니크키 / 조회 쿼리 4개 필드** (각 필드별 복사 아이콘) |
+| 컨텍스트 표현 | 텍스트 ul 리스트 (highlightDetectedValue 토큰 강조) | **`순번 / 검출내용` 테이블 + 페이지네이션** |
+| 조회 Query 복사 | `조회 Query 복사` 버튼 | 검출 값/유니크키/조회 쿼리 **각 필드 옆 복사 아이콘** (필드별 복사) |
+| 이행점검 (Unique 기준) | 상세 카드 헤더의 `이행점검` 버튼 | PII 카드 헤더에 통합 |
+
+### 3.11 변경 이력 모달
+
+| 항목 | Mock | 외부 구현 |
+|------|------|-----------|
+| 모달 헤더 | `변경 히스토리` | `변경이력` |
+| 컬럼 | 변경일시 / 변경자 / 상태 / 의견 / **담당자** (5개) | 변경일시 / 변경자 / **변경상태** / 의견 (4개, **담당자 누락**) |
+| 페이지 사이즈 | (없음) | 10개 default + 페이지네이션 추가 |
+| 데이터 형식 | `2026-03-05 14:00` | `2026. 4. 23. 오후 3:32:21` (locale `ko`의 dateTime 표기) |
+
+### 3.12 역할 기반 권한
+
+| 항목 | Mock | 외부 구현 |
+|------|------|-----------|
+| 역할 스위치 | 사이드바 하단 admin/user 토글 (sessionStorage 영속) | 없음 (Global Admin 고정 표시) |
+| 삭제 버튼 가시성 | 관리자만 | 모두 표시 (권한 분기 미적용 또는 서버 전용) |
+| 상태 옵션 권한 분기 | `isStatusAllowedForRole` | 미확인 |
+
+### 3.13 URL / 라우팅 파라미터
+
+| Mock 파라미터 | 외부 구현 파라미터 |
+|---------------|-------------------|
+| `dbId`, `target`, `detectType`, `detectionId`, `detectionQuery`, `piiQuery` | `page`, `pageSize`, `sortKey`, `sortDir`, `panelId` |
+
+→ 외부는 페이지/정렬/선택을 모두 URL에 직렬화하여 새로고침/북마크 가능. mock의 검색·필터 라우팅 파라미터는 미적용.
+
+### 3.14 시각 디자인
+
+| 항목 | Mock | 외부 구현 |
+|------|------|-----------|
+| 메인 컬러 | 보라(#987be9 계열) | 동일 톤 |
+| 카드 라운드/그림자 | `--shadow`, 12~14px radius | 동일 |
+| 상태 칩 컬러 | `미확인=회색`, `조치필요=오렌지`, `조치완료=초록` 등 | 동일 톤 |
+| 칩(chip) UI (담당자) | `manager01 ×` 칩 | 동일 |
+| layout-switch (우측/하단 보기) | 라운드 토글 | 동일 |
+
+---
+
+## 4. 누락된 Mock 기능 (외부 구현에 없거나 미확인)
+
+| 우선순위 | 항목 | 영향 |
+|---------|------|------|
+| High | **상태 옵션 `조치완료` 누락** | 조치 완료 후 상태 마감 불가 — 워크플로우 전 단계 끊김 |
+| High | **변경 이력 모달의 `담당자` 컬럼 누락** | 누가 어떤 시점에 담당이었는지 추적 불가 |
+| High | **역할 기반 권한(관리자/일반사용자) 분기 미적용** | 일반사용자에게도 삭제·상태 변경 노출 |
+| Medium | **사용자 메뉴(헤더 dropdown: 사용자설정/로그아웃)** | 사용자설정 진입점이 없음 (로그아웃은 사이드바 하단 아이콘으로 대체) |
+| Medium | **Hero 타이틀 옆 대상명(`hero-target`)** + `document.title` 반영 | 어떤 DB/대상의 검출목록인지 한눈에 파악 어려움 |
+| Medium | **mock URL 라우팅 파라미터**(`dbId`, `target`, `detectType`, `detectionQuery`, `piiQuery`) | 다른 화면에서 검출목록으로 진입할 때 컨텍스트 전달 불가 |
+| Low | toolbar caption의 `1 - 20 표시됨` 범위 표시 | 수치는 우측 페이지네이션으로 대체되므로 영향 적음 |
+| Low | 일괄수정 모달의 `Bulk Update` kicker, 삭제 모달의 `Delete Confirmation` kicker | 미관 차이 |
+
+## 5. 변경된 동작 (mock과 다르게 구현됨)
+
+| 항목 | Mock | 외부 구현 | 영향 |
+|------|------|-----------|------|
+| 일괄수정 → 상태 변경 UI | 버튼 그리드 (한 번에 모든 옵션 시각화) | dropdown | 클릭 수 1회 추가, 옵션 가시성 ↓ |
+| 상세 패널 - Query 복사 | 상세 카드 헤더 단일 버튼 | **각 필드별 인라인 복사 아이콘** | 외부가 더 세밀 |
+| 상세 패널 - 이행점검 | 상세 카드 헤더 | PII 카드 헤더 | 위치 차이 |
+| 검출 컨텍스트 표시 | `<ul>` 리스트 + 토큰 하이라이트 | 페이징 테이블 (순번/검출내용) | 외부가 데이터 양 많을 때 유리하지만 토큰 강조는 미확인 |
+| PII 페이지 사이즈 | 7개 고정 | 선택 가능 (10개 default) | 외부가 유연 |
+| 변경일시 라벨 | `상태변경일시` | `마지막 변경` | 텍스트 차이 |
+| 변경이력 일시 표기 | ISO 형식 (`2026-03-05 14:00`) | locale 형식 (`2026. 4. 23. 오후 3:32:21`) | 가독성 차이 |
+
+## 6. mock에 없는 추가 기능 (외부 구현에만 존재)
+
+| 항목 | 설명 | 평가 |
+|------|------|------|
+| 사이드바 메뉴 6종 추가 | 대시보드, 점검대상, 제외신청관리, 조치계획관리, 커뮤니티, 정책관리, 대상관리, 보안관리 | 실제 제품 풀스코프, mock은 검출목록 데모만 다룸 — 정상 |
+| 검색 카테고리 분리 | `검출경로/DB명/스케줄ID` dropdown + 입력값 | 검색 정확도 ↑, mock의 placeholder 통합 검색보다 명시적 |
+| `선택 해제` 명시 버튼 | 툴바에 별도 버튼 | UX 좋음 |
+| URL 라우팅 (`page/pageSize/sortKey/sortDir/panelId`) | 새로고침·북마크·뒤로가기 지원 | 좋음 |
+| 페이지 사이즈 50/100 옵션 | | 좋음 |
+| 페이지 사이즈 100 옵션 | 대량 데이터 한 번에 보기 | 좋음 |
+| 사이드바 100% 접기 (아이콘만) | 토글 시 아이콘 + AD 아바타만 | 좋음 |
+| 상세값 카드의 필드별 복사 아이콘 | 검출 값/유니크키/조회 쿼리 각각 복사 | 좋음 |
+| 상태 카드의 `×` 닫기 버튼 | 상세 패널 닫기 가능 | 좋음 |
+| 우측보기 시 액션 버튼 자동 wrap (2줄) | 좁은 폭에서 가독성 유지 | 좋음 |
+| `검출 값 / 검출 건수` 별도 노출 | mock에는 없는 정보 | 정보 풍부 |
+| `검출내용` 별도 페이징 테이블 | 다수의 검출 위치를 페이지 단위로 탐색 | 좋음 |
+| 변경이력 페이지네이션 | 다건 이력 조회 시 유리 | 좋음 |
+
+---
+
+## 7. 우선순위별 권장 조치
+
+### 🔴 High — 출시 전 반드시 보완 필요
+1. **상태 옵션에 `조치완료` 추가** — 검출결과 상태 카드 / 일괄수정 dropdown 양쪽에 누락. 상태 라이프사이클 마감 불가.
+2. **변경이력 모달에 `담당자` 컬럼 추가** — 감사 추적의 핵심 필드.
+3. **역할 기반 권한 적용** — 관리자/일반사용자 구분이 mock 사양에 명시되어 있는데 미반영. 최소한 일반사용자에게는 `삭제` 버튼 비표시.
+
+### 🟡 Medium — UX/연계 개선
+4. **Hero 타이틀에 대상명 노출** — `검출목록 [부동산플랫폼(192.168.20.1:3306/DSTTT)]` 형태. 다중 대상 환경에서 필수.
+5. **사용자 메뉴(사용자설정/로그아웃 dropdown)를 헤더에 추가** — 로그아웃이 사이드바 좌하단 작은 아이콘에만 있어 발견성이 낮음.
+6. **다른 화면에서 검출목록으로 진입할 때 컨텍스트 파라미터(`dbId`, `detectType` 등) 지원** — mock은 이 라우팅을 가정.
+7. **일괄수정 상태 변경 UI를 dropdown → 버튼 그리드** 로 통일 (단건 패널과 일관성 확보).
+
+### 🟢 Low — 시간 여유 시
+8. toolbar에 `a - b 표시됨` 범위 캡션 추가
+9. PII 검색 placeholder 보강 (`"개인정보 또는 Unique 정보 검색"`)
+10. 모달 kicker 텍스트(`Bulk Update`, `Delete Confirmation`) 추가로 가이드 문서와 일관성 확보
+
+---
+
+## 8. 부록 — 검증 시 캡처한 외부 화면 요약
+
+분석 과정에서 다음 화면을 모두 직접 인터랙션으로 확인했다 (스크린샷은 별도 첨부 가능):
+
+1. 로그인 화면 (D'GUARD EYE 보라 배경, 사용자 ID/비밀번호 + 로그인)
+2. 검출목록 초기 화면 (전체 265건, 20개씩, 우측 상단 우측보기/하단보기)
+3. 검색 카테고리 dropdown (검출경로/DB명/스케줄ID)
+4. 상세 필터 popover (검출타입/담당자/상태 + 초기화/적용)
+5. 상태 검색 후 선택 dropdown (미확인/조치필요/조치완료/제외신청/제외/제외거부 → **필터 dropdown에는 6개 모두 존재**, 단 검출결과 상태 카드 버튼에는 `조치완료` 누락)
+6. 행 클릭 시 하단 4개 카드 패널 (개인정보/검출내용/상세값/검출결과 상태)
+7. 우측보기 모드 (우측 좁은 컬럼에 4개 카드 세로 스택 + 액션버튼 wrap)
+8. 정렬 (검출ID 클릭 시 URL `sortKey=id&sortDir=asc` 반영)
+9. 페이지 사이즈 dropdown (5/10/20/50/100)
+10. 페이지 이동 (1→2 시 `page=2`)
+11. 일괄수정 모달 (상태 변경/의견 변경/담당자 변경 토글)
+12. 의견 변경 textarea (0/500 카운터)
+13. 삭제 확인 모달 (`N건을 삭제하시겠습니까? / 삭제된 항목은 복구할 수 없습니다.`)
+14. 변경이력 모달 (4컬럼 + 페이지네이션)
+15. 사이드바 collapse 상태 (아이콘만 표시)
+
+> **분석 범위**: 1차 분석에서는 모달 열기까지만 확인했고, 사용자 추가 요청에 따라 **2차 분석에서 단건 저장 / 일괄수정 적용 / 이행점검 / 내보내기 / 조치계획 작성 / 삭제까지 실제 실행**하여 결과·토스트·변경이력·네트워크 호출을 모두 확인했다.
+
+---
+
+## 9. 실제 영속 변경 동작 검증 결과 (2차)
+
+| # | 동작 | mock 토스트 | 외부 토스트 / 결과 | 차이/비고 |
+|---|------|-------------|--------------------|----------|
+| 1 | 단건 패널 저장 (DET-0290 의견 입력 + 상태 `조치필요`) | `검출결과 상태 정보가 저장되었습니다.` | 토스트 미표시(또는 매우 짧게 사라짐) — 카드의 `마지막 변경` 시간이 `13:05` → `13:07`로 즉시 갱신되어 저장 성공 확인 | 외부는 즉시 갱신 + 토스트 약함. 변경이력 모달에 신규 row(`Admin User / 조치필요 / [테스트] Claude UI 비교 검증 의견`) 정상 추가됨. |
+| 2 | 일괄수정 적용 (1건, 의견만 변경) | `선택 항목 일괄수정이 완료되었습니다.` | **`1건이 수정되었습니다`** | 표현 차이 |
+| 3 | 이행점검 클릭 (1건) | `이행점검이 완료되어 N건의 검출 결과를 갱신했습니다.` (즉시 완료) | **`1건 이행점검이 시작되었습니다`** (비동기 시작) | **외부는 비동기 처리** — mock은 동기로 즉시 완료 후 결과 표시. 외부는 작업 큐에 등록만 하고 결과는 별도 폴링/푸시 방식으로 추정. |
+| 4 | 내보내기 클릭 | 토스트 `Excel 보고서를 생성했습니다` (가짜 다운로드) | 토스트 미표시. **POST `/api/v2/detection/items/export` 호출** (200 OK) — 실제 다운로드 트리거 (선택 1건/전체 분기 추정) | 외부 API 호출 정상. 토스트 부재로 사용자 피드백 약함 |
+| 5 | 조치계획 작성 클릭 (DET-0298 조치필요 1건) | `action-plan-create.html` 이동 + sessionStorage(`dguard.actionPlanSelection`)로 ID 전달 | `/app/action-plan/new?initialDetectionIds=%5B298%5D` 이동 + **URL 쿼리로 ID 전달** + 우측에 "조치계획 작성" 패널 슬라이드인 | 라우팅 방식 차이(sessionStorage → URL 쿼리). 외부는 작성 화면이 모달/슬라이드 패널 형태(좌측은 기존 조치계획 목록 그대로) |
+| 6 | 삭제 (DET-0301 1건) | `선택 항목을 삭제했습니다.` (danger 색상) | **`1건이 삭제되었습니다`** (success 색상) — 전체 카운트 `305 → 304`로 즉시 감소, 행 즉시 제거 | 표현·색상 차이. 동작은 동일 |
+| 7 | PII 카드 단건 이행점검 | `Unique 기준 이행점검이 완료되었습니다. N건 제외, 잔여 N건` (잔여 0이면 행 자동 제거) | 라디오 미선택 시 무반응. 라디오 선택 후 재시도 필요 — 인터랙션 흐름은 mock과 유사할 것으로 추정 (시간 관계상 추가 검증 보류) | 추가 검증 필요 |
+
+### 9.1 보고서 1차 분석 시 미관찰 → 2차 추가 발견
+
+- **검출결과 상태 카드의 `마지막 변경`은 저장 즉시 갱신**된다. mock은 `상태변경일시` 텍스트 라벨을 사용하지만 외부는 `마지막 변경 YYYY-MM-DD HH:MM` 형태로 즉시 노출.
+- 변경이력 모달의 **`변경자`는 로그인 ID가 아닌 사용자 표시명**(`Admin User`)이 들어간다. mock은 `getCurrentActor()`에서 역할명(`관리자`/`일반사용자`)을 사용 — 외부는 사용자 프로필명을 사용하므로 추적 정밀도가 더 높음.
+- 단건 상세 패널의 "**주변 컨텍스트**" 영역(검출 값을 노란 배경으로 강조)이 **상세값 카드 하단**에 별도 블록으로 존재한다. 1차에서는 일부 데이터에만 보여 누락 가능성으로 적었으나, 데이터에 따라 노출되는 정보임이 확인됨 → mock의 `<ul>` 컨텍스트 표현과 가장 가까운 부분.
+- **이행점검은 비동기**(요청 → 즉시 시작 토스트 → 백그라운드 처리). mock은 `service.recheckDetections()`로 동기 처리하므로 동작 모델 자체가 다름. 신뢰도 표 작성 시 "외부는 작업 완료까지 추가 갱신/폴링이 필요"로 표기 권장.
+
+### 9.2 권장 추가 조치 (우선순위)
+
+- 🔴 단건 저장 시 **토스트 메시지 일관 표시** (현재 약함). mock 수준의 `검출결과 상태 정보가 저장되었습니다.`처럼 명시적 피드백 필요.
+- 🔴 **이행점검 진행/완료 결과 알림** — 외부는 `시작되었습니다`만 띄우고 끝. 완료 시점에도 토스트/배지/카운트 변경 알림 필요. 현재 사용자는 새로고침해야 잔여 건수 갱신 확인 가능.
+- 🟡 **내보내기 토스트** 추가 — 다운로드는 트리거되지만 처리 중·완료 알림 부재.
+- 🟡 토스트 색상 가이드 정리 — 외부는 success/info만 사용하는 듯 (삭제도 success 색). mock 가이드의 danger/success/default 분리에 맞추면 좋음.
+
+### 9.3 검증 후 외부 시스템에 남긴 변경 흔적 (참고)
+
+- DET-0290: 상태 `미확인 → 조치필요`, 의견 `[테스트] Claude UI 비교 검증 의견`
+- DET-0305: 의견 `[테스트] 일괄수정 검증` (일괄수정으로 추가)
+- DET-0305: 이행점검 비동기 작업 시작
+- DET-0298: 조치계획 작성 화면 진입(저장 없이 이탈)
+- DET-0301: **삭제됨** (전체 305 → 304건)
+- 일부 검출 데이터(스케줄 SCH-0234~SCH-0236)가 자동 수집되어 전체 건수가 분석 도중 265 → 290 → 305 → 304로 변동됨
+
+</script>
+<script id="md-exception-request" type="text/markdown">
+# 제외신청목록(제외신청관리) 페이지: Mock 사양 vs 외부 업체 구현 비교 보고서
+
+## 1. 개요
+
+| 항목 | 내용 |
+|------|------|
+| 비교 대상 (Mock) | `F:\dev\workspace\dguard-ui\exception-request.html / .css / .js`, `mock-exception-request-service.js` |
+| 비교 대상 (외부 구현) | `https://121.130.177.24:29443/app/exception` |
+| 분석 일시 | 2026-04-24 |
+| 사용 계정 | `Admin User` (Global Admin 권한) — 기 로그인 세션 사용 |
+| 분석 방법 | Chrome 브라우저 자동화로 mock의 요약타일·탭·검색·상세필터·체크박스·일괄 승인/거부·페이지 사이즈·정렬·상세모달 기능을 외부 구현에서 재현. 승인 동작은 실제 실행하여 토스트/상태 카운터/처리결과 반영 검증. |
+| 한 줄 요약 | 주요 기능(탭·요약타일·승인/거부·처리결과)이 mock과 거의 1:1로 매핑되어 동작하나, 역할 전환 UI·breadcrumb·선택 배너·모달 문구·토스트 메시지·자동 탭 전환 등 세부 UX에서 차이가 다수 존재. 외부는 `제외 취소` 상태와 행별 액션 버튼이 추가됨. |
+
+---
+
+## 2. 전체 일치도 요약
+
+| 영역 | 판정 | 핵심 차이 한 줄 요약 |
+|------|------|---------------------|
+| 전반 레이아웃 | 부분일치 | 사이드바+메인 구조는 동일, mock의 헤더(브레드크럼+사용자메뉴) 대부분 없음 |
+| 사이드바 메뉴 | 부분일치 | 외부는 정책관리/대상관리가 하위 메뉴로 구성, mock은 평면 구조 |
+| 헤더(Hero) | 누락 | 브레드크럼·사용자메뉴 드롭다운 외부에 없음 |
+| 요약 타일 (4종) | 일치 | 제외 대상/제외 신청/제외 승인/제외 거부 동일 |
+| 탭 | 부분일치 | 탭 이름 "신청목록/처리결과"(외부) vs "제외신청목록/제외처리결과"(mock), 탭 옆 카운트 외부에 없음 |
+| 툴바 / 검색 | 변경 | mock 단일 통합 검색 → 외부 카테고리 선택 dropdown(신청자/DB명/URL/탐지경로) |
+| 상세필터 | 변경 | mock 다중선택+모달 → 외부 단일선택+popover, 옵션 수 mock 2개 vs 외부 3개(제외 취소 추가) |
+| 테이블 컬럼 | 부분일치 | 라벨 `검출ID/검출경로/검출상태/의견` → `탐지ID/탐지경로/처리상태/신청의견`, 외부는 신청목록 탭에 `승인거부` 액션 컬럼 추가 |
+| 정렬 | 일치 | 모든 컬럼 정렬 표시기(↑↓) 외부도 동일 |
+| 페이지 사이즈 / 페이징 | 부분일치 | mock [10/20/50/100] → 외부 [5/10/20/50/100], 기본값 mock 10 → 외부 20 |
+| 행 선택 / 일괄 액션 | 부분일치 | 체크박스·일괄 승인/거부 동일, mock의 `페이지/전체 목록 선택` 배너 없이 단순 "N건 선택" 표시 |
+| 승인 모달 | 부분일치 | 기본 UX 동일(500자), 타이틀/caption/확인버튼 라벨 문구 차이 |
+| 거부 모달 | 부분일치 | 승인 모달과 동일 구조, 거부 버튼 danger 색상 |
+| 역할 기반 권한 | 누락 | mock의 관리자/일반사용자 역할 스위치·`제외신청취소` 버튼 외부에 없음 |
+| URL 라우팅 | 일치 | 단일 경로 `/app/exception`, 탭/필터 URL 파라미터는 양쪽 모두 없음 |
+| 토스트 메시지 | 변경 | mock "선택한 1건을 제외 승인했습니다." → 외부 "승인되었습니다." (건수 생략) |
+| 승인 후 자동 탭 전환 | 누락 | mock은 승인 후 processed 탭으로 자동 이동 → 외부는 신청목록 탭 유지 |
+| 시각 디자인 | 부분일치 | 보라 accent·pill tab·카드 레이아웃 방향성 유사, 디테일 차이 존재 |
+
+---
+
+## 3. 영역별 상세 비교
+
+### 3.1 레이아웃 / 화면 구조
+| 항목 | Mock | 외부 구현 | 차이/비고 |
+|------|------|-----------|-----------|
+| 외형 | 사이드바(좌) + 메인 영역 카드 | 동일 | 일치 |
+| 페이지 최상단 | Hero 카드(타이틀+브레드크럼+사용자메뉴) | 단일 타이틀 "제외신청목록" | 브레드크럼·사용자메뉴 없음 |
+| 섹션 | summary strip + 탭 + 패널 1장 | 동일 | 일치 |
+| 모달 | `modal-backdrop` 중앙 모달 | 중앙 모달(작은 사이즈) | 유사 |
+
+### 3.2 사이드바 / 네비게이션
+| 항목 | Mock | 외부 구현 |
+|------|------|-----------|
+| 브랜드 | `DG D-Guard / DB Scan` | `D'GUARD EYE` 로고 |
+| 사이드바 collapse | `sidebarToggle` 버튼으로 축소/펼치기 | 동일 (`<` 버튼) |
+| 메뉴 구조 | 평면형(`detection-list / inspection-target / schedule-history / exception-request / action-plan / community` 등) | 그룹형 하위 메뉴 — 정책관리(프로파일/예외필터/계정), 대상관리(서버/그룹/이미지서버), 보안관리 |
+| 하단 | "테스트용" 역할 스위치(관리자/일반사용자) | `Admin User / Global Admin` 표시 + `로그아웃` 버튼 |
+| 현재 페이지 하이라이트 | `is-current` class | 보라 accent 배경 |
+
+### 3.3 헤더 / Hero
+| 항목 | Mock | 외부 구현 |
+|------|------|-----------|
+| 타이틀 | 탭에 따라 "제외신청목록" ↔ "제외처리결과" 변경 | "제외신청목록" 고정 |
+| 브레드크럼 | "점검대상 > 제외신청관리 > <탭이름>" | 없음 |
+| 사용자 메뉴 | 트리거("김성진(5492438)") + 드롭다운(사용자설정/로그아웃) | 없음 (사이드바 하단에 이동) |
+
+### 3.4 요약 타일 (Summary Strip)
+| 항목 | Mock | 외부 구현 |
+|------|------|-----------|
+| 개수 | 4개(제외 대상/제외 신청/제외 승인/제외 거부) | 동일 |
+| 첫 번째(제외 대상) | static, 기본 `is-active` | 동일 (클릭 시 반응 없음) |
+| 나머지 3개 | 클릭 시 탭+필터 자동 전환 | 동일 |
+| 활성화 표시 | `is-active` 보라 테두리·배경 | 동일 |
+| 값 포맷 | `toLocaleString("ko-KR")` 천단위 콤마 | 동일(1자리 숫자는 확인 안됨) |
+
+### 3.5 탭
+| 항목 | Mock | 외부 구현 |
+|------|------|-----------|
+| 탭 개수 | 2(pending / processed) | 동일 |
+| 탭 이름 | "제외신청목록" / "제외처리결과" | "신청목록" / "처리결과" |
+| 탭 옆 카운트 배지 | 있음 (`tab-count`) | 없음 |
+| 탭 선택 배경 | 보라 그라디언트 + 하단 보라 indicator | 흰색 둥근 배경 (is-active) |
+
+### 3.6 툴바 (검색·액션)
+| 컨트롤 | Mock | 외부 구현 | 차이 |
+|-------|------|-----------|------|
+| 검색 | 단일 input, placeholder "신청자/DB명/URL/검출경로 검색" (4개 필드 통합 검색) | 카테고리 dropdown + input, 카테고리: 신청자/DB명/URL/탐지경로 (단일 선택) | 변경 — 외부는 한 번에 한 카테고리만 검색 가능 |
+| 일괄 승인 버튼 | admin 역할에서 항상 표시, 선택 없으면 disabled | 항상 표시, 선택 없으면 disabled (보라 pill 스타일) | 일치 |
+| 일괄 거부 버튼 | 동일 규칙(danger 색) | 동일 | 일치 |
+| 제외신청취소 | `user` 역할에서만 표시 | 외부에 없음 | 누락 |
+| 상세필터 버튼 | processed 탭만 | 동일(처리결과 탭만) | 일치 |
+
+### 3.7 상세필터 (처리결과 탭)
+| 항목 | Mock | 외부 구현 |
+|------|------|-----------|
+| 트리거 | "상세필터" 버튼 클릭 | 동일 |
+| 출력 형태 | 화면 우측 popover (고정 위치 계산) | popover (버튼 우하단) |
+| 필터 타입 | 다중 선택 체크박스 리스트 + 검색창 | 단일 선택 dropdown("검색 후 선택") |
+| 옵션 | `EXCLUDED`("제외"), `EXCLUSION_REJECTED`("제외거부") — 2개 | `제외 승인`, `제외 거부`, `제외 취소` — 3개 |
+| 액션 버튼 | `취소` / `적용` | `초기화` / `적용` |
+| 적용 시 | 선택 상태가 필터 badge로 표시되고 리스트 재필터 | 동일 |
+
+### 3.8 테이블 컬럼 / 정렬
+
+**신청목록 탭**
+
+| # | Mock 헤더 | 외부 헤더 | 정렬 가능 | 차이 |
+|---|-----------|-----------|-----------|------|
+| 1 | (체크박스) | (체크박스) | ✗ | 일치 |
+| 2 | 신청자 | 신청자 | ✓ | 일치 |
+| 3 | 신청일시 | 신청일시 | ✓ | 일치 |
+| 4 | 의견 | 의견 | ✓ | 일치 |
+| 5 | DB명 | DB명 | ✓ | 일치 |
+| 6 | URL | URL | ✓ | 일치 |
+| 7 | 검출ID | 탐지ID | ✓ | 라벨 변경 |
+| 8 | 검출경로 | 탐지경로 | ✓ | 라벨 변경 |
+| (외부 추가) | — | 승인/거부 (행별 액션) | ✗ | 외부에만 존재 |
+
+**처리결과 탭**
+
+| # | Mock 헤더 | 외부 헤더 | 정렬 가능 | 차이 |
+|---|-----------|-----------|-----------|------|
+| 1 | 검출상태 | 처리상태 | ✓ | 라벨 변경 |
+| 2 | 처리일시 | 처리일시 | ✓ | 일치 |
+| 3 | 처리자 | 처리자 | ✓ | 일치 |
+| 4 | 처리의견 | 처리의견 | ✓ | 일치 |
+| 5 | 신청자 | 신청자 | ✓ | 일치 |
+| 6 | 의견 | 신청의견 | ✓ | 라벨 변경(명확화) |
+| 7 | DB명 | DB명 | ✓ | 일치 |
+| 8 | URL | URL | ✓ | 일치 |
+| 9 | 검출ID | 탐지ID | ✓ | 라벨 변경 |
+| 10 | 검출경로 | 탐지경로 | ✓ | 라벨 변경 |
+
+### 3.9 페이지네이션 / 페이지 사이즈
+| 항목 | Mock | 외부 구현 |
+|------|------|-----------|
+| 페이지 사이즈 옵션 | 10 / 20 / 50 / 100 | 5 / 10 / 20 / 50 / 100 |
+| 기본값 | 10 | 20 |
+| 사이즈 변경 시 | 페이지 1로 리셋, 선택 해제 | 일치 |
+| 페이지 번호 표시 | `renderPagination` 공용 | 활성 페이지 1 (보라 버튼) |
+| 총 건수 표시 | `전체 N건` + `N - N 표시됨` + 선택 건수 | `전체 N 건` (범위 표시·선택 배너 없음) |
+
+### 3.10 행 선택 / 일괄 액션 모달
+| 항목 | Mock | 외부 구현 |
+|------|------|-----------|
+| 전체 선택 체크박스 | `selectAllPending` — 현재 페이지만 | 동일 |
+| "N건 선택됨" 표시 | toolbar caption highlight | 테이블 헤더 우측 "N건 선택" |
+| 페이지 선택 배너 | `페이지에서 N개가 선택되었습니다. + 전체 N개 선택 링크` (필터 전체 선택 기능) | 없음 — 단순 카운트만 |
+| 필터 전체 선택 후 | `검색결과 총 N건이 선택되었습니다.` 배너 | 없음 |
+| 선택된 행 시각 | 보라 배경 + 좌측 accent | 동일 |
+| 승인 모달 타이틀 | "제외 승인 의견 입력" | "제외 승인" |
+| 승인 모달 caption | "선택한 N건을 제외 승인합니다. 처리의견을 입력하세요." | 없음 (`의견을 입력하세요.` 라벨만) |
+| 거부 모달 타이틀 | "제외 거부 의견 입력" | "제외 거부" |
+| textarea maxlength | 500 | 500 (카운터 `0 / 500`) |
+| 확인 버튼 라벨 | "확인" | "승인" / "거부" (액션별) |
+| 취소 버튼 | 좌측 ghost | 동일 |
+| 확인 버튼 비활성 조건 | 의견 공백 시 disabled | 동일 |
+| 모달 닫기 | `×` 아이콘 + 백드롭 클릭 | `×` 아이콘 (백드롭 클릭 미확인) |
+
+### 3.11 역할 기반 권한
+| 항목 | Mock | 외부 구현 |
+|------|------|-----------|
+| 역할 전환 UI | 사이드바 하단 테스트용 관리자/일반사용자 버튼 | 없음 (세션 기반 Global Admin 고정) |
+| admin 전용 액션 | 제외 승인 / 제외 거부 | 일치 (승인/거부 버튼 존재) |
+| user 전용 액션 | `제외신청취소` 버튼(본인 신청만) | 구현 확인 불가 (일반사용자 계정 미제공) |
+| user에게만 보이는 데이터 | 본인 신청 건만 필터링 | 동일 여부 미확인 |
+
+### 3.12 URL / 라우팅 파라미터
+| Mock 파라미터 | 외부 구현 파라미터 |
+|---------------|-------------------|
+| 없음 (탭·필터 state만 JS 내부) | 없음 (`/app/exception` 고정) |
+
+### 3.13 시각 디자인
+| 항목 | Mock | 외부 구현 |
+|------|------|-----------|
+| accent 컬러 | 보라(#987BE9 계열) | 동일 톤 |
+| summary tile 활성 | 보라 테두리 + 그라디언트 배경 | 동일 |
+| 탭 활성 | 보라 그라디언트 + 하단 underline | 흰색 박스 + 보라 테두리 |
+| 상태 칩 | `status-chip status-excluded` 보라 계열 | 초록 점 + "제외" 텍스트 (색상 다름) |
+| 승인 버튼 | `ghost-btn` (라인 스타일) | 보라 pill (파스텔) |
+| 거부 버튼 | `danger-btn` (빨강 라인) | 분홍 pill |
+| 페이지 번호 활성 | 보라 배경 | 동일 |
+
+---
+
+## 4. 누락된 Mock 기능 (외부 구현에 없거나 미확인)
+
+| 우선순위 | 항목 | 영향 |
+|---------|------|------|
+| 🔴 High | 일반사용자 `제외신청취소` 버튼 | 본인이 실수로 신청한 건을 취소할 수 없음 — 관리자 처리를 기다려야 함 |
+| 🔴 High | 역할 기반 데이터 스코핑(user→본인 신청만) | 일반사용자도 전체 신청을 볼 수 있는지 별도 계정 검증 필요 |
+| 🔴 High | 승인 완료 후 `processed` 탭으로 자동 전환 | 관리자가 다음 액션을 취하려면 수동으로 탭 이동 필요 |
+| 🟡 Medium | 탭 옆 카운트 배지 | 탭별 건수 확인 어려움 |
+| 🟡 Medium | "페이지에서 N개 선택 → 전체 N개 선택" 배너 | 필터 전체 선택이 불가능해 페이지별로 나눠 처리해야 함 |
+| 🟡 Medium | 브레드크럼 | 현재 위치 맥락 부족 |
+| 🟡 Medium | 사용자메뉴 드롭다운(사용자설정) | 설정 진입점 없음 |
+| 🟡 Medium | 페이지 타이틀 탭별 변경 | 브라우저 탭/문서 타이틀이 항상 "제외신청목록" |
+| 🟡 Medium | 툴바 caption `전체 N건 · M-K 표시됨 · N건 선택됨` | 페이징 컨텍스트 정보 부족 |
+| 🟡 Medium | 상세필터 다중선택(검출상태 복수 동시 필터) | 단일 선택만 가능 → 승인+거부 동시 보기 불가 |
+| 🟡 Medium | 상세필터 내 검색 input | 옵션 수 적어 큰 영향은 없으나 UX 차이 |
+| 🟢 Low | 통합 검색(한 번에 여러 컬럼 매칭) | 외부는 카테고리 선택 필요 |
+| 🟢 Low | 모달 caption 문구(선택 건수 동적 안내) | 사용자 인지에는 도움 |
+
+## 5. 변경된 동작 (mock과 다르게 구현됨)
+
+| 항목 | Mock | 외부 구현 | 영향 |
+|------|------|-----------|------|
+| 탭 이름 | "제외신청목록 / 제외처리결과" | "신청목록 / 처리결과" | 용어 일관성 재검토 필요 |
+| 컬럼 라벨 `검출ID/검출경로/검출상태` | `검출ID / 검출경로 / 검출상태` | `탐지ID / 탐지경로 / 처리상태` | "검출" → "탐지", "검출상태" → "처리상태" (처리결과 탭 관점) |
+| 컬럼 라벨 `의견`(처리결과 탭) | `의견` | `신청의견` | 라벨 명확화 (긍정적 변경) |
+| 검색 방식 | 통합 검색 | 카테고리 선택 후 검색 | UX 방향성 차이 |
+| 상세필터 상태 | 다중 선택 체크박스 | 단일 선택 dropdown | 기능 축소 |
+| 승인 모달 타이틀 | "제외 승인 의견 입력" | "제외 승인" | 간결화 |
+| 승인 모달 caption | `선택한 N건을 제외 승인합니다. 처리의견을 입력하세요.` | 없음 | 안내 문구 감소 |
+| 확인 버튼 라벨 | "확인" | 액션명("승인"/"거부") | 긍정적 변경 — 더 명확 |
+| 토스트 메시지 | `선택한 N건을 제외 승인했습니다.` / `... 거부했습니다.` | `승인되었습니다.` (건수 생략) | 건수 컨텍스트 손실 |
+| 승인 후 UI 동작 | processed 탭 자동 전환 + 페이지 1로 이동 | 신청목록 탭 유지 (행만 제거) | 사용 흐름 차이 |
+| 상세필터 취소 | "취소" (변경 내용 폐기) | "초기화" (현재 적용 값 clear) | 버튼 의미 다름 |
+| 페이지 기본 사이즈 | 10 | 20 | 초기 화면 로딩량 증가 |
+| 상태 chip | 라벨 텍스트만 (예: "제외") | 초록 점 + "제외" | 시각적 차이 |
+
+## 6. mock에 없는 추가 기능 (외부 구현에만 존재)
+
+| 항목 | 설명 | 평가 |
+|------|------|------|
+| 행별 `승인 / 거부` 버튼 | 체크박스 선택 없이 행마다 즉시 승인·거부 가능 | 🟢 편의성 향상 (일괄 선택 UX와 병행) |
+| `제외 취소` 상태 | 상세필터 옵션에 존재 (mock은 UNCHECKED로 복귀하여 processed 탭에 미노출) | 🟡 신청 취소 이력이 처리결과로 남는 정책. mock의 "UNCHECKED 복귀"와 방향이 다름 |
+| 탐지경로 tooltip | 긴 경로 hover 시 전체 경로 팝업 | 🟢 mock은 줄바꿈으로 처리 → 외부 방식도 적합 |
+| 페이지 사이즈 `5개` | 최소 5개 옵션 추가 | 🟢 Low |
+| 사이드바 하단 `로그아웃` 버튼 | 사용자메뉴 없이 직접 로그아웃 | 🟢 |
+| 사이드바 하위 메뉴 그룹화 | 정책관리·대상관리·보안관리가 그룹으로 구성 | 🟡 mock의 평면 구조와 정보 설계가 다름 |
+| Global Admin 배지 | 사이드바 하단 역할 표시(`Admin User / Global Admin`) | 🟢 |
+
+---
+
+## 7. 우선순위별 권장 조치
+
+### 🔴 High — 출시 전 반드시 보완 필요
+1. **일반사용자 `제외신청취소` 기능 구현** — 본인이 실수로 신청한 건을 관리자 개입 없이 취소할 수 있어야 함. Mock은 user 역할 선택 시 툴바에 `제외신청취소` 버튼이 노출되고, 선택 후 클릭 시 대상 건이 `UNCHECKED`로 복귀하는 흐름을 제공.
+2. **승인·거부 후 `processed` 탭 자동 전환** — 관리자가 작업 결과를 바로 확인할 수 있도록 mock의 `state.currentTab = "processed"` 흐름을 재현.
+3. **일반사용자 데이터 스코핑 검증** — 일반사용자 계정으로 로그인했을 때 본인 신청 건만 노출되는지 반드시 테스트(별도 계정 발급 필요).
+
+### 🟡 Medium — UX/연계 개선
+4. **탭 옆 카운트 배지** — `신청목록 12` 처럼 탭에 건수 표시.
+5. **페이지 필터 전체 선택 배너** — "페이지에서 N개 선택 → 검색결과 전체 M개 선택" 2단계 선택 UX.
+6. **브레드크럼** — `점검대상 > 제외신청관리 > [탭이름]` 복구.
+7. **사용자 메뉴 드롭다운(사용자 설정 진입점)** — 사이드바 하단의 사용자 정보에 드롭다운을 달아 `사용자설정/로그아웃`을 제공.
+8. **상세필터 다중 선택** — `제외 승인`+`제외 거부`를 동시에 필터할 수 있도록 체크박스 형식으로 전환.
+9. **승인/거부 모달 caption** — `선택한 N건을 제외 승인합니다.` 문구 복구해 선택 건수 인지 강화.
+10. **토스트 메시지에 건수 포함** — `선택한 1건을 제외 승인했습니다.`
+11. **탭 이름 일관성** — "신청목록/처리결과"와 "제외신청목록/제외처리결과" 중 제품 용어 통일.
+12. **상세필터 `취소` vs `초기화` 의미 정리** — mock은 변경 폐기(취소) + 팝오버 닫기, 외부는 적용값 clear(초기화). 동작이 다르므로 의도 명확화.
+
+### 🟢 Low — 시간 여유 시
+13. **통합 검색 옵션** — 카테고리 선택 없이 여러 컬럼을 한 번에 검색하는 옵션 추가.
+14. **페이지 타이틀 탭별 변경** — `document.title`이 탭에 따라 바뀌도록.
+15. **컬럼 라벨 정합성 재검토** — mock "검출" vs 외부 "탐지" 중 하나로 통일.
+16. **상태 chip 시각 통일** — mock 라벨 텍스트 vs 외부 점+텍스트 디자인 정책 결정.
+
+---
+
+## 8. 부록 — 검증한 외부 화면
+
+직접 인터랙션으로 확인한 화면:
+
+1. 제외신청관리 초기 화면 (신청목록 탭, 전체 1건, Admin User 신청)
+2. 검색 카테고리 dropdown 펼침 (신청자/DB명/URL/탐지경로)
+3. 페이지 사이즈 select 펼침 (5/10/20[기본]/50/100)
+4. 처리결과 탭 (컬럼 10개, 데이터 없음)
+5. 상세필터 popover (제외처리 상태: 검색 후 선택)
+6. 제외처리 상태 옵션 dropdown (제외 승인/제외 거부/제외 취소)
+7. 체크박스 선택 상태 (1건 선택 표시, 선택 행 보라 배경)
+8. 제외 승인 모달 (타이틀/의견 textarea/취소·승인 버튼)
+9. 제외 거부 모달 (타이틀/의견 textarea/취소·거부 버튼)
+10. 의견 입력 후 승인 버튼 활성화 상태
+11. 승인 완료 후 토스트 "승인되었습니다." + 신청목록 탭 빈 상태
+12. 처리결과 탭에 승인된 레코드 반영 (처리상태=제외, 처리의견, 처리일시)
+13. 탐지경로 tooltip (행 호버 시 전체 경로 팝업)
+
+---
+
+## 9. 실제 영속 변경 동작 검증 결과
+
+| # | 동작 | mock 토스트/결과 | 외부 토스트/결과 | 차이/비고 |
+|---|------|-------------|--------------------|----------|
+| 1 | 단건 선택 → 일괄 승인 | `선택한 1건을 제외 승인했습니다.` + processed 탭 자동 전환 | `승인되었습니다.` + 신청목록 탭 유지, 처리결과에 반영 | 토스트 문구/탭 전환 차이 |
+| 2 | 단건 선택 → 일괄 거부 (취소 확인) | `선택한 N건을 제외 거부했습니다.` + processed 탭 자동 전환 | 모달 구조만 확인(거부 실제 실행 안함) | — |
+| 3 | 일반사용자 제외신청취소 | `선택한 N건의 제외신청이 취소되어 미확인 상태로 변경되었습니다.` | 실행 경로 없음(버튼 미구현) | 🔴 |
+| 4 | 상세필터 상태 선택+적용 | summary 타일 및 리스트 재필터, filter-badge 표시 | 동일 동작, filter badge는 미확인(데이터 0건) | 유사 |
+| 5 | 페이지 사이즈 변경 | 페이지 1로 리셋, 선택 해제 | 동일 | 일치 |
+| 6 | 행 호버 | - | 행별 승인/거부 버튼 표시, 탐지경로 tooltip | 외부 추가 |
+
+### 9.1 추가 발견 사항
+
+- 외부 상세필터의 `제외 취소` 옵션은 mock 정책과 다름. mock은 `cancelRows`에서 `status = "UNCHECKED"`로 되돌려 `getVisibleRows`에서 제외되어 `processed` 탭에 나타나지 않음. 외부는 취소 이력을 별도 상태로 유지하는 것으로 보임 — 정책 합의 필요.
+- `제외 승인`/`제외 거부`에서 외부 모달의 확인 버튼은 의견이 빈 문자열이면 disabled 처리됨(mock과 동일). 텍스트 입력 후 `19/500` 카운터가 올바르게 동작함.
+- 외부 신청목록 탭 헤더 우측에 선택 시 `1건 선택 [승인][거부]` 핀이 나타나는 구성이며, mock처럼 `페이지 N개 / 전체 M개` 2단계 선택 배너는 없음.
+- 처리결과 탭의 `처리상태` 값이 `제외`, `제외거부`, `제외 취소` 세 종류로 운영되는 듯함(mock은 `EXCLUDED`/`EXCLUSION_REJECTED` 2종만).
+
+### 9.2 권장 추가 조치
+
+- 🔴 `제외신청취소` UI/API를 외부 구현에 추가하거나, mock에서 기능을 제거하고 외부와 동일하게 "관리자 거부" 흐름만 유지하도록 정책 재확정.
+- 🟡 `제외 취소` 상태를 mock에도 도입하여 외부 정책과 일치시키거나, 외부 구현을 `UNCHECKED` 복귀 정책으로 통일.
+- 🟡 토스트 메시지/모달 문구 국문 가이드 정립 (건수 포함 여부, 액션 완료 어미 등).
+
+### 9.3 검증 후 외부 시스템에 남긴 변경 흔적 (참고)
+
+- `DET-0122` (testdb, /testdb/public/고객정보/외국인등록번호) — `2026-04-24 14:57:42`에 Admin User가 `[자동검증] UI 비교 테스트 승인` 의견으로 **제외 승인** 처리. 신청 1건이 처리결과 탭으로 이동하여 요약 타일 카운터가 `제외 신청 1→0 / 제외 승인 0→1` 로 변경됨.
+- 해당 레코드는 원상 복구(되돌리기) 경로가 확인되지 않아 승인 상태로 유지. 필요 시 업체에 `제외 취소` 또는 재신청 방법 문의 권장.
+
+</script>
+<script id="md-action-plan" type="text/markdown">
+# 조치계획관리 페이지: Mock 사양 vs 외부 업체 구현 비교 보고서
+
+## 1. 개요
+
+| 항목 | 내용 |
+|------|------|
+| 비교 대상 (Mock) | `F:\dev\workspace\dguard-ui\action-plan.html / .css / .js`, `mock-action-plan-service.js` |
+| 비교 대상 (외부 구현) | `https://121.130.177.24:29443/app/action-plan` |
+| 분석 일시 | 2026-04-24 |
+| 사용 계정 | `inebsoft` (Global Admin 권한) |
+| 분석 방법 | Chrome 브라우저 자동화로 mock 모든 기능에 대한 인터랙션을 외부 구현에서 재현. 검색 카테고리/상세필터/요약타일/상세 모달/조치계획 작성 패널/이행점검 등 주요 동작을 직접 실행. `/api/v2/action-plan/*` 네트워크 호출 캡처. |
+| 한 줄 요약 | 컬럼·상태 칩·요약 타일·상세필터 구조는 90%+ 일치하나, **외부는 상세 모달·조치계획 작성 플로우가 mock보다 훨씬 풍부**(검출원인 필드·체크박스 선택·양식 다운로드·drag&drop·페이지 내 새 패널)하고 mock에만 있는 역할 스위치/breadcrumb/사용자 드롭다운은 외부에 없음. |
+
+---
+
+## 2. 전체 일치도 요약
+
+| 영역 | 판정 | 핵심 차이 한 줄 요약 |
+|------|---------------------|---------------------|
+| 전반 레이아웃 | 부분일치 | mock·외부 모두 사이드바+메인, 단일 리스트 카드 구조 동일 |
+| 사이드바 메뉴 | 변경 | 외부는 정책/대상/보안관리 하위에 실제 라우트(프로파일/서버/사용자관리 등) 전개, mock은 라벨만 |
+| 헤더(Hero) | 변경 | mock은 breadcrumb + 사용자 드롭다운; 외부는 제목만 + 사이드바 하단 사용자 위젯 |
+| 툴바 | 추가 | 외부는 검색 카테고리 dropdown + **조치계획 작성** 버튼(mock에 없음) |
+| 상세필터 | 일치 | 둘 다 상태 단일 필터 + 적용/초기화 |
+| 테이블 컬럼 | 일치 | 9개 컬럼 완전 일치 |
+| 정렬 | 추가 | 외부는 모든 컬럼 ↕ 정렬 지원, mock은 createdAt desc 고정 |
+| 페이지 사이즈 / 페이징 | 변경 | mock 5/10/20, 외부 5/10/20/50/100 |
+| 요약 타일 필터 | 일치 | 4개 타일(조치대상/조치완료/등록대기/등록완료) 동일, 클릭 시 상태 필터 적용 |
+| 상세 모달 | 변경 | 외부 모달에는 **검출원인 필드·조치대상 체크박스+이행점검·양식 다운로드·drag&drop** 존재. mock에 없음 |
+| 조치계획 작성 | 추가 | 외부는 action-plan 페이지 내에서 신규 작성 패널 제공(`/new` 라우팅). mock은 detection-list에서 sessionStorage로만 진입 |
+| 역할 기반 권한 | 누락 | mock의 관리자/일반사용자 역할 스위치 위젯 없음 (외부는 백엔드 ACL로만 제어) |
+| URL 라우팅 파라미터 | 변경 | 외부는 `/new`(작성) 라우트 존재. 정렬/페이지/필터는 URL 비반영 |
+| 시각 디자인 | 부분일치 | 둘 다 보라 계열 primary. 외부 status chip은 pill 형태로 동일 팔레트 유사 |
+| 업로드 처리 | 변경 | mock: file input 직선택, 갯수 제한 없음, 100MB 언급 없음. 외부: drag&drop + "PDF 파일만 허용·파일당 최대 100MB·최대 5개" 명시 |
+| 토스트 | 미확인 | 이행점검은 202 Accepted 비동기 — 완료 토스트 catch 실패. 쪽지발송은 응답 없음(대상 0) |
+
+---
+
+## 3. 영역별 상세 비교
+
+### 3.1 레이아웃 / 화면 구조
+| 항목 | Mock | 외부 구현 | 차이/비고 |
+|------|------|-----------|-----------|
+| 기본 구조 | 좌측 사이드바 + 메인 카드 | 좌측 사이드바 + 메인 카드 | 일치 |
+| 요약 타일 위치 | 카드 상단 strip (4칸 grid) | 카드 상단 strip (4칸 grid) | 일치 |
+| 상세/업로드 | 모달 오버레이 | 모달 오버레이 | 일치하되 외부 모달이 훨씬 큼/복잡 |
+| 신규 작성 | 해당 페이지에 버튼 없음 (detection-list에서 진입) | 우측 슬라이드 패널(`/app/action-plan/new`) | mock에 없는 구조 |
+
+### 3.2 사이드바 / 네비게이션
+| 항목 | Mock | 외부 구현 |
+|------|------|-----------|
+| 브랜드 | `DG` 로고 + `D-Guard / DB Scan` 텍스트 | `D'GUARD EYE` 워드마크 |
+| 접기 토글 | 오른쪽 `⟨` 버튼 | 오른쪽 `<` 원형 버튼 |
+| 메뉴 목록 | 대시보드/점검대상/검출목록/점검이력/제외신청관리/조치계획관리/커뮤니티/정책관리/대상관리/보안관리 | 동일 + **하위 라우트 전개**: 정책관리(프로파일/예외필터), 대상관리(서버/계정/그룹/이미지서버/서버토큰/라이선스), 보안관리(사용자/사용자그룹/접근권한/감사로그) |
+| 활성 표시 | 보라 배경 + 좌측 바 | 보라 배경 |
+| 하단 | `테스트용` 라벨 + **관리자/일반사용자 역할 스위치 버튼** | `AD Admin User · Global Admin` 사용자 정보 카드 + `로그아웃` 버튼 |
+
+### 3.3 헤더 / Hero
+| 항목 | Mock | 외부 구현 |
+|------|------|-----------|
+| 타이틀 | `조치계획관리` | `조치계획관리` |
+| Breadcrumb | `점검대상 > 조치계획관리` | 없음 |
+| 우측 위젯 | **사용자 메뉴 드롭다운**(사용자설정/로그아웃) + `김성진(5492438)` | `쪽지발송` 버튼만 |
+| document.title | `조치계획관리 \| D-Guard` | `조치계획관리 - D'Guard EYE` |
+
+### 3.4 툴바 (검색·필터·액션)
+| 컨트롤 | Mock | 외부 구현 | 차이 |
+|-------|------|-----------|------|
+| 검색 input | 단일 input, placeholder `조치계획서ID/작성자/DB명/조치방법 검색` | 카테고리 dropdown + input (placeholder `AP-YYYYMMDD-NNN`) | 외부는 카테고리 분리 |
+| 검색 카테고리 | (없음, 통합 검색) | `조치계획서ID` / `작성자` / `DB명` / `조치방법` 4개 | 외부에 추가 |
+| 상세필터 버튼 | `상세필터` ghost 버튼 | `상세필터` 버튼 + 선택 시 배지(숫자) 표시 | 외부가 배지 제공 |
+| 카운트 캡션 | `전체 N건 · X-Y 표시됨` | `전체 N 건` (좌하단 footer) | 위치 상이 |
+| 액션(관리자) | `쪽지발송` (Hero 바깥 툴바) | `쪽지발송`(Hero), `조치계획 작성`(툴바 우측) | 외부는 신규 작성 버튼 추가 |
+| 권한별 가시성 | `noteSendButton.hidden = role!=='admin'` | 미확인 (일반 사용자 테스트 안 함) | — |
+
+### 3.5 테이블 컬럼 / 정렬
+| # | Mock 헤더 | 외부 헤더 | 정렬 가능 (외부) |
+|--|-----------|-----------|-----------|
+| 1 | 조치계획서ID | 조치계획서ID | ↕ |
+| 2 | 상태 | 상태 | ↕ |
+| 3 | 작성일시 | 작성일시 | ↕ |
+| 4 | 작성자 | 작성자 | ↕ |
+| 5 | DB명 | DB명 | ↕ |
+| 6 | 조치대상수 | 조치대상수 | ↕ |
+| 7 | 조치완료일 | 조치완료일 | ↕ |
+| 8 | 조치방법 | 조치방법 | ↕ |
+| 9 | 이행점검결과 | 이행점검결과 | ↕ |
+
+- mock 정렬: `createdAt desc` 고정(JS의 `.sort(new Date(right)-new Date(left))`).
+- 외부 정렬: 헤더 클릭 시 ↑/↓ 토글, URL에는 비반영.
+
+### 3.6 페이지네이션 / 페이지 사이즈
+| 항목 | Mock | 외부 구현 |
+|------|------|-----------|
+| 페이지 사이즈 옵션 | 5 / 10 / 20 | 5 / 10 / 20 / 50 / 100 |
+| 기본값 | 5 | 20 |
+| 페이징 형식 | 1, 2, ..., N (shared) | 1 (현재 보이는 범위 내) |
+| URL 반영 | 없음 | 없음 |
+
+### 3.7 요약 타일 (Summary tiles)
+| 타일 | Mock 라벨 | 외부 라벨 | 필터 적용 상태 | 일치 |
+|------|----------|----------|--------------|------|
+| 1 | 조치대상 (total) | 조치대상 | 전체(필터 해제) | ✅ |
+| 2 | 조치 완료 | 조치 완료 | `COMPLETED` | ✅ |
+| 3 | 등록대기 | 등록대기 | `PENDING` | ✅ |
+| 4 | 등록완료 | 등록완료 | `REGISTERED` | ✅ |
+
+외부 타일 클릭 → 상세필터 배지에 `1` 표시됨. mock과 동일한 동작.
+
+### 3.8 상세 모달 (조치계획서 상세)
+| 항목 | Mock | 외부 구현 |
+|------|------|-----------|
+| 모달 제목 | `조치계획서 상세 (AP-...)` | `조치계획서 상세  AP-...` (우측 라벨) |
+| 상태 chip | ❌ 모달 내 표시 없음 | ✅ 상단 상태 chip |
+| 메타 정보 | `조치방법`, `조치완료일`만 | 상태 / 조치완료일 / 작성자 / 작성일시 / DB명 |
+| 검출원인 | ❌ 없음 | ✅ 읽기 전용 표시 + `N/600` 카운터 (17/600) |
+| 조치방법 | ❌ 텍스트 표시만 (상단 `detail-field`) | ✅ 읽기 전용 표시 + `N/600` 카운터 (8/600) |
+| 조치대상 테이블 컬럼 | 검출경로 / 건수 / 이행점검일시 / 이행점검 결과 수 (4개) | 체크박스 / 검출경로 / **검출타입** / 건수 / 이행점검일시 / 이행점검 결과 수 (6개) |
+| 조치대상 페이지네이션 | 없음 | 있음 (전체 N건, 기본 10개) |
+| 이행점검 실행 | 모달 하단 `이행점검` primary 버튼 | 조치대상 목록 상단 우측 `이행점검` 버튼 (체크박스 선택 필요) |
+| 첨부 파일 | `input type=file multiple`, 수량 제한 없음 | drag&drop 영역 + `파일 추가 또는 끌어놓기`, `PDF만 / 파일당 최대 100MB / 최대 5개` 안내 |
+| 조치계획서 다운로드 | 하단 `조치계획서 다운로드` 버튼(토스트만) | 첨부 섹션 우측 `조치계획서 양식 다운로드` 링크 |
+| 첨부 삭제 | 각 file-row `삭제` 버튼 | 미검증 (첨부 0개 상태) |
+| 하단 버튼 | `조치계획서 다운로드` / `이행점검` | `닫기`만 |
+| 닫기 | `×` 아이콘 + backdrop 클릭 | `×` 아이콘 + `닫기` |
+
+### 3.9 조치계획 작성 플로우
+| 항목 | Mock | 외부 구현 |
+|------|------|-----------|
+| 진입 방식 | `detection-list.html`에서 선택 → `sessionStorage("dguard.actionPlanSelection")` → 조치계획관리 진입 | **조치계획관리 페이지 내 `조치계획 작성` 버튼** → `/app/action-plan/new` 라우팅, 우측 슬라이드 패널 |
+| 대상 검출건 표시 | 표시 로직 없음 (service.createPlan이 payload.targets 받음) | `조치 필요 검출건 (32건)` 테이블 + 페이지네이션 (1/2/3/4) |
+| 선택 섹션 | 없음 | `선택된 항목 (N건)` 별도 테이블 |
+| 입력 필드 | service.createPlan(cause, method, dueDate, actor, dbName) | `검출원인*` textarea (0/600), `조치방법*` textarea (0/600), `조치완료일*` 날짜 picker |
+| 안내 문구 | 없음 | `⚠ 조치계획서를 작성하고, 출력하여 담당팀장 결재 후 업로드 하여야 합니다.` |
+| 하단 버튼 | 없음 | `취소` / `등록` (필수 미입력 시 비활성) |
+
+### 3.10 상세필터 popover
+| 항목 | Mock | 외부 구현 |
+|------|------|-----------|
+| 제목 | `상세필터` | `상세 필터` |
+| 필터 항목 | 상태 (단일) | 상태 (단일) |
+| UI | chips + 체크박스 목록 + 검색 input | dropdown "검색 후 선택" + 옵션 선택 |
+| 상태 옵션 | 등록 대기 / 등록 완료 / 조치 완료 (공백 포함) | 등록대기 / 등록완료 / 조치완료 (공백 없음) |
+| 초기화 / 적용 | 취소 / 적용 | 초기화 / 적용 |
+| 배지 표시 | `planFilterSummary` row (상단 별도) | 필터 버튼 옆에 숫자 배지 |
+
+### 3.11 역할 기반 권한
+| 항목 | Mock | 외부 구현 |
+|------|------|-----------|
+| 역할 스위치 UI | 사이드바 하단 `관리자 / 일반사용자` 버튼 | **없음** (백엔드 ACL만 사용) |
+| 역할별 데이터 | `role==='admin'`이면 전체, 아니면 `createdBy===actor`만 | 서버가 세션 기반으로 필터 |
+| 버튼 분기 | `쪽지발송` 버튼 관리자에게만 표시 | 계정 자체가 Global Admin — 일반 사용자 분기 미확인 |
+
+### 3.12 URL / 라우팅 파라미터
+| Mock 파라미터 | 외부 구현 파라미터 | 비고 |
+|---------------|-------------------|------|
+| 없음 | `/app/action-plan` (목록) | 일치 |
+| 없음 | `/app/action-plan/new` (신규 작성) | 외부에 추가 |
+| detection-list → sessionStorage `dguard.actionPlanSelection` | `/new` 라우트로 직접 진입 후 내부 선택 | 아키텍처 차이 |
+| page/pageSize/sortKey/sortDir | 미반영 (내부 state만) | 외부도 URL 비반영 |
+
+### 3.13 시각 디자인
+| 항목 | Mock | 외부 구현 |
+|------|------|-----------|
+| primary color | `#987BE9` 보라 | 유사 보라 (정확 HEX 미검증, 동일 팔레트로 보임) |
+| 카드 라운드 | 12~14px | 유사 |
+| 상태 chip | `status-pending`(황), `status-registered`(파보라), `status-completed`(녹색) | 동일 팔레트 (등록대기 황, 등록완료 파보라, 조치완료 녹색) |
+| 행 hover | 보라 5% 배경 | 유사 |
+| 테이블 셀 폰트 | 14px | 유사 |
+| "조치계획 작성" 버튼 | 없음 | 진한 보라 primary 버튼 |
+| 요약 타일 숫자 색 | 활성 시 `--accent`(보라) | 등록대기=보라, 조치완료=녹, 등록완료=녹/파 — 상태별 색상 |
+
+---
+
+## 4. 누락된 Mock 기능 (외부 구현에 없거나 미확인)
+
+| 우선순위 | 항목 | 영향 |
+|---------|------|------|
+| 🟡 Medium | 사이드바 역할 스위치 (관리자/일반사용자 토글) | 외부는 계정 역할로만 구분 — 테스트 편의성 감소. 운영상 권한은 백엔드 ACL로 충분하므로 mock 전용 편의기능으로 평가 |
+| 🟡 Medium | Hero breadcrumb `점검대상 > 조치계획관리` | 외부는 네비게이션 문맥 표기 없음. 사이드바 활성 표시로 대체 |
+| 🟡 Medium | Hero 우측 사용자 메뉴 드롭다운 | 외부는 사이드바 하단에 사용자 위젯이 있어 기능은 대체되나 위치·UX 상이 |
+| 🟢 Low | 상단 `filterSummary` 배지 행 (검색+상태 요약) | 외부는 상세필터 버튼 숫자 배지로 단순화 |
+| 🟢 Low | 툴바 캡션 `전체 N건 · X-Y 표시됨` | 외부는 좌하단 `전체 N건`만 표시 |
+| 🟢 Low | 토스트 문구 `이행점검이 완료되었습니다 / 모든 검출경로가 0건으로 조치 완료되었습니다` | 외부는 202 Accepted 비동기 — 완료 토스트 미확인 |
+| 🟢 Low | 토스트 `조치계획서 다운로드가 시작되었습니다` | mock 전용 UX |
+
+## 5. 변경된 동작 (mock과 다르게 구현됨)
+
+| 항목 | Mock | 외부 구현 | 영향 |
+|------|------|-----------|------|
+| 검색 방식 | 단일 input으로 4필드 통합 OR 검색 | 카테고리 dropdown 선택 후 해당 필드만 검색 | 외부가 결과가 더 정확하지만 UX 약간 무거움 |
+| 정렬 | createdAt desc 고정 | 9개 컬럼 전부 ↕ 토글 | 외부가 기능 풍부 |
+| 페이지 사이즈 | 5/10/20 | 5/10/20/50/100 | 외부가 대량 조회 지원 |
+| 기본 페이지 사이즈 | 5 | 20 | 외부가 더 보편적 |
+| 상세 모달 메타 | 조치방법 + 조치완료일 2필드 | 상태/조치완료일/작성자/작성일시/DB명/**검출원인**/조치방법 | 외부가 훨씬 풍부 |
+| 조치대상 테이블 | 4컬럼 | 6컬럼(체크박스·검출타입 추가) + 페이지네이션 | 외부가 건별 이행점검 제어 가능 |
+| 이행점검 버튼 위치 | 모달 푸터 | 조치대상 목록 상단 (선택된 건만 점검) | 외부는 부분 점검 가능 |
+| 이행점검 완료 | 동기 (service.recheckPlan이 즉시 업데이트) | 비동기 202 Accepted (백그라운드 작업) | 외부는 실제 스캔을 큐잉, 결과 반영까지 시간 필요 |
+| 첨부 업로드 | `input type=file multiple`, 제한 없음 | drag&drop, 최대 5개/100MB/PDF only 명시 | 외부가 UX·제약 명시 우수 |
+| 첨부 상태 변경 | `REGISTERED` ↔ `PENDING` 자동 전환(mock service 로직) | 미검증 (첨부 없는 상태로 테스트) | 실제 동작 확인 필요 |
+| 조치계획서 다운로드 | `plan.attachments`의 PDF 다운 (mock은 토스트만) | 상세모달 `조치계획서 양식 다운로드`는 빈 양식 PDF 템플릿 (다른 용도) | 용도 상이 — mock의 "작성된 계획서 다운"은 외부 미확인 |
+| 삭제 기능 | 없음 | 미확인 (상세 모달에 삭제 버튼 없음) | 양쪽 모두 삭제 미제공 가능성 |
+| 쪽지발송 | `actionPlanService.getOverduePlans()`의 count 기반 토스트 | 클릭 시 네트워크 호출 없음(대상 0건으로 추정) | 동일 목적이나 외부 로직 미확인 |
+
+## 6. mock에 없는 추가 기능 (외부 구현에만 존재)
+
+| 항목 | 설명 | 평가 |
+|------|------|------|
+| 조치계획 작성 버튼 (페이지 내) | `/app/action-plan/new` 라우트로 우측 슬라이드 패널 열림 | 🟢 detection-list 없이도 작성 가능. UX 개선 |
+| 조치 필요 검출건 테이블 (작성 패널) | 32건 전체 페이지네이션 (10개/페이지) | 🟢 mock은 sessionStorage 주입만, 외부가 더 자율적 |
+| 선택된 항목 미니 테이블 | 작성 중 선택 결과를 별도 카드로 분리 표시 | 🟢 명확한 피드백 |
+| 조치계획서 양식 다운로드 | 빈 PDF 양식 다운로드 링크 | 🟢 실무 결재 플로우 지원 |
+| drag&drop 업로드 영역 + 제약 고지 | `최대 5개 / 100MB / PDF` 안내 | 🟢 표준적 UX |
+| 검색 카테고리 분리 | 조치계획서ID/작성자/DB명/조치방법 택1 | 🟡 쿼리 복잡도 ↓, 사용성 ±  |
+| 모든 컬럼 정렬 | 9개 컬럼 헤더 ↕ 지원 | 🟢 대량 데이터에서 유용 |
+| 페이지 사이즈 50/100 | 대량 조회 | 🟢 |
+| 상태 chip 상세 모달 상단 표기 | 메타 영역에 상태 badge | 🟢 |
+| 검출원인 필드 | 조치계획 작성 시 필수 | 🟢 mock은 `cause` 필드를 받기는 하나 UI 노출 없음 — 외부가 실 사용 가능 |
+| 안내 문구 `담당팀장 결재 후 업로드` | 작성 패널 하단 주의 메시지 | 🟢 |
+| 상세필터 버튼에 선택 수 배지 | `상세필터  1` | 🟢 |
+
+---
+
+## 7. 우선순위별 권장 조치
+
+### 🔴 High — 출시 전 반드시 보완 필요
+(해당 없음 — 핵심 CRUD 필드·상태·테이블은 mock이 외부 스펙을 수용 가능)
+
+### 🟡 Medium — UX/연계 개선
+1. **조치계획 작성 플로우 통합** — mock도 조치계획관리 페이지에 `조치계획 작성` 버튼 + 우측 패널을 추가하여 detection-list → sessionStorage 우회를 없앨 것. 외부 `/app/action-plan/new` 라우팅 방식을 따라가는 것이 자연스러움.
+2. **상세 모달 정보 확장** — mock 모달에 상태 chip / 작성자 / 작성일시 / DB명 / 검출원인을 노출하여 외부와 정보 밀도를 맞출 것. 특히 `검출원인`은 service 데이터에 이미 `cause`로 존재하나 UI 미표시 → 바로 추가 가능.
+3. **조치대상 테이블에 검출타입 컬럼 + 체크박스 + 페이지네이션 추가** — 대량 건(32건 이상) 처리 시 필수. 외부는 건별 이행점검 가능하도록 체크박스 제공.
+4. **이행점검 비동기화 대응** — mock은 동기 즉시 반영, 외부는 202 Accepted. 실제 연동 시 polling 또는 상태 새로고침 UX 필요 (토스트 문구도 `이행점검이 요청되었습니다`로 교체 권장).
+5. **업로드 제약 명시** — mock에도 `PDF / 100MB / 최대 5개` 제약과 drag&drop 영역 추가.
+6. **조치계획서 양식 다운로드** 버튼 — 빈 양식 템플릿 제공 기능 추가.
+
+### 🟢 Low — 시간 여유 시
+7. 검색 카테고리 dropdown 도입 검토 (기본은 통합 검색 유지, 카테고리는 고급 옵션으로).
+8. 모든 컬럼 정렬 지원.
+9. 페이지 사이즈 50/100 옵션 추가.
+10. 사이드바 역할 스위치 제거 (외부는 백엔드 ACL) — mock 전용 테스트 편의 기능이므로 배포 전 제거 필요.
+11. Hero breadcrumb/사용자 메뉴는 외부 UX와 맞춰 제거 또는 사이드바 하단으로 이전.
+12. 상세필터 버튼에 선택 수 배지.
+
+---
+
+## 8. 부록 — 검증한 외부 화면
+
+직접 인터랙션으로 확인한 화면:
+
+1. 조치계획관리 초기 화면 (전체 1건, 등록대기 AP-20260423-001)
+2. 검색 카테고리 dropdown (조치계획서ID/작성자/DB명/조치방법)
+3. 페이지 사이즈 dropdown (5/10/20/50/100)
+4. 상세필터 popover (상태 dropdown, 초기화/적용)
+5. 상태 옵션 dropdown (등록대기/등록완료/조치완료)
+6. 요약 타일 "등록대기" 클릭 → 필터 활성 + 상세필터 `1` 배지
+7. 행 클릭 → 상세 모달 (상태/조치완료일/작성자/작성일시/DB명/검출원인/조치방법/조치대상 목록/첨부)
+8. 조치대상 체크박스 선택 → `1개 선택됨` 표시 + 이행점검 활성화
+9. 이행점검 클릭 → spinner → 202 Accepted 비동기
+10. `조치계획 작성` 버튼 → `/app/action-plan/new` 우측 패널 (조치 필요 검출건 32건 / 선택된 항목 / 검출원인·조치방법·조치완료일 필수 입력)
+11. 쪽지발송 클릭 (네트워크 호출 없음 — 대상 없음 추정)
+12. 컬럼 헤더 정렬 클릭 (조치계획서ID ↑)
+
+---
+
+## 9. 실제 영속 변경 동작 검증 결과
+
+| # | 동작 | mock 토스트/결과 | 외부 토스트/결과 | 차이/비고 |
+|---|------|-------------|--------------------|----------|
+| 1 | 단건 조치계획 저장 | service.createPlan → 리스트 추가, sessionStorage 정리 | 미실행 (필수 필드 미입력 상태로 중단) | 별도 라우트(`/new`), POST 엔드포인트 미캡처 |
+| 2 | 일괄수정 적용 | 해당 없음 (mock에 일괄수정 없음) | 해당 없음 | — |
+| 3 | 이행점검 | service.recheckPlan → 동기 업데이트, `이행점검이 완료되었습니다` 토스트 | `POST /api/v2/action-plan/items/1/recheck` → 202 Accepted (비동기), 토스트 미catch | mock이 즉시 반영, 외부는 백그라운드 |
+| 4 | 내보내기 | 해당 없음 (mock에 없음) | 해당 없음 (외부에도 없음) | — |
+| 5 | 쪽지발송 | overdue ≥ 1이면 토스트, 없으면 `쪽지 발송 대상이 없습니다` | 네트워크 호출 없음 (클릭 반응 없음 추정) | 대상 0건이라 동작 미관측 |
+| 6 | 첨부 업로드 | service.addAttachments → REGISTERED 전환 + 토스트 | 미실행 (PDF 업로드 테스트 생략) | API 엔드포인트 미확인 |
+| 7 | 첨부 삭제 | service.removeAttachment → PENDING 복귀 + 토스트 | 미실행 (첨부 0개) | — |
+| 8 | 조치계획서 다운로드 | `조치계획서 다운로드가 시작되었습니다` 토스트 | `조치계획서 양식 다운로드` 링크(빈 양식) | 기능 목적 상이 |
+| 9 | 역할 스위치 | 사이드바 버튼 클릭 → role 변경 토스트 | 해당 없음 | mock 전용 |
+| 10 | 요약 타일 필터 | statuses = [key] 필터 적용, 배지 표시 | 외부도 동일 — 상세필터 배지 `1` | ✅ 일치 |
+| 11 | 검색 | state.query 반영, pagination 초기화 | `POST /api/v2/action-plan/search` 호출 | 일치 |
+| 12 | 정렬 클릭 | 지원 안함 | 헤더 ↑↓ 토글, URL 비반영 | 외부 추가 |
+
+### 9.1 추가 발견 사항
+
+- **주요 API 엔드포인트** (외부, `/api/v2/action-plan/` prefix):
+  - `GET /summary` — 요약 타일 4개 카운트
+  - `POST /search` — 목록 조회(검색·필터·정렬·페이징 payload)
+  - `GET /items/{id}` — 조치계획서 상세
+  - `POST /items/{id}/targets` — 조치대상 목록(페이지네이션 있음)
+  - `POST /items/{id}/recheck` — 이행점검(202 Accepted, 비동기)
+- **조치계획 작성 패널은 URL 별도**: `/app/action-plan/new` 라우팅. 새로고침/북마크 시 작성 패널이 바로 열림을 의미. mock은 동일 페이지 내 모달 없이 detection-list를 거쳐야 함.
+- **이행점검이 비동기(202)** 이므로 결과 반영까지 시간 소요 → 모달 재조회 또는 polling UX 필요.
+- **첨부 100MB / 최대 5개 / PDF only**는 mock에 전혀 명시되지 않았고 백엔드 정책과 일치해야 할 가능성 높음.
+- **모든 상세필드(검출원인·조치방법)는 600자 제한** — mock service에는 제한 로직 없음.
+
+### 9.2 권장 추가 조치
+
+- 🟡 mock service에 `cause 600자 / method 600자` 제약 추가.
+- 🟡 조치계획 작성을 mock action-plan 페이지 내에도 열 수 있게 하여 외부와 흐름 일치. 나아가 `?new=1` 쿼리 파라미터 도입.
+- 🟡 이행점검을 비동기(Promise + setTimeout polling) 패턴으로 바꾸고 토스트 문구를 `요청되었습니다`로 교체.
+- 🟢 상세 모달에 상태 chip / 작성자 / 작성일시 / DB명 / 검출원인 노출.
+- 🟢 조치대상에 검출타입 컬럼·체크박스·페이지네이션 추가.
+- 🟢 drag&drop 업로드 + 용량/개수 가이드 추가.
+
+### 9.3 검증 후 외부 시스템에 남긴 변경 흔적 (참고)
+
+- `AP-20260423-001` 조치계획서에 대해 `POST /api/v2/action-plan/items/1/recheck` 1회 요청됨 (202 Accepted).
+  - 대상: `/testdb/public/test_regex/DATA` (1개 체크박스 선택 상태에서 이행점검)
+  - 비동기 작업 결과 반영 시 `targets[0].recheckAt`, `recheckResultCount`, 상태 변경 가능.
+- 정렬: `조치계획서ID` 오름차순 적용 상태 (URL 미반영이므로 새로고침 시 기본값 복귀).
+- 요약 타일 "등록대기" 필터 적용 후 다시 해제됨(중립 상태).
+- 조치계획서 작성 패널(`/new`)을 열었으나 필수 필드 미입력 상태에서 `취소`로 닫음 → 신규 레코드 미생성.
+
+</script>
+
+
+  <script>/**
+ * marked v13.0.3 - a markdown parser
+ * Copyright (c) 2011-2024, Christopher Jeffrey. (MIT Licensed)
+ * https://github.com/markedjs/marked
+ */
+!function(e,t){"object"==typeof exports&&"undefined"!=typeof module?t(exports):"function"==typeof define&&define.amd?define(["exports"],t):t((e="undefined"!=typeof globalThis?globalThis:e||self).marked={})}(this,(function(e){"use strict";function t(){return{async:!1,breaks:!1,extensions:null,gfm:!0,hooks:null,pedantic:!1,renderer:null,silent:!1,tokenizer:null,walkTokens:null}}function n(t){e.defaults=t}e.defaults={async:!1,breaks:!1,extensions:null,gfm:!0,hooks:null,pedantic:!1,renderer:null,silent:!1,tokenizer:null,walkTokens:null};const s=/[&<>"']/,r=new RegExp(s.source,"g"),i=/[<>"']|&(?!(#\d{1,7}|#[Xx][a-fA-F0-9]{1,6}|\w+);)/,l=new RegExp(i.source,"g"),o={"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"},a=e=>o[e];function c(e,t){if(t){if(s.test(e))return e.replace(r,a)}else if(i.test(e))return e.replace(l,a);return e}const h=/&(#(?:\d+)|(?:#x[0-9A-Fa-f]+)|(?:\w+));?/gi;const p=/(^|[^\[])\^/g;function u(e,t){let n="string"==typeof e?e:e.source;t=t||"";const s={replace:(e,t)=>{let r="string"==typeof t?t:t.source;return r=r.replace(p,"$1"),n=n.replace(e,r),s},getRegex:()=>new RegExp(n,t)};return s}function k(e){try{e=encodeURI(e).replace(/%25/g,"%")}catch{return null}return e}const g={exec:()=>null};function f(e,t){const n=e.replace(/\|/g,((e,t,n)=>{let s=!1,r=t;for(;--r>=0&&"\\"===n[r];)s=!s;return s?"|":" |"})).split(/ \|/);let s=0;if(n[0].trim()||n.shift(),n.length>0&&!n[n.length-1].trim()&&n.pop(),t)if(n.length>t)n.splice(t);else for(;n.length<t;)n.push("");for(;s<n.length;s++)n[s]=n[s].trim().replace(/\\\|/g,"|");return n}function d(e,t,n){const s=e.length;if(0===s)return"";let r=0;for(;r<s;){const i=e.charAt(s-r-1);if(i!==t||n){if(i===t||!n)break;r++}else r++}return e.slice(0,s-r)}function x(e,t,n,s){const r=t.href,i=t.title?c(t.title):null,l=e[1].replace(/\\([\[\]])/g,"$1");if("!"!==e[0].charAt(0)){s.state.inLink=!0;const e={type:"link",raw:n,href:r,title:i,text:l,tokens:s.inlineTokens(l)};return s.state.inLink=!1,e}return{type:"image",raw:n,href:r,title:i,text:c(l)}}class b{options;rules;lexer;constructor(t){this.options=t||e.defaults}space(e){const t=this.rules.block.newline.exec(e);if(t&&t[0].length>0)return{type:"space",raw:t[0]}}code(e){const t=this.rules.block.code.exec(e);if(t){const e=t[0].replace(/^ {1,4}/gm,"");return{type:"code",raw:t[0],codeBlockStyle:"indented",text:this.options.pedantic?e:d(e,"\n")}}}fences(e){const t=this.rules.block.fences.exec(e);if(t){const e=t[0],n=function(e,t){const n=e.match(/^(\s+)(?:```)/);if(null===n)return t;const s=n[1];return t.split("\n").map((e=>{const t=e.match(/^\s+/);if(null===t)return e;const[n]=t;return n.length>=s.length?e.slice(s.length):e})).join("\n")}(e,t[3]||"");return{type:"code",raw:e,lang:t[2]?t[2].trim().replace(this.rules.inline.anyPunctuation,"$1"):t[2],text:n}}}heading(e){const t=this.rules.block.heading.exec(e);if(t){let e=t[2].trim();if(/#$/.test(e)){const t=d(e,"#");this.options.pedantic?e=t.trim():t&&!/ $/.test(t)||(e=t.trim())}return{type:"heading",raw:t[0],depth:t[1].length,text:e,tokens:this.lexer.inline(e)}}}hr(e){const t=this.rules.block.hr.exec(e);if(t)return{type:"hr",raw:d(t[0],"\n")}}blockquote(e){const t=this.rules.block.blockquote.exec(e);if(t){let e=d(t[0],"\n").split("\n"),n="",s="";const r=[];for(;e.length>0;){let t=!1;const i=[];let l;for(l=0;l<e.length;l++)if(/^ {0,3}>/.test(e[l]))i.push(e[l]),t=!0;else{if(t)break;i.push(e[l])}e=e.slice(l);const o=i.join("\n"),a=o.replace(/\n {0,3}((?:=+|-+) *)(?=\n|$)/g,"\n    $1").replace(/^ {0,3}>[ \t]?/gm,"");n=n?`${n}\n${o}`:o,s=s?`${s}\n${a}`:a;const c=this.lexer.state.top;if(this.lexer.state.top=!0,this.lexer.blockTokens(a,r,!0),this.lexer.state.top=c,0===e.length)break;const h=r[r.length-1];if("code"===h?.type)break;if("blockquote"===h?.type){const t=h,i=t.raw+"\n"+e.join("\n"),l=this.blockquote(i);r[r.length-1]=l,n=n.substring(0,n.length-t.raw.length)+l.raw,s=s.substring(0,s.length-t.text.length)+l.text;break}if("list"!==h?.type);else{const t=h,i=t.raw+"\n"+e.join("\n"),l=this.list(i);r[r.length-1]=l,n=n.substring(0,n.length-h.raw.length)+l.raw,s=s.substring(0,s.length-t.raw.length)+l.raw,e=i.substring(r[r.length-1].raw.length).split("\n")}}return{type:"blockquote",raw:n,tokens:r,text:s}}}list(e){let t=this.rules.block.list.exec(e);if(t){let n=t[1].trim();const s=n.length>1,r={type:"list",raw:"",ordered:s,start:s?+n.slice(0,-1):"",loose:!1,items:[]};n=s?`\\d{1,9}\\${n.slice(-1)}`:`\\${n}`,this.options.pedantic&&(n=s?n:"[*+-]");const i=new RegExp(`^( {0,3}${n})((?:[\t ][^\\n]*)?(?:\\n|$))`);let l=!1;for(;e;){let n=!1,s="",o="";if(!(t=i.exec(e)))break;if(this.rules.block.hr.test(e))break;s=t[0],e=e.substring(s.length);let a=t[2].split("\n",1)[0].replace(/^\t+/,(e=>" ".repeat(3*e.length))),c=e.split("\n",1)[0],h=!a.trim(),p=0;if(this.options.pedantic?(p=2,o=a.trimStart()):h?p=t[1].length+1:(p=t[2].search(/[^ ]/),p=p>4?1:p,o=a.slice(p),p+=t[1].length),h&&/^ *$/.test(c)&&(s+=c+"\n",e=e.substring(c.length+1),n=!0),!n){const t=new RegExp(`^ {0,${Math.min(3,p-1)}}(?:[*+-]|\\d{1,9}[.)])((?:[ \t][^\\n]*)?(?:\\n|$))`),n=new RegExp(`^ {0,${Math.min(3,p-1)}}((?:- *){3,}|(?:_ *){3,}|(?:\\* *){3,})(?:\\n+|$)`),r=new RegExp(`^ {0,${Math.min(3,p-1)}}(?:\`\`\`|~~~)`),i=new RegExp(`^ {0,${Math.min(3,p-1)}}#`);for(;e;){const l=e.split("\n",1)[0];if(c=l,this.options.pedantic&&(c=c.replace(/^ {1,4}(?=( {4})*[^ ])/g,"  ")),r.test(c))break;if(i.test(c))break;if(t.test(c))break;if(n.test(e))break;if(c.search(/[^ ]/)>=p||!c.trim())o+="\n"+c.slice(p);else{if(h)break;if(a.search(/[^ ]/)>=4)break;if(r.test(a))break;if(i.test(a))break;if(n.test(a))break;o+="\n"+c}h||c.trim()||(h=!0),s+=l+"\n",e=e.substring(l.length+1),a=c.slice(p)}}r.loose||(l?r.loose=!0:/\n *\n *$/.test(s)&&(l=!0));let u,k=null;this.options.gfm&&(k=/^\[[ xX]\] /.exec(o),k&&(u="[ ] "!==k[0],o=o.replace(/^\[[ xX]\] +/,""))),r.items.push({type:"list_item",raw:s,task:!!k,checked:u,loose:!1,text:o,tokens:[]}),r.raw+=s}r.items[r.items.length-1].raw=r.items[r.items.length-1].raw.trimEnd(),r.items[r.items.length-1].text=r.items[r.items.length-1].text.trimEnd(),r.raw=r.raw.trimEnd();for(let e=0;e<r.items.length;e++)if(this.lexer.state.top=!1,r.items[e].tokens=this.lexer.blockTokens(r.items[e].text,[]),!r.loose){const t=r.items[e].tokens.filter((e=>"space"===e.type)),n=t.length>0&&t.some((e=>/\n.*\n/.test(e.raw)));r.loose=n}if(r.loose)for(let e=0;e<r.items.length;e++)r.items[e].loose=!0;return r}}html(e){const t=this.rules.block.html.exec(e);if(t){return{type:"html",block:!0,raw:t[0],pre:"pre"===t[1]||"script"===t[1]||"style"===t[1],text:t[0]}}}def(e){const t=this.rules.block.def.exec(e);if(t){const e=t[1].toLowerCase().replace(/\s+/g," "),n=t[2]?t[2].replace(/^<(.*)>$/,"$1").replace(this.rules.inline.anyPunctuation,"$1"):"",s=t[3]?t[3].substring(1,t[3].length-1).replace(this.rules.inline.anyPunctuation,"$1"):t[3];return{type:"def",tag:e,raw:t[0],href:n,title:s}}}table(e){const t=this.rules.block.table.exec(e);if(!t)return;if(!/[:|]/.test(t[2]))return;const n=f(t[1]),s=t[2].replace(/^\||\| *$/g,"").split("|"),r=t[3]&&t[3].trim()?t[3].replace(/\n[ \t]*$/,"").split("\n"):[],i={type:"table",raw:t[0],header:[],align:[],rows:[]};if(n.length===s.length){for(const e of s)/^ *-+: *$/.test(e)?i.align.push("right"):/^ *:-+: *$/.test(e)?i.align.push("center"):/^ *:-+ *$/.test(e)?i.align.push("left"):i.align.push(null);for(let e=0;e<n.length;e++)i.header.push({text:n[e],tokens:this.lexer.inline(n[e]),header:!0,align:i.align[e]});for(const e of r)i.rows.push(f(e,i.header.length).map(((e,t)=>({text:e,tokens:this.lexer.inline(e),header:!1,align:i.align[t]}))));return i}}lheading(e){const t=this.rules.block.lheading.exec(e);if(t)return{type:"heading",raw:t[0],depth:"="===t[2].charAt(0)?1:2,text:t[1],tokens:this.lexer.inline(t[1])}}paragraph(e){const t=this.rules.block.paragraph.exec(e);if(t){const e="\n"===t[1].charAt(t[1].length-1)?t[1].slice(0,-1):t[1];return{type:"paragraph",raw:t[0],text:e,tokens:this.lexer.inline(e)}}}text(e){const t=this.rules.block.text.exec(e);if(t)return{type:"text",raw:t[0],text:t[0],tokens:this.lexer.inline(t[0])}}escape(e){const t=this.rules.inline.escape.exec(e);if(t)return{type:"escape",raw:t[0],text:c(t[1])}}tag(e){const t=this.rules.inline.tag.exec(e);if(t)return!this.lexer.state.inLink&&/^<a /i.test(t[0])?this.lexer.state.inLink=!0:this.lexer.state.inLink&&/^<\/a>/i.test(t[0])&&(this.lexer.state.inLink=!1),!this.lexer.state.inRawBlock&&/^<(pre|code|kbd|script)(\s|>)/i.test(t[0])?this.lexer.state.inRawBlock=!0:this.lexer.state.inRawBlock&&/^<\/(pre|code|kbd|script)(\s|>)/i.test(t[0])&&(this.lexer.state.inRawBlock=!1),{type:"html",raw:t[0],inLink:this.lexer.state.inLink,inRawBlock:this.lexer.state.inRawBlock,block:!1,text:t[0]}}link(e){const t=this.rules.inline.link.exec(e);if(t){const e=t[2].trim();if(!this.options.pedantic&&/^</.test(e)){if(!/>$/.test(e))return;const t=d(e.slice(0,-1),"\\");if((e.length-t.length)%2==0)return}else{const e=function(e,t){if(-1===e.indexOf(t[1]))return-1;let n=0;for(let s=0;s<e.length;s++)if("\\"===e[s])s++;else if(e[s]===t[0])n++;else if(e[s]===t[1]&&(n--,n<0))return s;return-1}(t[2],"()");if(e>-1){const n=(0===t[0].indexOf("!")?5:4)+t[1].length+e;t[2]=t[2].substring(0,e),t[0]=t[0].substring(0,n).trim(),t[3]=""}}let n=t[2],s="";if(this.options.pedantic){const e=/^([^'"]*[^\s])\s+(['"])(.*)\2/.exec(n);e&&(n=e[1],s=e[3])}else s=t[3]?t[3].slice(1,-1):"";return n=n.trim(),/^</.test(n)&&(n=this.options.pedantic&&!/>$/.test(e)?n.slice(1):n.slice(1,-1)),x(t,{href:n?n.replace(this.rules.inline.anyPunctuation,"$1"):n,title:s?s.replace(this.rules.inline.anyPunctuation,"$1"):s},t[0],this.lexer)}}reflink(e,t){let n;if((n=this.rules.inline.reflink.exec(e))||(n=this.rules.inline.nolink.exec(e))){const e=t[(n[2]||n[1]).replace(/\s+/g," ").toLowerCase()];if(!e){const e=n[0].charAt(0);return{type:"text",raw:e,text:e}}return x(n,e,n[0],this.lexer)}}emStrong(e,t,n=""){let s=this.rules.inline.emStrongLDelim.exec(e);if(!s)return;if(s[3]&&n.match(/[\p{L}\p{N}]/u))return;if(!(s[1]||s[2]||"")||!n||this.rules.inline.punctuation.exec(n)){const n=[...s[0]].length-1;let r,i,l=n,o=0;const a="*"===s[0][0]?this.rules.inline.emStrongRDelimAst:this.rules.inline.emStrongRDelimUnd;for(a.lastIndex=0,t=t.slice(-1*e.length+n);null!=(s=a.exec(t));){if(r=s[1]||s[2]||s[3]||s[4]||s[5]||s[6],!r)continue;if(i=[...r].length,s[3]||s[4]){l+=i;continue}if((s[5]||s[6])&&n%3&&!((n+i)%3)){o+=i;continue}if(l-=i,l>0)continue;i=Math.min(i,i+l+o);const t=[...s[0]][0].length,a=e.slice(0,n+s.index+t+i);if(Math.min(n,i)%2){const e=a.slice(1,-1);return{type:"em",raw:a,text:e,tokens:this.lexer.inlineTokens(e)}}const c=a.slice(2,-2);return{type:"strong",raw:a,text:c,tokens:this.lexer.inlineTokens(c)}}}}codespan(e){const t=this.rules.inline.code.exec(e);if(t){let e=t[2].replace(/\n/g," ");const n=/[^ ]/.test(e),s=/^ /.test(e)&&/ $/.test(e);return n&&s&&(e=e.substring(1,e.length-1)),e=c(e,!0),{type:"codespan",raw:t[0],text:e}}}br(e){const t=this.rules.inline.br.exec(e);if(t)return{type:"br",raw:t[0]}}del(e){const t=this.rules.inline.del.exec(e);if(t)return{type:"del",raw:t[0],text:t[2],tokens:this.lexer.inlineTokens(t[2])}}autolink(e){const t=this.rules.inline.autolink.exec(e);if(t){let e,n;return"@"===t[2]?(e=c(t[1]),n="mailto:"+e):(e=c(t[1]),n=e),{type:"link",raw:t[0],text:e,href:n,tokens:[{type:"text",raw:e,text:e}]}}}url(e){let t;if(t=this.rules.inline.url.exec(e)){let e,n;if("@"===t[2])e=c(t[0]),n="mailto:"+e;else{let s;do{s=t[0],t[0]=this.rules.inline._backpedal.exec(t[0])?.[0]??""}while(s!==t[0]);e=c(t[0]),n="www."===t[1]?"http://"+t[0]:t[0]}return{type:"link",raw:t[0],text:e,href:n,tokens:[{type:"text",raw:e,text:e}]}}}inlineText(e){const t=this.rules.inline.text.exec(e);if(t){let e;return e=this.lexer.state.inRawBlock?t[0]:c(t[0]),{type:"text",raw:t[0],text:e}}}}const w=/^ {0,3}((?:-[\t ]*){3,}|(?:_[ \t]*){3,}|(?:\*[ \t]*){3,})(?:\n+|$)/,m=/(?:[*+-]|\d{1,9}[.)])/,y=u(/^(?!bull |blockCode|fences|blockquote|heading|html)((?:.|\n(?!\s*?\n|bull |blockCode|fences|blockquote|heading|html))+?)\n {0,3}(=+|-+) *(?:\n+|$)/).replace(/bull/g,m).replace(/blockCode/g,/ {4}/).replace(/fences/g,/ {0,3}(?:`{3,}|~{3,})/).replace(/blockquote/g,/ {0,3}>/).replace(/heading/g,/ {0,3}#{1,6}/).replace(/html/g,/ {0,3}<[^\n>]+>\n/).getRegex(),$=/^([^\n]+(?:\n(?!hr|heading|lheading|blockquote|fences|list|html|table| +\n)[^\n]+)*)/,z=/(?!\s*\])(?:\\.|[^\[\]\\])+/,T=u(/^ {0,3}\[(label)\]: *(?:\n *)?([^<\s][^\s]*|<.*?>)(?:(?: +(?:\n *)?| *\n *)(title))? *(?:\n+|$)/).replace("label",z).replace("title",/(?:"(?:\\"?|[^"\\])*"|'[^'\n]*(?:\n[^'\n]+)*\n?'|\([^()]*\))/).getRegex(),R=u(/^( {0,3}bull)([ \t][^\n]+?)?(?:\n|$)/).replace(/bull/g,m).getRegex(),_="address|article|aside|base|basefont|blockquote|body|caption|center|col|colgroup|dd|details|dialog|dir|div|dl|dt|fieldset|figcaption|figure|footer|form|frame|frameset|h[1-6]|head|header|hr|html|iframe|legend|li|link|main|menu|menuitem|meta|nav|noframes|ol|optgroup|option|p|param|search|section|summary|table|tbody|td|tfoot|th|thead|title|tr|track|ul",A=/<!--(?:-?>|[\s\S]*?(?:-->|$))/,S=u("^ {0,3}(?:<(script|pre|style|textarea)[\\s>][\\s\\S]*?(?:</\\1>[^\\n]*\\n+|$)|comment[^\\n]*(\\n+|$)|<\\?[\\s\\S]*?(?:\\?>\\n*|$)|<![A-Z][\\s\\S]*?(?:>\\n*|$)|<!\\[CDATA\\[[\\s\\S]*?(?:\\]\\]>\\n*|$)|</?(tag)(?: +|\\n|/?>)[\\s\\S]*?(?:(?:\\n *)+\\n|$)|<(?!script|pre|style|textarea)([a-z][\\w-]*)(?:attribute)*? */?>(?=[ \\t]*(?:\\n|$))[\\s\\S]*?(?:(?:\\n *)+\\n|$)|</(?!script|pre|style|textarea)[a-z][\\w-]*\\s*>(?=[ \\t]*(?:\\n|$))[\\s\\S]*?(?:(?:\\n *)+\\n|$))","i").replace("comment",A).replace("tag",_).replace("attribute",/ +[a-zA-Z:_][\w.:-]*(?: *= *"[^"\n]*"| *= *'[^'\n]*'| *= *[^\s"'=<>`]+)?/).getRegex(),I=u($).replace("hr",w).replace("heading"," {0,3}#{1,6}(?:\\s|$)").replace("|lheading","").replace("|table","").replace("blockquote"," {0,3}>").replace("fences"," {0,3}(?:`{3,}(?=[^`\\n]*\\n)|~{3,})[^\\n]*\\n").replace("list"," {0,3}(?:[*+-]|1[.)]) ").replace("html","</?(?:tag)(?: +|\\n|/?>)|<(?:script|pre|style|textarea|!--)").replace("tag",_).getRegex(),E={blockquote:u(/^( {0,3}> ?(paragraph|[^\n]*)(?:\n|$))+/).replace("paragraph",I).getRegex(),code:/^( {4}[^\n]+(?:\n(?: *(?:\n|$))*)?)+/,def:T,fences:/^ {0,3}(`{3,}(?=[^`\n]*(?:\n|$))|~{3,})([^\n]*)(?:\n|$)(?:|([\s\S]*?)(?:\n|$))(?: {0,3}\1[~`]* *(?=\n|$)|$)/,heading:/^ {0,3}(#{1,6})(?=\s|$)(.*)(?:\n+|$)/,hr:w,html:S,lheading:y,list:R,newline:/^(?: *(?:\n|$))+/,paragraph:I,table:g,text:/^[^\n]+/},q=u("^ *([^\\n ].*)\\n {0,3}((?:\\| *)?:?-+:? *(?:\\| *:?-+:? *)*(?:\\| *)?)(?:\\n((?:(?! *\\n|hr|heading|blockquote|code|fences|list|html).*(?:\\n|$))*)\\n*|$)").replace("hr",w).replace("heading"," {0,3}#{1,6}(?:\\s|$)").replace("blockquote"," {0,3}>").replace("code"," {4}[^\\n]").replace("fences"," {0,3}(?:`{3,}(?=[^`\\n]*\\n)|~{3,})[^\\n]*\\n").replace("list"," {0,3}(?:[*+-]|1[.)]) ").replace("html","</?(?:tag)(?: +|\\n|/?>)|<(?:script|pre|style|textarea|!--)").replace("tag",_).getRegex(),Z={...E,table:q,paragraph:u($).replace("hr",w).replace("heading"," {0,3}#{1,6}(?:\\s|$)").replace("|lheading","").replace("table",q).replace("blockquote"," {0,3}>").replace("fences"," {0,3}(?:`{3,}(?=[^`\\n]*\\n)|~{3,})[^\\n]*\\n").replace("list"," {0,3}(?:[*+-]|1[.)]) ").replace("html","</?(?:tag)(?: +|\\n|/?>)|<(?:script|pre|style|textarea|!--)").replace("tag",_).getRegex()},L={...E,html:u("^ *(?:comment *(?:\\n|\\s*$)|<(tag)[\\s\\S]+?</\\1> *(?:\\n{2,}|\\s*$)|<tag(?:\"[^\"]*\"|'[^']*'|\\s[^'\"/>\\s]*)*?/?> *(?:\\n{2,}|\\s*$))").replace("comment",A).replace(/tag/g,"(?!(?:a|em|strong|small|s|cite|q|dfn|abbr|data|time|code|var|samp|kbd|sub|sup|i|b|u|mark|ruby|rt|rp|bdi|bdo|span|br|wbr|ins|del|img)\\b)\\w+(?!:|[^\\w\\s@]*@)\\b").getRegex(),def:/^ *\[([^\]]+)\]: *<?([^\s>]+)>?(?: +(["(][^\n]+[")]))? *(?:\n+|$)/,heading:/^(#{1,6})(.*)(?:\n+|$)/,fences:g,lheading:/^(.+?)\n {0,3}(=+|-+) *(?:\n+|$)/,paragraph:u($).replace("hr",w).replace("heading"," *#{1,6} *[^\n]").replace("lheading",y).replace("|table","").replace("blockquote"," {0,3}>").replace("|fences","").replace("|list","").replace("|html","").replace("|tag","").getRegex()},P=/^\\([!"#$%&'()*+,\-./:;<=>?@\[\]\\^_`{|}~])/,v=/^( {2,}|\\)\n(?!\s*$)/,Q="\\p{P}\\p{S}",B=u(/^((?![*_])[\spunctuation])/,"u").replace(/punctuation/g,Q).getRegex(),C=u(/^(?:\*+(?:((?!\*)[punct])|[^\s*]))|^_+(?:((?!_)[punct])|([^\s_]))/,"u").replace(/punct/g,Q).getRegex(),M=u("^[^_*]*?__[^_*]*?\\*[^_*]*?(?=__)|[^*]+(?=[^*])|(?!\\*)[punct](\\*+)(?=[\\s]|$)|[^punct\\s](\\*+)(?!\\*)(?=[punct\\s]|$)|(?!\\*)[punct\\s](\\*+)(?=[^punct\\s])|[\\s](\\*+)(?!\\*)(?=[punct])|(?!\\*)[punct](\\*+)(?!\\*)(?=[punct])|[^punct\\s](\\*+)(?=[^punct\\s])","gu").replace(/punct/g,Q).getRegex(),O=u("^[^_*]*?\\*\\*[^_*]*?_[^_*]*?(?=\\*\\*)|[^_]+(?=[^_])|(?!_)[punct](_+)(?=[\\s]|$)|[^punct\\s](_+)(?!_)(?=[punct\\s]|$)|(?!_)[punct\\s](_+)(?=[^punct\\s])|[\\s](_+)(?!_)(?=[punct])|(?!_)[punct](_+)(?!_)(?=[punct])","gu").replace(/punct/g,Q).getRegex(),j=u(/\\([punct])/,"gu").replace(/punct/g,Q).getRegex(),D=u(/^<(scheme:[^\s\x00-\x1f<>]*|email)>/).replace("scheme",/[a-zA-Z][a-zA-Z0-9+.-]{1,31}/).replace("email",/[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+(@)[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+(?![-_])/).getRegex(),H=u(A).replace("(?:--\x3e|$)","--\x3e").getRegex(),F=u("^comment|^</[a-zA-Z][\\w:-]*\\s*>|^<[a-zA-Z][\\w-]*(?:attribute)*?\\s*/?>|^<\\?[\\s\\S]*?\\?>|^<![a-zA-Z]+\\s[\\s\\S]*?>|^<!\\[CDATA\\[[\\s\\S]*?\\]\\]>").replace("comment",H).replace("attribute",/\s+[a-zA-Z:_][\w.:-]*(?:\s*=\s*"[^"]*"|\s*=\s*'[^']*'|\s*=\s*[^\s"'=<>`]+)?/).getRegex(),U=/(?:\[(?:\\.|[^\[\]\\])*\]|\\.|`[^`]*`|[^\[\]\\`])*?/,X=u(/^!?\[(label)\]\(\s*(href)(?:\s+(title))?\s*\)/).replace("label",U).replace("href",/<(?:\\.|[^\n<>\\])+>|[^\s\x00-\x1f]*/).replace("title",/"(?:\\"?|[^"\\])*"|'(?:\\'?|[^'\\])*'|\((?:\\\)?|[^)\\])*\)/).getRegex(),N=u(/^!?\[(label)\]\[(ref)\]/).replace("label",U).replace("ref",z).getRegex(),G=u(/^!?\[(ref)\](?:\[\])?/).replace("ref",z).getRegex(),J={_backpedal:g,anyPunctuation:j,autolink:D,blockSkip:/\[[^[\]]*?\]\([^\(\)]*?\)|`[^`]*?`|<[^<>]*?>/g,br:v,code:/^(`+)([^`]|[^`][\s\S]*?[^`])\1(?!`)/,del:g,emStrongLDelim:C,emStrongRDelimAst:M,emStrongRDelimUnd:O,escape:P,link:X,nolink:G,punctuation:B,reflink:N,reflinkSearch:u("reflink|nolink(?!\\()","g").replace("reflink",N).replace("nolink",G).getRegex(),tag:F,text:/^(`+|[^`])(?:(?= {2,}\n)|[\s\S]*?(?:(?=[\\<!\[`*_]|\b_|$)|[^ ](?= {2,}\n)))/,url:g},K={...J,link:u(/^!?\[(label)\]\((.*?)\)/).replace("label",U).getRegex(),reflink:u(/^!?\[(label)\]\s*\[([^\]]*)\]/).replace("label",U).getRegex()},V={...J,escape:u(P).replace("])","~|])").getRegex(),url:u(/^((?:ftp|https?):\/\/|www\.)(?:[a-zA-Z0-9\-]+\.?)+[^\s<]*|^email/,"i").replace("email",/[A-Za-z0-9._+-]+(@)[a-zA-Z0-9-_]+(?:\.[a-zA-Z0-9-_]*[a-zA-Z0-9])+(?![-_])/).getRegex(),_backpedal:/(?:[^?!.,:;*_'"~()&]+|\([^)]*\)|&(?![a-zA-Z0-9]+;$)|[?!.,:;*_'"~)]+(?!$))+/,del:/^(~~?)(?=[^\s~])([\s\S]*?[^\s~])\1(?=[^~]|$)/,text:/^([`~]+|[^`~])(?:(?= {2,}\n)|(?=[a-zA-Z0-9.!#$%&'*+\/=?_`{\|}~-]+@)|[\s\S]*?(?:(?=[\\<!\[`*~_]|\b_|https?:\/\/|ftp:\/\/|www\.|$)|[^ ](?= {2,}\n)|[^a-zA-Z0-9.!#$%&'*+\/=?_`{\|}~-](?=[a-zA-Z0-9.!#$%&'*+\/=?_`{\|}~-]+@)))/},W={...V,br:u(v).replace("{2,}","*").getRegex(),text:u(V.text).replace("\\b_","\\b_| {2,}\\n").replace(/\{2,\}/g,"*").getRegex()},Y={normal:E,gfm:Z,pedantic:L},ee={normal:J,gfm:V,breaks:W,pedantic:K};class te{tokens;options;state;tokenizer;inlineQueue;constructor(t){this.tokens=[],this.tokens.links=Object.create(null),this.options=t||e.defaults,this.options.tokenizer=this.options.tokenizer||new b,this.tokenizer=this.options.tokenizer,this.tokenizer.options=this.options,this.tokenizer.lexer=this,this.inlineQueue=[],this.state={inLink:!1,inRawBlock:!1,top:!0};const n={block:Y.normal,inline:ee.normal};this.options.pedantic?(n.block=Y.pedantic,n.inline=ee.pedantic):this.options.gfm&&(n.block=Y.gfm,this.options.breaks?n.inline=ee.breaks:n.inline=ee.gfm),this.tokenizer.rules=n}static get rules(){return{block:Y,inline:ee}}static lex(e,t){return new te(t).lex(e)}static lexInline(e,t){return new te(t).inlineTokens(e)}lex(e){e=e.replace(/\r\n|\r/g,"\n"),this.blockTokens(e,this.tokens);for(let e=0;e<this.inlineQueue.length;e++){const t=this.inlineQueue[e];this.inlineTokens(t.src,t.tokens)}return this.inlineQueue=[],this.tokens}blockTokens(e,t=[],n=!1){let s,r,i;for(e=this.options.pedantic?e.replace(/\t/g,"    ").replace(/^ +$/gm,""):e.replace(/^( *)(\t+)/gm,((e,t,n)=>t+"    ".repeat(n.length)));e;)if(!(this.options.extensions&&this.options.extensions.block&&this.options.extensions.block.some((n=>!!(s=n.call({lexer:this},e,t))&&(e=e.substring(s.raw.length),t.push(s),!0)))))if(s=this.tokenizer.space(e))e=e.substring(s.raw.length),1===s.raw.length&&t.length>0?t[t.length-1].raw+="\n":t.push(s);else if(s=this.tokenizer.code(e))e=e.substring(s.raw.length),r=t[t.length-1],!r||"paragraph"!==r.type&&"text"!==r.type?t.push(s):(r.raw+="\n"+s.raw,r.text+="\n"+s.text,this.inlineQueue[this.inlineQueue.length-1].src=r.text);else if(s=this.tokenizer.fences(e))e=e.substring(s.raw.length),t.push(s);else if(s=this.tokenizer.heading(e))e=e.substring(s.raw.length),t.push(s);else if(s=this.tokenizer.hr(e))e=e.substring(s.raw.length),t.push(s);else if(s=this.tokenizer.blockquote(e))e=e.substring(s.raw.length),t.push(s);else if(s=this.tokenizer.list(e))e=e.substring(s.raw.length),t.push(s);else if(s=this.tokenizer.html(e))e=e.substring(s.raw.length),t.push(s);else if(s=this.tokenizer.def(e))e=e.substring(s.raw.length),r=t[t.length-1],!r||"paragraph"!==r.type&&"text"!==r.type?this.tokens.links[s.tag]||(this.tokens.links[s.tag]={href:s.href,title:s.title}):(r.raw+="\n"+s.raw,r.text+="\n"+s.raw,this.inlineQueue[this.inlineQueue.length-1].src=r.text);else if(s=this.tokenizer.table(e))e=e.substring(s.raw.length),t.push(s);else if(s=this.tokenizer.lheading(e))e=e.substring(s.raw.length),t.push(s);else{if(i=e,this.options.extensions&&this.options.extensions.startBlock){let t=1/0;const n=e.slice(1);let s;this.options.extensions.startBlock.forEach((e=>{s=e.call({lexer:this},n),"number"==typeof s&&s>=0&&(t=Math.min(t,s))})),t<1/0&&t>=0&&(i=e.substring(0,t+1))}if(this.state.top&&(s=this.tokenizer.paragraph(i)))r=t[t.length-1],n&&"paragraph"===r?.type?(r.raw+="\n"+s.raw,r.text+="\n"+s.text,this.inlineQueue.pop(),this.inlineQueue[this.inlineQueue.length-1].src=r.text):t.push(s),n=i.length!==e.length,e=e.substring(s.raw.length);else if(s=this.tokenizer.text(e))e=e.substring(s.raw.length),r=t[t.length-1],r&&"text"===r.type?(r.raw+="\n"+s.raw,r.text+="\n"+s.text,this.inlineQueue.pop(),this.inlineQueue[this.inlineQueue.length-1].src=r.text):t.push(s);else if(e){const t="Infinite loop on byte: "+e.charCodeAt(0);if(this.options.silent){console.error(t);break}throw new Error(t)}}return this.state.top=!0,t}inline(e,t=[]){return this.inlineQueue.push({src:e,tokens:t}),t}inlineTokens(e,t=[]){let n,s,r,i,l,o,a=e;if(this.tokens.links){const e=Object.keys(this.tokens.links);if(e.length>0)for(;null!=(i=this.tokenizer.rules.inline.reflinkSearch.exec(a));)e.includes(i[0].slice(i[0].lastIndexOf("[")+1,-1))&&(a=a.slice(0,i.index)+"["+"a".repeat(i[0].length-2)+"]"+a.slice(this.tokenizer.rules.inline.reflinkSearch.lastIndex))}for(;null!=(i=this.tokenizer.rules.inline.blockSkip.exec(a));)a=a.slice(0,i.index)+"["+"a".repeat(i[0].length-2)+"]"+a.slice(this.tokenizer.rules.inline.blockSkip.lastIndex);for(;null!=(i=this.tokenizer.rules.inline.anyPunctuation.exec(a));)a=a.slice(0,i.index)+"++"+a.slice(this.tokenizer.rules.inline.anyPunctuation.lastIndex);for(;e;)if(l||(o=""),l=!1,!(this.options.extensions&&this.options.extensions.inline&&this.options.extensions.inline.some((s=>!!(n=s.call({lexer:this},e,t))&&(e=e.substring(n.raw.length),t.push(n),!0)))))if(n=this.tokenizer.escape(e))e=e.substring(n.raw.length),t.push(n);else if(n=this.tokenizer.tag(e))e=e.substring(n.raw.length),s=t[t.length-1],s&&"text"===n.type&&"text"===s.type?(s.raw+=n.raw,s.text+=n.text):t.push(n);else if(n=this.tokenizer.link(e))e=e.substring(n.raw.length),t.push(n);else if(n=this.tokenizer.reflink(e,this.tokens.links))e=e.substring(n.raw.length),s=t[t.length-1],s&&"text"===n.type&&"text"===s.type?(s.raw+=n.raw,s.text+=n.text):t.push(n);else if(n=this.tokenizer.emStrong(e,a,o))e=e.substring(n.raw.length),t.push(n);else if(n=this.tokenizer.codespan(e))e=e.substring(n.raw.length),t.push(n);else if(n=this.tokenizer.br(e))e=e.substring(n.raw.length),t.push(n);else if(n=this.tokenizer.del(e))e=e.substring(n.raw.length),t.push(n);else if(n=this.tokenizer.autolink(e))e=e.substring(n.raw.length),t.push(n);else if(this.state.inLink||!(n=this.tokenizer.url(e))){if(r=e,this.options.extensions&&this.options.extensions.startInline){let t=1/0;const n=e.slice(1);let s;this.options.extensions.startInline.forEach((e=>{s=e.call({lexer:this},n),"number"==typeof s&&s>=0&&(t=Math.min(t,s))})),t<1/0&&t>=0&&(r=e.substring(0,t+1))}if(n=this.tokenizer.inlineText(r))e=e.substring(n.raw.length),"_"!==n.raw.slice(-1)&&(o=n.raw.slice(-1)),l=!0,s=t[t.length-1],s&&"text"===s.type?(s.raw+=n.raw,s.text+=n.text):t.push(n);else if(e){const t="Infinite loop on byte: "+e.charCodeAt(0);if(this.options.silent){console.error(t);break}throw new Error(t)}}else e=e.substring(n.raw.length),t.push(n);return t}}class ne{options;parser;constructor(t){this.options=t||e.defaults}space(e){return""}code({text:e,lang:t,escaped:n}){const s=(t||"").match(/^\S*/)?.[0],r=e.replace(/\n$/,"")+"\n";return s?'<pre><code class="language-'+c(s)+'">'+(n?r:c(r,!0))+"</code></pre>\n":"<pre><code>"+(n?r:c(r,!0))+"</code></pre>\n"}blockquote({tokens:e}){return`<blockquote>\n${this.parser.parse(e)}</blockquote>\n`}html({text:e}){return e}heading({tokens:e,depth:t}){return`<h${t}>${this.parser.parseInline(e)}</h${t}>\n`}hr(e){return"<hr>\n"}list(e){const t=e.ordered,n=e.start;let s="";for(let t=0;t<e.items.length;t++){const n=e.items[t];s+=this.listitem(n)}const r=t?"ol":"ul";return"<"+r+(t&&1!==n?' start="'+n+'"':"")+">\n"+s+"</"+r+">\n"}listitem(e){let t="";if(e.task){const n=this.checkbox({checked:!!e.checked});e.loose?e.tokens.length>0&&"paragraph"===e.tokens[0].type?(e.tokens[0].text=n+" "+e.tokens[0].text,e.tokens[0].tokens&&e.tokens[0].tokens.length>0&&"text"===e.tokens[0].tokens[0].type&&(e.tokens[0].tokens[0].text=n+" "+e.tokens[0].tokens[0].text)):e.tokens.unshift({type:"text",raw:n+" ",text:n+" "}):t+=n+" "}return t+=this.parser.parse(e.tokens,!!e.loose),`<li>${t}</li>\n`}checkbox({checked:e}){return"<input "+(e?'checked="" ':"")+'disabled="" type="checkbox">'}paragraph({tokens:e}){return`<p>${this.parser.parseInline(e)}</p>\n`}table(e){let t="",n="";for(let t=0;t<e.header.length;t++)n+=this.tablecell(e.header[t]);t+=this.tablerow({text:n});let s="";for(let t=0;t<e.rows.length;t++){const r=e.rows[t];n="";for(let e=0;e<r.length;e++)n+=this.tablecell(r[e]);s+=this.tablerow({text:n})}return s&&(s=`<tbody>${s}</tbody>`),"<table>\n<thead>\n"+t+"</thead>\n"+s+"</table>\n"}tablerow({text:e}){return`<tr>\n${e}</tr>\n`}tablecell(e){const t=this.parser.parseInline(e.tokens),n=e.header?"th":"td";return(e.align?`<${n} align="${e.align}">`:`<${n}>`)+t+`</${n}>\n`}strong({tokens:e}){return`<strong>${this.parser.parseInline(e)}</strong>`}em({tokens:e}){return`<em>${this.parser.parseInline(e)}</em>`}codespan({text:e}){return`<code>${e}</code>`}br(e){return"<br>"}del({tokens:e}){return`<del>${this.parser.parseInline(e)}</del>`}link({href:e,title:t,tokens:n}){const s=this.parser.parseInline(n),r=k(e);if(null===r)return s;let i='<a href="'+(e=r)+'"';return t&&(i+=' title="'+t+'"'),i+=">"+s+"</a>",i}image({href:e,title:t,text:n}){const s=k(e);if(null===s)return n;let r=`<img src="${e=s}" alt="${n}"`;return t&&(r+=` title="${t}"`),r+=">",r}text(e){return"tokens"in e&&e.tokens?this.parser.parseInline(e.tokens):e.text}}class se{strong({text:e}){return e}em({text:e}){return e}codespan({text:e}){return e}del({text:e}){return e}html({text:e}){return e}text({text:e}){return e}link({text:e}){return""+e}image({text:e}){return""+e}br(){return""}}class re{options;renderer;textRenderer;constructor(t){this.options=t||e.defaults,this.options.renderer=this.options.renderer||new ne,this.renderer=this.options.renderer,this.renderer.options=this.options,this.renderer.parser=this,this.textRenderer=new se}static parse(e,t){return new re(t).parse(e)}static parseInline(e,t){return new re(t).parseInline(e)}parse(e,t=!0){let n="";for(let s=0;s<e.length;s++){const r=e[s];if(this.options.extensions&&this.options.extensions.renderers&&this.options.extensions.renderers[r.type]){const e=r,t=this.options.extensions.renderers[e.type].call({parser:this},e);if(!1!==t||!["space","hr","heading","code","table","blockquote","list","html","paragraph","text"].includes(e.type)){n+=t||"";continue}}const i=r;switch(i.type){case"space":n+=this.renderer.space(i);continue;case"hr":n+=this.renderer.hr(i);continue;case"heading":n+=this.renderer.heading(i);continue;case"code":n+=this.renderer.code(i);continue;case"table":n+=this.renderer.table(i);continue;case"blockquote":n+=this.renderer.blockquote(i);continue;case"list":n+=this.renderer.list(i);continue;case"html":n+=this.renderer.html(i);continue;case"paragraph":n+=this.renderer.paragraph(i);continue;case"text":{let r=i,l=this.renderer.text(r);for(;s+1<e.length&&"text"===e[s+1].type;)r=e[++s],l+="\n"+this.renderer.text(r);n+=t?this.renderer.paragraph({type:"paragraph",raw:l,text:l,tokens:[{type:"text",raw:l,text:l}]}):l;continue}default:{const e='Token with "'+i.type+'" type was not found.';if(this.options.silent)return console.error(e),"";throw new Error(e)}}}return n}parseInline(e,t){t=t||this.renderer;let n="";for(let s=0;s<e.length;s++){const r=e[s];if(this.options.extensions&&this.options.extensions.renderers&&this.options.extensions.renderers[r.type]){const e=this.options.extensions.renderers[r.type].call({parser:this},r);if(!1!==e||!["escape","html","link","image","strong","em","codespan","br","del","text"].includes(r.type)){n+=e||"";continue}}const i=r;switch(i.type){case"escape":case"text":n+=t.text(i);break;case"html":n+=t.html(i);break;case"link":n+=t.link(i);break;case"image":n+=t.image(i);break;case"strong":n+=t.strong(i);break;case"em":n+=t.em(i);break;case"codespan":n+=t.codespan(i);break;case"br":n+=t.br(i);break;case"del":n+=t.del(i);break;default:{const e='Token with "'+i.type+'" type was not found.';if(this.options.silent)return console.error(e),"";throw new Error(e)}}}return n}}class ie{options;constructor(t){this.options=t||e.defaults}static passThroughHooks=new Set(["preprocess","postprocess","processAllTokens"]);preprocess(e){return e}postprocess(e){return e}processAllTokens(e){return e}}class le{defaults={async:!1,breaks:!1,extensions:null,gfm:!0,hooks:null,pedantic:!1,renderer:null,silent:!1,tokenizer:null,walkTokens:null};options=this.setOptions;parse=this.#e(te.lex,re.parse);parseInline=this.#e(te.lexInline,re.parseInline);Parser=re;Renderer=ne;TextRenderer=se;Lexer=te;Tokenizer=b;Hooks=ie;constructor(...e){this.use(...e)}walkTokens(e,t){let n=[];for(const s of e)switch(n=n.concat(t.call(this,s)),s.type){case"table":{const e=s;for(const s of e.header)n=n.concat(this.walkTokens(s.tokens,t));for(const s of e.rows)for(const e of s)n=n.concat(this.walkTokens(e.tokens,t));break}case"list":{const e=s;n=n.concat(this.walkTokens(e.items,t));break}default:{const e=s;this.defaults.extensions?.childTokens?.[e.type]?this.defaults.extensions.childTokens[e.type].forEach((s=>{const r=e[s].flat(1/0);n=n.concat(this.walkTokens(r,t))})):e.tokens&&(n=n.concat(this.walkTokens(e.tokens,t)))}}return n}use(...e){const t=this.defaults.extensions||{renderers:{},childTokens:{}};return e.forEach((e=>{const n={...e};if(n.async=this.defaults.async||n.async||!1,e.extensions&&(e.extensions.forEach((e=>{if(!e.name)throw new Error("extension name required");if("renderer"in e){const n=t.renderers[e.name];t.renderers[e.name]=n?function(...t){let s=e.renderer.apply(this,t);return!1===s&&(s=n.apply(this,t)),s}:e.renderer}if("tokenizer"in e){if(!e.level||"block"!==e.level&&"inline"!==e.level)throw new Error("extension level must be 'block' or 'inline'");const n=t[e.level];n?n.unshift(e.tokenizer):t[e.level]=[e.tokenizer],e.start&&("block"===e.level?t.startBlock?t.startBlock.push(e.start):t.startBlock=[e.start]:"inline"===e.level&&(t.startInline?t.startInline.push(e.start):t.startInline=[e.start]))}"childTokens"in e&&e.childTokens&&(t.childTokens[e.name]=e.childTokens)})),n.extensions=t),e.renderer){const t=this.defaults.renderer||new ne(this.defaults);for(const n in e.renderer){if(!(n in t))throw new Error(`renderer '${n}' does not exist`);if(["options","parser"].includes(n))continue;const s=n;let r=e.renderer[s];e.useNewRenderer||(r=this.#t(r,s,t));const i=t[s];t[s]=(...e)=>{let n=r.apply(t,e);return!1===n&&(n=i.apply(t,e)),n||""}}n.renderer=t}if(e.tokenizer){const t=this.defaults.tokenizer||new b(this.defaults);for(const n in e.tokenizer){if(!(n in t))throw new Error(`tokenizer '${n}' does not exist`);if(["options","rules","lexer"].includes(n))continue;const s=n,r=e.tokenizer[s],i=t[s];t[s]=(...e)=>{let n=r.apply(t,e);return!1===n&&(n=i.apply(t,e)),n}}n.tokenizer=t}if(e.hooks){const t=this.defaults.hooks||new ie;for(const n in e.hooks){if(!(n in t))throw new Error(`hook '${n}' does not exist`);if("options"===n)continue;const s=n,r=e.hooks[s],i=t[s];ie.passThroughHooks.has(n)?t[s]=e=>{if(this.defaults.async)return Promise.resolve(r.call(t,e)).then((e=>i.call(t,e)));const n=r.call(t,e);return i.call(t,n)}:t[s]=(...e)=>{let n=r.apply(t,e);return!1===n&&(n=i.apply(t,e)),n}}n.hooks=t}if(e.walkTokens){const t=this.defaults.walkTokens,s=e.walkTokens;n.walkTokens=function(e){let n=[];return n.push(s.call(this,e)),t&&(n=n.concat(t.call(this,e))),n}}this.defaults={...this.defaults,...n}})),this}#t(e,t,n){switch(t){case"heading":return function(s){return s.type&&s.type===t?e.call(this,n.parser.parseInline(s.tokens),s.depth,function(e){return e.replace(h,((e,t)=>"colon"===(t=t.toLowerCase())?":":"#"===t.charAt(0)?"x"===t.charAt(1)?String.fromCharCode(parseInt(t.substring(2),16)):String.fromCharCode(+t.substring(1)):""))}(n.parser.parseInline(s.tokens,n.parser.textRenderer))):e.apply(this,arguments)};case"code":return function(n){return n.type&&n.type===t?e.call(this,n.text,n.lang,!!n.escaped):e.apply(this,arguments)};case"table":return function(n){if(!n.type||n.type!==t)return e.apply(this,arguments);let s="",r="";for(let e=0;e<n.header.length;e++)r+=this.tablecell({text:n.header[e].text,tokens:n.header[e].tokens,header:!0,align:n.align[e]});s+=this.tablerow({text:r});let i="";for(let e=0;e<n.rows.length;e++){const t=n.rows[e];r="";for(let e=0;e<t.length;e++)r+=this.tablecell({text:t[e].text,tokens:t[e].tokens,header:!1,align:n.align[e]});i+=this.tablerow({text:r})}return e.call(this,s,i)};case"blockquote":return function(n){if(!n.type||n.type!==t)return e.apply(this,arguments);const s=this.parser.parse(n.tokens);return e.call(this,s)};case"list":return function(n){if(!n.type||n.type!==t)return e.apply(this,arguments);const s=n.ordered,r=n.start,i=n.loose;let l="";for(let e=0;e<n.items.length;e++){const t=n.items[e],s=t.checked,r=t.task;let o="";if(t.task){const e=this.checkbox({checked:!!s});i?t.tokens.length>0&&"paragraph"===t.tokens[0].type?(t.tokens[0].text=e+" "+t.tokens[0].text,t.tokens[0].tokens&&t.tokens[0].tokens.length>0&&"text"===t.tokens[0].tokens[0].type&&(t.tokens[0].tokens[0].text=e+" "+t.tokens[0].tokens[0].text)):t.tokens.unshift({type:"text",text:e+" "}):o+=e+" "}o+=this.parser.parse(t.tokens,i),l+=this.listitem({type:"list_item",raw:o,text:o,task:r,checked:!!s,loose:i,tokens:t.tokens})}return e.call(this,l,s,r)};case"html":return function(n){return n.type&&n.type===t?e.call(this,n.text,n.block):e.apply(this,arguments)};case"paragraph":case"strong":case"em":case"del":return function(n){return n.type&&n.type===t?e.call(this,this.parser.parseInline(n.tokens)):e.apply(this,arguments)};case"escape":case"codespan":case"text":return function(n){return n.type&&n.type===t?e.call(this,n.text):e.apply(this,arguments)};case"link":return function(n){return n.type&&n.type===t?e.call(this,n.href,n.title,this.parser.parseInline(n.tokens)):e.apply(this,arguments)};case"image":return function(n){return n.type&&n.type===t?e.call(this,n.href,n.title,n.text):e.apply(this,arguments)}}return e}setOptions(e){return this.defaults={...this.defaults,...e},this}lexer(e,t){return te.lex(e,t??this.defaults)}parser(e,t){return re.parse(e,t??this.defaults)}#e(e,t){return(n,s)=>{const r={...s},i={...this.defaults,...r};!0===this.defaults.async&&!1===r.async&&(i.silent||console.warn("marked(): The async option was set to true by an extension. The async: false option sent to parse will be ignored."),i.async=!0);const l=this.#n(!!i.silent,!!i.async);if(null==n)return l(new Error("marked(): input parameter is undefined or null"));if("string"!=typeof n)return l(new Error("marked(): input parameter is of type "+Object.prototype.toString.call(n)+", string expected"));if(i.hooks&&(i.hooks.options=i),i.async)return Promise.resolve(i.hooks?i.hooks.preprocess(n):n).then((t=>e(t,i))).then((e=>i.hooks?i.hooks.processAllTokens(e):e)).then((e=>i.walkTokens?Promise.all(this.walkTokens(e,i.walkTokens)).then((()=>e)):e)).then((e=>t(e,i))).then((e=>i.hooks?i.hooks.postprocess(e):e)).catch(l);try{i.hooks&&(n=i.hooks.preprocess(n));let s=e(n,i);i.hooks&&(s=i.hooks.processAllTokens(s)),i.walkTokens&&this.walkTokens(s,i.walkTokens);let r=t(s,i);return i.hooks&&(r=i.hooks.postprocess(r)),r}catch(e){return l(e)}}}#n(e,t){return n=>{if(n.message+="\nPlease report this to https://github.com/markedjs/marked.",e){const e="<p>An error occurred:</p><pre>"+c(n.message+"",!0)+"</pre>";return t?Promise.resolve(e):e}if(t)return Promise.reject(n);throw n}}}const oe=new le;function ae(e,t){return oe.parse(e,t)}ae.options=ae.setOptions=function(e){return oe.setOptions(e),ae.defaults=oe.defaults,n(ae.defaults),ae},ae.getDefaults=t,ae.defaults=e.defaults,ae.use=function(...e){return oe.use(...e),ae.defaults=oe.defaults,n(ae.defaults),ae},ae.walkTokens=function(e,t){return oe.walkTokens(e,t)},ae.parseInline=oe.parseInline,ae.Parser=re,ae.parser=re.parse,ae.Renderer=ne,ae.TextRenderer=se,ae.Lexer=te,ae.lexer=te.lex,ae.Tokenizer=b,ae.Hooks=ie,ae.parse=ae;const ce=ae.options,he=ae.setOptions,pe=ae.use,ue=ae.walkTokens,ke=ae.parseInline,ge=ae,fe=re.parse,de=te.lex;e.Hooks=ie,e.Lexer=te,e.Marked=le,e.Parser=re,e.Renderer=ne,e.TextRenderer=se,e.Tokenizer=b,e.getDefaults=t,e.lexer=de,e.marked=ae,e.options=ce,e.parse=ge,e.parseInline=ke,e.parser=fe,e.setOptions=he,e.use=pe,e.walkTokens=ue}));
+</script>
+  <script>
+const PAGES = [{"id":"inspection-target","label":"점검대상","summary":"큰 골격(레이아웃·컬럼·서머리·상세필터·라벨 일괄수정·페이징)은 mock과 유사하지만 **외부는 \"등록/벌크 등록/점검대상 수정\" CRUD 기능이 추가**되고 **`검색 수` 컬럼이 빠졌으며**, **상태가 5종으로 확장(중지됨 추가)**되는 등 운영 관점 차이가 큼. 역할 스위치·브레드크럼·헤더 사용자 메뉴 등 mock 전용 장치는 외부에 없음."},{"id":"inspection-target-detail","label":"점검대상 상세","summary":"핵심 카드 3개(점검대상 정보 / 검사 규칙(테이블 정보) / 점검 이력) 골조는 일치하나, 점검대상 정보 필드 구성·검사 규칙 모달의 적용범위 입력방식·점검 시작 동작·실패사유 모달이 mock과 외부에서 의미 있게 다름."},{"id":"analysis-history","label":"점검이력","summary":"큰 골격(요약 칩 5종·검색·상세필터·테이블 컬럼·중단/재시작/삭제 확인 모달·상세 패널)은 mock과 일치하지만, **라벨(중지→중단/점검완료→완료/점검중→실행중)·사용자 메뉴·역할 스위치·수정 버튼 라우팅(404 버그)·검색 카테고리 분리·URL 라우팅·점검대상 테이블 페이징**에서 의미 있는 차이가 존재."},{"id":"detection-list","label":"검출목록","summary":"큰 골격(레이아웃·컬럼·필터·일괄수정·우측 보기/하단 보기 토글)은 mock과 일치하지만, **상세 패널 구성·상태값·역할 권한·일부 부가 컨트롤(URL 라우팅, 검색 카테고리, 변경이력 컬럼)에서 의미 있는 차이**가 존재함."},{"id":"exception-request","label":"제외신청관리","summary":"주요 기능(탭·요약타일·승인/거부·처리결과)이 mock과 거의 1:1로 매핑되어 동작하나, 역할 전환 UI·breadcrumb·선택 배너·모달 문구·토스트 메시지·자동 탭 전환 등 세부 UX에서 차이가 다수 존재. 외부는 `제외 취소` 상태와 행별 액션 버튼이 추가됨."},{"id":"action-plan","label":"조치계획관리","summary":"컬럼·상태 칩·요약 타일·상세필터 구조는 90%+ 일치하나, **외부는 상세 모달·조치계획 작성 플로우가 mock보다 훨씬 풍부**(검출원인 필드·체크박스 선택·양식 다운로드·drag&drop·페이지 내 새 패널)하고 mock에만 있는 역할 스위치/breadcrumb/사용자 드롭다운은 외부에 없음."}];
+const VERDICT_MAP = [
+  { test: t => /^조치완료$/.test(t), cls: 'v-match' },
+  { test: t => /^일치$/.test(t), cls: 'v-match' },
+  { test: t => /^완전 일치$/.test(t), cls: 'v-match' },
+  { test: t => /^부분일치$/.test(t) || /^부분 일치$/.test(t) || /^부분$/.test(t), cls: 'v-partial' },
+  { test: t => /^변경$/.test(t) || /^변경됨$/.test(t) || /^차이$/.test(t), cls: 'v-change' },
+  { test: t => /^누락$/.test(t) || /^없음$/.test(t) || /^미구현$/.test(t) || /^미적용$/.test(t), cls: 'v-missing' },
+  { test: t => /^추가$/.test(t) || /^신규$/.test(t), cls: 'v-extra' },
+  { test: t => /^High$/i.test(t) || /^🔴/.test(t), cls: 'v-high' },
+  { test: t => /^Medium$/i.test(t) || /^🟡/.test(t), cls: 'v-med' },
+  { test: t => /^Low$/i.test(t) || /^🟢/.test(t), cls: 'v-low' },
+];
+
+function setTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  try { localStorage.setItem('cmp-theme', t); } catch(e){}
+}
+function getTheme() {
+  try { return localStorage.getItem('cmp-theme') || 'light'; } catch(e){ return 'light'; }
+}
+
+function renderAllPages() {
+  const renderer = new marked.Renderer();
+  marked.use({ gfm: true, breaks: false });
+
+  for (const p of PAGES) {
+    const md = document.getElementById('md-' + p.id).textContent;
+    const html = marked.parse(md);
+    const container = document.getElementById('md-body-' + p.id);
+    container.innerHTML = html;
+
+    // Add IDs to h2/h3 for anchor links.
+    let idx = 0;
+    container.querySelectorAll('h2, h3').forEach(h => {
+      const slug = (p.id + '-h-' + (idx++) + '-' + (h.textContent || '').replace(/[^\w가-힣]+/g, '-')).slice(0, 80);
+      h.id = slug;
+    });
+
+    // Verdict pill rendering for table cells.
+    container.querySelectorAll('td').forEach(td => {
+      const text = (td.textContent || '').trim();
+      // Don't pill-ify long sentences — only short verdict words.
+      if (text.length === 0 || text.length > 12) return;
+      for (const v of VERDICT_MAP) {
+        if (v.test(text)) {
+          td.innerHTML = '<span class="v-pill ' + v.cls + '">' + escapeHtml(text) + '</span>';
+          break;
+        }
+      }
+    });
+  }
+}
+
+function escapeHtml(s) {
+  return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function buildSidebar() {
+  const list = document.getElementById('nav-list');
+  list.innerHTML = '';
+  PAGES.forEach((p, i) => {
+    const li = document.createElement('li');
+    li.className = 'nav-page';
+    li.dataset.pageId = p.id;
+    li.innerHTML = `
+      <button class="page-toggle" type="button">
+        <span class="page-num">${i+1}</span>
+        <span>${escapeHtml(p.label)}</span>
+        <span class="chev">▶</span>
+      </button>
+      <ul class="section-list" id="sections-${p.id}"></ul>
+    `;
+    li.querySelector('.page-toggle').addEventListener('click', () => activatePage(p.id));
+    list.appendChild(li);
+
+    // Build section anchors (h2 within the page body).
+    const subList = li.querySelector('.section-list');
+    const body = document.getElementById('md-body-' + p.id);
+    body.querySelectorAll('h2').forEach(h2 => {
+      const a = document.createElement('a');
+      a.href = '#' + h2.id;
+      a.textContent = h2.textContent;
+      a.addEventListener('click', e => { e.preventDefault(); activatePage(p.id); setTimeout(() => { h2.scrollIntoView({behavior:'smooth', block:'start'}); markCurrentSection(h2.id); }, 30); });
+      const li2 = document.createElement('li');
+      li2.appendChild(a);
+      subList.appendChild(li2);
+    });
+  });
+}
+
+function activatePage(pageId) {
+  document.querySelectorAll('.nav-page').forEach(el => el.classList.toggle('active', el.dataset.pageId === pageId));
+  document.querySelectorAll('.page-section').forEach(el => el.classList.toggle('active', el.dataset.pageId === pageId));
+  history.replaceState(null, '', '#' + pageId);
+  // reset scroll inside main
+  window.scrollTo({ top: 0, behavior: 'instant' });
+}
+
+function markCurrentSection(id) {
+  document.querySelectorAll('.section-list a').forEach(a => a.classList.toggle('current', a.getAttribute('href') === '#' + id));
+}
+
+function setupSearch() {
+  const input = document.getElementById('search-input');
+  const wrap = document.getElementById('search-wrap');
+  const clear = document.getElementById('search-clear');
+  const summary = document.getElementById('search-summary');
+  let timer = null;
+
+  function clearAll() {
+    document.querySelectorAll('mark.hit').forEach(m => {
+      const parent = m.parentNode;
+      parent.replaceChild(document.createTextNode(m.textContent), m);
+      parent.normalize();
+    });
+    summary.classList.remove('visible');
+    summary.innerHTML = '';
+    wrap.classList.remove('has-value');
+  }
+
+  function highlight(term) {
+    clearAll();
+    if (!term) return;
+    wrap.classList.add('has-value');
+    const re = new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+    const counts = {};
+    let total = 0;
+    PAGES.forEach(p => {
+      const root = document.getElementById('md-body-' + p.id);
+      counts[p.id] = walkAndHighlight(root, re);
+      total += counts[p.id];
+    });
+    const summaryItems = PAGES
+      .filter(p => counts[p.id] > 0)
+      .map(p => `<a href="#" data-page-id="${p.id}">${escapeHtml(p.label)} (${counts[p.id]})</a>`)
+      .join(' · ');
+    if (total === 0) {
+      summary.innerHTML = `<b>"${escapeHtml(term)}"</b> 검색 결과 없음`;
+    } else {
+      summary.innerHTML = `<b>"${escapeHtml(term)}"</b> · 총 ${total}건 매칭 — 페이지로 이동: ${summaryItems}`;
+    }
+    summary.classList.add('visible');
+    summary.querySelectorAll('a[data-page-id]').forEach(a => {
+      a.addEventListener('click', e => { e.preventDefault(); activatePage(a.dataset.pageId); });
+    });
+  }
+
+  function walkAndHighlight(root, re) {
+    let count = 0;
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+      acceptNode: n => n.parentNode && /^(SCRIPT|STYLE|MARK)$/.test(n.parentNode.nodeName) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT
+    });
+    const nodes = [];
+    let n;
+    while ((n = walker.nextNode())) nodes.push(n);
+    for (const node of nodes) {
+      const txt = node.nodeValue;
+      if (!re.test(txt)) { re.lastIndex = 0; continue; }
+      re.lastIndex = 0;
+      const frag = document.createDocumentFragment();
+      let last = 0; let m;
+      while ((m = re.exec(txt)) !== null) {
+        if (m.index > last) frag.appendChild(document.createTextNode(txt.slice(last, m.index)));
+        const mark = document.createElement('mark');
+        mark.className = 'hit';
+        mark.textContent = m[0];
+        frag.appendChild(mark);
+        last = m.index + m[0].length;
+        count++;
+        if (m[0].length === 0) re.lastIndex++;
+      }
+      if (last < txt.length) frag.appendChild(document.createTextNode(txt.slice(last)));
+      node.parentNode.replaceChild(frag, node);
+    }
+    return count;
+  }
+
+  input.addEventListener('input', () => {
+    clearTimeout(timer);
+    const v = input.value.trim();
+    if (!v) { clearAll(); return; }
+    timer = setTimeout(() => highlight(v), 120);
+  });
+  clear.addEventListener('click', () => { input.value = ''; clearAll(); input.focus(); });
+}
+
+function setupToolbar() {
+  document.getElementById('btn-theme').addEventListener('click', () => {
+    setTheme(getTheme() === 'dark' ? 'light' : 'dark');
+  });
+  document.getElementById('btn-print').addEventListener('click', () => {
+    document.body.classList.add('print-all');
+    setTimeout(() => { window.print(); setTimeout(() => document.body.classList.remove('print-all'), 500); }, 50);
+  });
+  document.getElementById('btn-expand-all').addEventListener('click', () => {
+    document.body.classList.toggle('print-all');
+    document.getElementById('btn-expand-all').textContent = document.body.classList.contains('print-all') ? '한 페이지씩 보기' : '모두 펼쳐보기';
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  setTheme(getTheme());
+  renderAllPages();
+  buildSidebar();
+  setupSearch();
+  setupToolbar();
+
+  const initial = (location.hash || '').replace('#', '') || PAGES[0].id;
+  if (PAGES.some(p => p.id === initial)) activatePage(initial);
+  else activatePage(PAGES[0].id);
+});
+</script>
+</body>
+</html>
